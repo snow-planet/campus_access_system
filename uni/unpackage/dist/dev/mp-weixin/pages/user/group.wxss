@@ -1,0 +1,407 @@
+
+/* 弹窗样式 */
+.modal-overlay.data-v-afedccba {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	padding: 20rpx;
+	box-sizing: border-box;
+}
+.notice-modal.data-v-afedccba {
+	background: white;
+	border-radius: 20rpx;
+	width: 100%;
+	max-width: 650rpx;
+	max-height: 85vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+.modal-header.data-v-afedccba {
+	background: #1c4e80;
+	color: white;
+	padding: 25rpx 30rpx;
+	text-align: center;
+	flex-shrink: 0;
+}
+.modal-title.data-v-afedccba {
+	font-size: 32rpx;
+	font-weight: bold;
+}
+.modal-content.data-v-afedccba {
+	flex: 1;
+	padding: 25rpx 30rpx;
+	max-height: calc(85vh - 200rpx);
+	box-sizing: border-box;
+	overflow: hidden;
+}
+.notice-content.data-v-afedccba {
+	display: flex;
+	flex-direction: column;
+	gap: 18rpx;
+}
+.notice-subtitle.data-v-afedccba {
+	font-size: 28rpx;
+	color: #1c4e80;
+	font-weight: 600;
+	line-height: 1.4;
+}
+.notice-list.data-v-afedccba {
+	display: flex;
+	flex-direction: column;
+	gap: 12rpx;
+}
+.notice-item.data-v-afedccba {
+	font-size: 24rpx;
+	color: #333;
+	line-height: 1.4;
+}
+.notice-highlight.data-v-afedccba {
+	background: #fff7e6;
+	padding: 18rpx;
+	border-radius: 8rpx;
+	border-left: 5rpx solid #ffa940;
+	margin-top: 12rpx;
+}
+.notice-highlight text.data-v-afedccba {
+	font-size: 24rpx;
+	font-weight: 500;
+	color: #333;
+	line-height: 1.4;
+}
+.modal-footer.data-v-afedccba {
+	padding: 25rpx 30rpx;
+	border-top: 2rpx solid #e8e8e8;
+	display: flex;
+	flex-direction: column;
+	gap: 20rpx;
+	flex-shrink: 0;
+	box-sizing: border-box;
+}
+.agree-checkbox.data-v-afedccba {
+	display: flex;
+	align-items: center;
+}
+.checkbox-text.data-v-afedccba {
+	font-size: 24rpx;
+	margin-left: 12rpx;
+}
+.confirm-btn.data-v-afedccba {
+	background: #1c4e80;
+	color: white;
+	border: none;
+	padding: 20rpx;
+	border-radius: 20rpx;
+	font-size: 28rpx;
+	font-weight: 500;
+}
+.confirm-btn.disabled.data-v-afedccba {
+	background: #ccc;
+	color: #999;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+.modal-overlay.data-v-afedccba {
+		padding: 15rpx;
+}
+.notice-modal.data-v-afedccba {
+		max-width: 90%;
+		max-height: 90vh;
+}
+.modal-header.data-v-afedccba {
+		padding: 20rpx 25rpx;
+}
+.modal-title.data-v-afedccba {
+		font-size: 30rpx;
+}
+.modal-content.data-v-afedccba {
+		padding: 20rpx 25rpx;
+		max-height: calc(90vh - 180rpx);
+}
+.notice-content.data-v-afedccba {
+		gap: 15rpx;
+}
+.notice-subtitle.data-v-afedccba {
+		font-size: 26rpx;
+}
+.notice-list.data-v-afedccba {
+		gap: 10rpx;
+}
+.notice-item.data-v-afedccba {
+		font-size: 22rpx;
+}
+.notice-highlight.data-v-afedccba {
+		padding: 15rpx;
+}
+.notice-highlight text.data-v-afedccba {
+		font-size: 22rpx;
+}
+.modal-footer.data-v-afedccba {
+		padding: 20rpx 25rpx;
+		gap: 15rpx;
+}
+.checkbox-text.data-v-afedccba {
+		font-size: 22rpx;
+}
+.confirm-btn.data-v-afedccba {
+		padding: 14rpx;
+		font-size: 26rpx;
+}
+}
+
+/* 表单样式 */
+.form-wrapper.data-v-afedccba {
+	background: rgba(255, 255, 255, 0.9);
+	padding: 40rpx;
+	box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+}
+.form-header.data-v-afedccba {
+	text-align: center;
+	margin-bottom: 60rpx;
+}
+.form-title.data-v-afedccba {
+	font-size: 48rpx;
+	font-weight: 600;
+	color: #1c4e80;
+	display: block;
+	margin-bottom: 20rpx;
+}
+.form-subtitle.data-v-afedccba {
+	font-size: 28rpx;
+	color: #666;
+	display: block;
+}
+.form-content.data-v-afedccba {
+	display: flex;
+	flex-direction: column;
+	gap: 40rpx;
+}
+.form-row.data-v-afedccba {
+	display: flex;
+	gap: 30rpx;
+}
+.form-group.data-v-afedccba {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+.form-label.data-v-afedccba {
+	font-size: 32rpx;
+	color: #333;
+	margin-bottom: 20rpx;
+	font-weight: 500;
+	display: flex;
+	align-items: center;
+}
+.required.data-v-afedccba {
+	color: #ff4d4f;
+	margin-right: 8rpx;
+}
+.form-input.data-v-afedccba, .picker-input.data-v-afedccba, .time-picker.data-v-afedccba, .time-input.data-v-afedccba {
+	height: 80rpx;
+	border: 2rpx solid #e0e0e0;
+	border-radius: 12rpx;
+	padding: 0 30rpx;
+	font-size: 30rpx;
+	background: #fff;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	position: relative;
+}
+.form-input.data-v-afedccba:focus {
+	border-color: #1c4e80;
+}
+.picker-input.data-v-afedccba, .time-picker.data-v-afedccba {
+	color: #333;
+}
+.picker-arrow.data-v-afedccba {
+	position: absolute;
+	right: 30rpx;
+}
+
+/* 微信登录部分 */
+.wechat-login-section.data-v-afedccba {
+	background: #f9f9f9;
+	border-radius: 16rpx;
+	padding: 40rpx;
+	margin-bottom: 40rpx;
+	text-align: center;
+	border: 2rpx dashed #e8e8e8;
+}
+.wechat-login-prompt.data-v-afedccba {
+	display: flex;
+	flex-direction: column;
+	gap: 30rpx;
+}
+.prompt-text.data-v-afedccba {
+	font-size: 28rpx;
+	color: #1c4e80;
+	font-weight: 500;
+}
+.qrcode-container.data-v-afedccba {
+	margin: 0 auto;
+	width: 300rpx;
+	height: 300rpx;
+}
+.qrcode-image.data-v-afedccba {
+	width: 100%;
+	height: 100%;
+}
+.wechat-confirm-btn.data-v-afedccba {
+	background: #07c160;
+	color: white;
+	border: none;
+	padding: 20rpx;
+	border-radius: 12rpx;
+	font-size: 32rpx;
+	font-weight: 500;
+}
+.login-status.data-v-afedccba {
+	text-align: center;
+	margin-bottom: 40rpx;
+	padding: 20rpx;
+	background-color: #f0f9eb;
+	border-radius: 12rpx;
+	border: 1rpx solid #e1f3d8;
+}
+.login-success.data-v-afedccba {
+	color: #67c23a;
+	font-weight: 500;
+	font-size: 28rpx;
+}
+
+/* 时间选择器 */
+.time-input-group.data-v-afedccba {
+	flex: 1.5; /* 给时间输入组更多空间 */
+}
+.time-inputs.data-v-afedccba {
+	display: flex;
+	align-items: center;
+	gap: 15rpx;
+}
+.time-input.data-v-afedccba {
+	flex: 1;
+	min-width: 0;
+	font-size: 26rpx;
+	height: 80rpx;
+	padding: 0 20rpx;
+}
+.time-separator.data-v-afedccba {
+	color: #666;
+	font-size: 26rpx;
+	white-space: nowrap;
+}
+.time-hint.data-v-afedccba {
+	font-size: 22rpx;
+	color: #999;
+	margin-top: 8rpx;
+}
+
+/* 单选按钮组 */
+.radio-group.data-v-afedccba {
+	display: flex;
+	flex-wrap: wrap;
+}
+.radio-label.data-v-afedccba {
+	display: flex;
+	align-items: center;
+	font-size: 30rpx;
+	margin-right: 40rpx;
+}
+
+/* 表单操作按钮 */
+.form-actions.data-v-afedccba {
+	display: flex;
+	justify-content: space-between;
+	gap: 30rpx;
+	margin-top: 60rpx;
+}
+.reset-btn.data-v-afedccba, .submit-btn.data-v-afedccba {
+	padding: 20rpx 40rpx;
+	border: none;
+	border-radius: 10rpx;
+	font-size: 30rpx;
+	font-weight: 500;
+	width: 45%;
+}
+.reset-btn.data-v-afedccba {
+	background: #f5f5f5;
+	color: #666;
+}
+.submit-btn.data-v-afedccba {
+	background: #1c4e80;
+	color: white;
+}
+.wechat-tip.data-v-afedccba {
+	background: #f0f8ff;
+	padding: 20rpx;
+	border-radius: 12rpx;
+	margin-bottom: 25rpx;
+	border-left: 4rpx solid #1c4e80;
+}
+.wechat-title.data-v-afedccba {
+	font-size: 28rpx;
+	font-weight: bold;
+	color: #1c4e80;
+	display: block;
+	margin-bottom: 8rpx;
+}
+.wechat-desc.data-v-afedccba {
+	font-size: 24rpx;
+	color: #666;
+	display: block;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+.form-row.data-v-afedccba {
+		flex-direction: column;
+		gap: 40rpx;
+}
+.time-inputs.data-v-afedccba {
+		flex-direction: row;
+		align-items: center;
+		gap: 15rpx;
+}
+.time-separator.data-v-afedccba {
+		text-align: center;
+}
+.form-actions.data-v-afedccba {
+		flex-direction: row;
+}
+.reset-btn.data-v-afedccba, .submit-btn.data-v-afedccba {
+		width: 45%;
+}
+.radio-group.data-v-afedccba {
+		flex-direction: column;
+		gap: 20rpx;
+}
+.radio-label.data-v-afedccba {
+		margin-right: 0;
+}
+	
+	/* 弹窗响应式调整 */
+.modal-header.data-v-afedccba {
+		padding: 25rpx 30rpx;
+}
+.modal-content.data-v-afedccba {
+		padding: 20rpx 30rpx;
+}
+.modal-footer.data-v-afedccba {
+		padding: 25rpx 30rpx;
+}
+.notice-item.data-v-afedccba {
+		font-size: 24rpx;
+}
+}

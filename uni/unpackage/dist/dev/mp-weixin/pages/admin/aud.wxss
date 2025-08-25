@@ -1,0 +1,344 @@
+
+.audit-management.data-v-ec62db0b {
+  background: linear-gradient(#c7e9f4 0%, #446daa, #1c4e80);
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 筛选模块 */
+.filter-section.data-v-ec62db0b {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+.filter-header.data-v-ec62db0b {
+  background: #f5f7fa;
+  padding: 30px 20px 10px 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+.filter-title.data-v-ec62db0b {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+.filter-controls.data-v-ec62db0b {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.filter-row.data-v-ec62db0b {
+  display: flex;
+  gap: 20px;
+  align-items: end;
+}
+.action-row.data-v-ec62db0b {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.filter-group.data-v-ec62db0b {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.filter-label.data-v-ec62db0b {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+.filter-select.data-v-ec62db0b, .filter-input.data-v-ec62db0b {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  min-width: 120px;
+}
+.picker-text.data-v-ec62db0b {
+  color: #333;
+  font-size: 14px;
+}
+.filter-actions.data-v-ec62db0b {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.search-btn.data-v-ec62db0b, .reset-btn.data-v-ec62db0b {
+  padding: 1px 30px;
+  font-size: 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+}
+.search-btn.data-v-ec62db0b {
+  background: #1c4e80;
+  color: white;
+}
+.search-btn.data-v-ec62db0b:hover {
+  background: #164066;
+}
+.reset-btn.data-v-ec62db0b {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+.reset-btn.data-v-ec62db0b:hover {
+  background: #e8e8e8;
+}
+
+/* 统计信息 */
+.stats-info.data-v-ec62db0b {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.stat-item.data-v-ec62db0b {
+  text-align: center;
+  padding: 10px 15px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  min-width: 100px;
+}
+.stat-number.data-v-ec62db0b {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1c4e80;
+  margin-top: 5px;
+}
+.stat-label.data-v-ec62db0b {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 审批信息列表 */
+.reservations-list.data-v-ec62db0b {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.table-container.data-v-ec62db0b {
+  overflow-x: auto;
+  flex: 1;
+}
+.reservations-table.data-v-ec62db0b {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.table-header.data-v-ec62db0b {
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+}
+.table-row.data-v-ec62db0b {
+  display: grid;
+  grid-template-columns: 80px 120px 100px 150px 100px 120px 80px 100px 80px 100px 120px;
+  border-bottom: 1px solid #f0f0f0;
+  min-height: 60px;
+  align-items: center;
+}
+.table-cell.data-v-ec62db0b {
+  padding: 16px 8px;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.header-cell.data-v-ec62db0b {
+  font-weight: 600;
+  color: #333;
+  background: #fafafa;
+}
+.reservation-row.data-v-ec62db0b:hover {
+  background: #fafafa;
+}
+.empty-state.data-v-ec62db0b {
+  text-align: center;
+  padding: 60px 20px;
+}
+.empty-content.data-v-ec62db0b {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #999;
+  gap: 12px;
+}
+.empty-content p.data-v-ec62db0b {
+  margin: 0;
+  font-size: 16px;
+}
+.applicant-info.data-v-ec62db0b {
+  min-width: 120px;
+}
+.applicant-name.data-v-ec62db0b {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+.applicant-contact.data-v-ec62db0b {
+  font-size: 12px;
+  color: #666;
+}
+.type-badge.data-v-ec62db0b {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.type-badge.individual.data-v-ec62db0b {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+.type-badge.group.data-v-ec62db0b {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+.visitor-count.data-v-ec62db0b {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+.purpose-cell.data-v-ec62db0b {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status-badge.data-v-ec62db0b {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status-badge.pending.data-v-ec62db0b {
+  background: #fffbe6;
+  color: #faad14;
+  border: 1px solid #ffe58f;
+}
+.status-badge.approved.data-v-ec62db0b {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+.status-badge.rejected.data-v-ec62db0b {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+.status-badge.completed.data-v-ec62db0b {
+  background: #f9f0ff;
+  color: #722ed1;
+  border: 1px solid #d3adf7;
+}
+.action-buttons.data-v-ec62db0b {
+  display: flex;
+  gap: 8px;
+}
+.view-btn.data-v-ec62db0b, .approve-btn.data-v-ec62db0b, .reject-btn.data-v-ec62db0b {
+  padding: 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+.view-btn.data-v-ec62db0b {
+  background: #f0f0f0;
+  color: #666;
+}
+.view-btn.data-v-ec62db0b:hover {
+  background: #d9d9d9;
+}
+.approve-btn.data-v-ec62db0b {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+.approve-btn.data-v-ec62db0b:hover {
+  background: #52c41a;
+  color: white;
+}
+.reject-btn.data-v-ec62db0b {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+.reject-btn.data-v-ec62db0b:hover {
+  background: #ff4d4f;
+  color: white;
+}
+
+/* 分页控件 */
+.pagination.data-v-ec62db0b {
+  padding: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+.pagination-controls.data-v-ec62db0b {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+.page-btn.data-v-ec62db0b {
+  padding: 8px 16px;
+  background: #1c4e80;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.3s;
+}
+.page-btn.data-v-ec62db0b:hover:not(:disabled) {
+  background: #164066;
+}
+.page-btn.data-v-ec62db0b:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+.page-info.data-v-ec62db0b {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+.filter-row.data-v-ec62db0b {
+    gap: 15px;
+}
+.action-row.data-v-ec62db0b {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+}
+.stats-info.data-v-ec62db0b {
+    gap: 15px;
+    align-self: stretch;
+}
+.reservations-table.data-v-ec62db0b {
+    font-size: 12px;
+}
+.reservations-table th.data-v-ec62db0b,
+  .reservations-table td.data-v-ec62db0b {
+    padding: 12px 8px;
+}
+.action-buttons.data-v-ec62db0b {
+    flex-direction: column;
+}
+}

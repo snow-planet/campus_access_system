@@ -1,0 +1,83 @@
+{
+  "tableName": "users",
+  "columns": {
+    "user_id": {
+      "type": "integer",
+      "primaryKey": true,
+      "autoIncrement": true
+    },
+    "openid": {
+      "type": "string",
+      "maxLength": 255,
+      "nullable": true
+    },
+    "username": {
+      "type": "string",
+      "maxLength": 50,
+      "nullable": false
+    },
+    "phone": {
+      "type": "string",
+      "maxLength": 20,
+      "nullable": false
+    },
+    "real_name": {
+      "type": "string",
+      "maxLength": 50,
+      "nullable": false
+    },
+    "avatar_url": {
+      "type": "string",
+      "maxLength": 500,
+      "nullable": true
+    },
+    "role": {
+      "type": "enum",
+      "values": ["user", "approver", "admin"],
+      "nullable": true,
+      "default": "user"
+    },
+    "college": {
+      "type": "string",
+      "maxLength": 100,
+      "nullable": true
+    },
+    "position": {
+      "type": "enum",
+      "values": ["teacher", "security", "other"],
+      "nullable": true,
+      "default": "other"
+    },
+    "status": {
+      "type": "enum",
+      "values": ["active", "pending", "inactive"],
+      "nullable": true,
+      "default": "active"
+    },
+    "created_at": {
+      "type": "timestamp",
+      "nullable": true,
+      "default": "CURRENT_TIMESTAMP"
+    },
+    "updated_at": {
+      "type": "timestamp",
+      "nullable": true,
+      "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    }
+  },
+  "indexes": [
+    {
+      "name": "openid",
+      "unique": true,
+      "columns": ["openid"]
+    },
+    {
+      "name": "idx_users_role",
+      "columns": ["role"]
+    },
+    {
+      "name": "idx_users_openid",
+      "columns": ["openid"]
+    }
+  ]
+}

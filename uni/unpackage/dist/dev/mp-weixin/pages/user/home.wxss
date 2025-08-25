@@ -1,0 +1,150 @@
+
+.user-home.data-v-f834fd70 {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	background: linear-gradient(#c7e9f4 0%, #446daa, #1c4e80);
+}
+
+/* 顶部导航栏样式 */
+.header.data-v-f834fd70 {
+	background: white;
+	height: 100rpx;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 30rpx;
+	box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+.header-center.data-v-f834fd70 {
+	flex: 1;
+	text-align: center;
+}
+.header-current.data-v-f834fd70 {
+	font-size: 36rpx;
+	color: #1c4e80;
+	font-weight: 600;
+}
+.logout-link.data-v-f834fd70 {
+	color: #666;
+	font-size: 28rpx;
+	padding: 12rpx 20rpx;
+}
+
+/* 切换按钮区域 - 修改为占据整行 */
+.tab-buttons.data-v-f834fd70 {
+	display: flex;
+	justify-content: center;
+	background: white;
+	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.08);
+	width: 100%; /* 添加宽度100% */
+}
+.tab-button.data-v-f834fd70 {
+	padding: 20rpx 50rpx;
+	background: #f0f0f0;
+	color: #666;
+	font-size: 28rpx;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	flex: 1; /* 添加flex:1使每个按钮平均分配宽度 */
+	text-align: center; /* 文字居中 */
+}
+.tab-button-active.data-v-f834fd70 {
+	background: #1c4e80;
+	color: white;
+}
+
+/* 主体内容样式 */
+.main.data-v-f834fd70 {
+	flex: 1;
+	padding: 30rpx;
+}
+
+/* 系统公告区域 */
+.announcement-section.data-v-f834fd70 {
+	background: rgba(255, 255, 255, 0.9);
+	border-radius: 20rpx;
+	padding: 30rpx;
+	box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+.announcement-header.data-v-f834fd70 {
+	display: flex;
+	align-items: center;
+	margin-bottom: 30rpx;
+	padding-bottom: 20rpx;
+	border-bottom: 2rpx solid #f0f0f0;
+}
+.announcement-title.data-v-f834fd70 {
+	font-size: 36rpx;
+	font-weight: 600;
+	color: #1c4e80;
+}
+.announcement-list.data-v-f834fd70 {
+	max-height: 1000rpx;
+}
+.announcement-item.data-v-f834fd70 {
+	display: flex;
+	align-items: center;
+	padding: 24rpx;
+	border-radius: 12rpx;
+	background: #f8f9fa;
+	margin-bottom: 20rpx;
+	transition: all 0.3s ease;
+}
+.announcement-item.data-v-f834fd70:active {
+	background: #e9ecef;
+	transform: translateY(2rpx);
+}
+.announcement-content.data-v-f834fd70 {
+	flex: 1;
+}
+.announcement-meta.data-v-f834fd70 {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12rpx;
+}
+.announcement-type.data-v-f834fd70 {
+	font-size: 24rpx;
+	padding: 6rpx 16rpx;
+	border-radius: 8rpx;
+	background: #e3f2fd;
+	color: #1976d2;
+	font-weight: 500;
+}
+.announcement-type.important.data-v-f834fd70 {
+	background: #ffebee;
+	color: #d32f2f;
+}
+.announcement-time.data-v-f834fd70 {
+	font-size: 24rpx;
+	color: #999;
+}
+.announcement-text.data-v-f834fd70 {
+	font-size: 28rpx;
+	color: #374151;
+	line-height: 1.5;
+}
+.announcement-arrow.data-v-f834fd70 {
+	width: 40rpx;
+	height: 40rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.arrow.data-v-f834fd70 {
+	font-size: 28rpx;
+	color: #9ca3af;
+	font-weight: bold;
+}
+.empty-announcement.data-v-f834fd70 {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 60rpx 20rpx;
+}
+.empty-text.data-v-f834fd70 {
+	font-size: 28rpx;
+	color: #9ca3af;
+	font-style: italic;
+}

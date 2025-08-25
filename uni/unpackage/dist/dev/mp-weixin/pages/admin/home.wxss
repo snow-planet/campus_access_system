@@ -1,0 +1,291 @@
+
+.app-container.data-v-b5384573 {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(#c7e9f4 0%, #446daa, #1c4e80);
+}
+
+/* 顶部导航栏 */
+.top-header.data-v-b5384573 {
+  background: white;
+  height: 60px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+.header-right.data-v-b5384573 {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 14px;
+  color: #333;
+}
+.user-info.data-v-b5384573 {
+  color: #1c4e80;
+  font-weight: 500;
+}
+.header-current.data-v-b5384573 {
+  font-size: 17px;
+  color: #1c4e80;
+  font-weight: 600;
+}
+.logout-link.data-v-b5384573 {
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  transition: color 0.3s ease;
+}
+.logout-link.data-v-b5384573:hover {
+  color: #ff4d4f;
+}
+
+/* 主体区域 */
+.main-content.data-v-b5384573 {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 筛选区域 */
+.filter-section.data-v-b5384573 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.filter-group.data-v-b5384573 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.filter-label.data-v-b5384573 {
+  font-size: 14px;
+  color: #666;
+  white-space: nowrap;
+}
+.filter-select.data-v-b5384573 {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 15px;
+  text-align: center;
+  background-color: #fff;
+}
+.search-btn.data-v-b5384573 {
+  padding: 5px 13px;
+  background: #1c4e80;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+  white-space: nowrap;
+  margin-left: auto;
+}
+.search-btn.data-v-b5384573:hover {
+  background: #164066;
+}
+
+/* 申请列表 */
+.application-list.data-v-b5384573 {
+  flex: 1;
+}
+.empty-state.data-v-b5384573 {
+  background: white;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.empty-icon.data-v-b5384573 {
+  margin-bottom: 15px;
+}
+.empty-text.data-v-b5384573 {
+  font-size: 14px;
+  color: #999;
+}
+.application-cards.data-v-b5384573 {
+  display: flex;
+  flex-direction: column;
+}
+.application-card.data-v-b5384573 {
+  background: white;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.card-header.data-v-b5384573 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+.applicant-name.data-v-b5384573 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+.status-badge.data-v-b5384573 {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.status-badge.pending.data-v-b5384573 {
+  background: #fffbe6;
+  color: #faad14;
+  border: 1px solid #ffe58f;
+}
+.status-badge.approved.data-v-b5384573 {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+.status-badge.rejected.data-v-b5384573 {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+.card-content.data-v-b5384573 {
+  margin-bottom: 15px;
+}
+.info-row.data-v-b5384573 {
+  display: flex;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.info-label.data-v-b5384573 {
+  width: 70px;
+  font-size: 13px;
+  color: #666;
+  flex-shrink: 0;
+}
+.info-value.data-v-b5384573 {
+  font-size: 13px;
+  color: #333;
+  flex: 1;
+}
+.reason.data-v-b5384573 {
+  line-height: 1.5;
+}
+.card-actions.data-v-b5384573 {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+.action-btn.data-v-b5384573 {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+}
+.reject-btn.data-v-b5384573 {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+.reject-btn.data-v-b5384573:hover {
+  background: #ff4d4f;
+  color: white;
+}
+.approve-btn.data-v-b5384573 {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+.approve-btn.data-v-b5384573:hover {
+  background: #52c41a;
+  color: white;
+}
+.card-footer.data-v-b5384573 {
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  font-size: 11px;
+  color: #999;
+}
+.review-info.data-v-b5384573 {
+  display: block;
+  margin-bottom: 4px;
+}
+.reject-reason.data-v-b5384573 {
+  display: block;
+  color: #ff4d4f;
+}
+
+/* 分页控件 */
+.pagination.data-v-b5384573 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  background: white;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.page-btn.data-v-b5384573 {
+  padding: 6px 12px;
+  background: #1c4e80;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.3s;
+}
+.page-btn.data-v-b5384573:hover:not(:disabled) {
+  background: #164066;
+}
+.page-btn.data-v-b5384573:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+.page-info.data-v-b5384573 {
+  font-size: 13px;
+  color: #666;
+}
+
+/* 响应式设计 */
+@media (min-width: 768px) {
+.filter-section.data-v-b5384573 {
+    flex-wrap: wrap;
+}
+.filter-group.data-v-b5384573 {
+    flex: 1;
+    min-width: 45%;
+}
+.search-btn.data-v-b5384573 {
+  margin-left: 0;
+  flex: 1 0 100%;
+}
+.card-actions.data-v-b5384573 {
+    justify-content: flex-end;
+}
+.action-btn.data-v-b5384573 {
+    flex: none;
+    min-width: 80px;
+}
+}

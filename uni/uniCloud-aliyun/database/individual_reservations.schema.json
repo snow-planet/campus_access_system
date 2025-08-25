@@ -1,0 +1,84 @@
+{
+  "tableName": "individual_reservations",
+  "columns": {
+    "reservation_id": {
+      "type": "integer",
+      "primaryKey": true,
+      "autoIncrement": true
+    },
+    "user_id": {
+      "type": "integer",
+      "nullable": false,
+      "foreignKey": {
+        "table": "users",
+        "column": "user_id"
+      }
+    },
+    "purpose": {
+      "type": "string",
+      "maxLength": 500,
+      "nullable": false
+    },
+    "visit_date": {
+      "type": "date",
+      "nullable": false
+    },
+    "entry_time": {
+      "type": "time",
+      "nullable": true
+    },
+    "exit_time": {
+      "type": "time",
+      "nullable": true
+    },
+    "gate": {
+      "type": "enum",
+      "values": ["北门", "东门"],
+      "nullable": true,
+      "default": "北门"
+    },
+    "license_plate": {
+      "type": "string",
+      "maxLength": 20,
+      "nullable": true
+    },
+    "approver_id": {
+      "type": "integer",
+      "nullable": false,
+      "foreignKey": {
+        "table": "users",
+        "column": "user_id"
+      }
+    },
+    "status": {
+      "type": "enum",
+      "values": ["pending", "approved", "rejected", "completed"],
+      "nullable": true,
+      "default": "pending"
+    },
+    "created_at": {
+      "type": "timestamp",
+      "nullable": true,
+      "default": "CURRENT_TIMESTAMP"
+    },
+    "updated_at": {
+      "type": "timestamp",
+      "nullable": true,
+      "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    }
+  },
+  "indexes": [
+    {
+      "name": "user_id",
+      "columns": ["user_id"]
+    },
+    {
+      "name": "approver_id",
+      "columns": ["approver_id"]
+    },
+    {
+      "name": "idx_individual_reservations_date",
+      "columns": ["visit_date"]
+    }
+  ]
+}

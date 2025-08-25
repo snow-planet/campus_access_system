@@ -1,0 +1,47 @@
+{
+  "tableName": "approval_records",
+  "columns": {
+    "record_id": {
+      "type": "integer",
+      "primaryKey": true,
+      "autoIncrement": true
+    },
+    "reservation_id": {
+      "type": "integer",
+      "nullable": false
+    },
+    "reservation_type": {
+      "type": "enum",
+      "values": ["individual", "group"],
+      "nullable": false
+    },
+    "approver_id": {
+      "type": "integer",
+      "nullable": false,
+      "foreignKey": {
+        "table": "users",
+        "column": "user_id"
+      }
+    },
+    "action": {
+      "type": "enum",
+      "values": ["approve", "reject"],
+      "nullable": false
+    },
+    "comments": {
+      "type": "text",
+      "nullable": true
+    },
+    "created_at": {
+      "type": "timestamp",
+      "nullable": true,
+      "default": "CURRENT_TIMESTAMP"
+    }
+  },
+  "indexes": [
+    {
+      "name": "approver_id",
+      "columns": ["approver_id"]
+    }
+  ]
+}

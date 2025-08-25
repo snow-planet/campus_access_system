@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "校园出入预约系统",
+  "usingComponents": {
+    "personal-form": "./form",
+    "group-form": "./group"
+  }
+}

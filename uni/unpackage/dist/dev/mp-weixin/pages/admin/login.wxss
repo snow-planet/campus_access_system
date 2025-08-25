@@ -1,0 +1,206 @@
+
+.login-container.data-v-3190821f {
+	min-height: 100vh;
+	background: linear-gradient(135deg, #c7e9f4 0%, #446daa, #1c4e80);
+	padding: 100rpx 60rpx;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.header.data-v-3190821f {
+	margin-bottom: 80rpx;
+	text-align: center;
+}
+.title-group.data-v-3190821f {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 20rpx;
+}
+.main-title.data-v-3190821f {
+	font-size: 60rpx;
+	font-weight: 800;
+	color: #ffffff;
+	text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+.sub-title.data-v-3190821f {
+	font-size: 30rpx;
+	color: rgba(255, 255, 255, 0.85);
+	letter-spacing: 2rpx;
+}
+.login-form.data-v-3190821f {
+	width: 100%;
+	max-width: 600rpx;
+	background: rgba(255, 255, 255, 0.95);
+	border-radius: 40rpx;
+	padding: 60rpx 50rpx;
+	box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+	-webkit-backdrop-filter: blur(10rpx);
+	        backdrop-filter: blur(10rpx);
+	margin-bottom: 40rpx;
+}
+.application-form.data-v-3190821f {
+	width: 100%;
+	max-width: 600rpx;
+	background: rgba(255, 255, 255, 0.95);
+	border-radius: 40rpx;
+	padding: 0;
+	box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+	-webkit-backdrop-filter: blur(10rpx);
+	        backdrop-filter: blur(10rpx);
+	margin-bottom: 40rpx;
+	overflow: hidden;
+}
+.form-header.data-v-3190821f {
+	background: #1c4e80;
+	color: white;
+	padding: 25rpx 30rpx;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.form-content.data-v-3190821f {
+	padding: 30rpx;
+}
+.form-item.data-v-3190821f {
+	margin-bottom: 40rpx;
+}
+.form-label.data-v-3190821f {
+	display: block;
+	font-size: 32rpx;
+	color: #333;
+	margin-bottom: 20rpx;
+	font-weight: 500;
+}
+.form-input.data-v-3190821f {
+	width: 100%;
+	height: 80rpx;
+	border: 2rpx solid #e0e0e0;
+	border-radius: 20rpx;
+	padding: 0 30rpx;
+	font-size: 30rpx;
+	background: #fff;
+	box-sizing: border-box;
+}
+.form-input.data-v-3190821f:focus {
+	border-color: #1c4e80;
+}
+.login-btn.data-v-3190821f {
+	width: 100%;
+	height: 80rpx;
+	background: #1c4e80;
+	color: white;
+	border: none;
+	border-radius: 20rpx;
+	font-size: 32rpx;
+	font-weight: 600;
+	margin-top: 20rpx;
+	margin-bottom: 30rpx;
+}
+.login-btn.data-v-3190821f:active {
+	background: #164066;
+}
+.back-link.data-v-3190821f {
+	text-align: center;
+	padding: 20rpx;
+}
+.back-link text.data-v-3190821f {
+	font-size: 35rpx;
+	color: #666;
+	text-decoration: underline;
+}
+.signin-btn.data-v-3190821f {
+	background: rgba(255, 255, 255, 0);
+	border: none;
+	font-size: 35rpx;
+	color: #ffffff;
+	margin-top: 20rpx;
+	width: 100%;
+	text-align: center;
+	text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+.modal-title.data-v-3190821f {
+	font-size: 32rpx;
+	font-weight: bold;
+}
+.close-btn.data-v-3190821f {
+	font-size: 40rpx;
+	cursor: pointer;
+}
+.form-section.data-v-3190821f {
+	width: 100%;
+}
+.input-group.data-v-3190821f {
+	margin-bottom: 25rpx;
+}
+.input-label.data-v-3190821f {
+	display: block;
+	font-size: 28rpx;
+	color: #333;
+	margin-bottom: 15rpx;
+	font-weight: 500;
+}
+.form-select.data-v-3190821f {
+	width: 100%;
+	height: 80rpx;
+	border: 2rpx solid #e0e0e0;
+	border-radius: 20rpx;
+	background: #fff;
+	box-sizing: border-box;
+}
+.picker-content.data-v-3190821f {
+	width: 100%;
+	height: 100%;
+	padding: 0 30rpx;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+.select-text.data-v-3190821f {
+	color: #333;
+	font-size: 30rpx;
+}
+.select-text.placeholder.data-v-3190821f {
+	color: #999;
+}
+.submit-application-btn.data-v-3190821f {
+	width: 100%;
+	height: 80rpx;
+	background: #1c4e80;
+	color: white;
+	border: none;
+	border-radius: 20rpx;
+	font-size: 32rpx;
+	font-weight: 600;
+	margin-top: 20rpx;
+	margin-bottom: 20rpx;
+}
+.back-to-login-btn.data-v-3190821f {
+	width: 100%;
+	height: 80rpx;
+	background: #f0f0f0;
+	color: #666;
+	border: none;
+	border-radius: 20rpx;
+	font-size: 32rpx;
+	font-weight: 600;
+}
+.wechat-tip.data-v-3190821f {
+	background: #f0f8ff;
+	padding: 20rpx;
+	border-radius: 12rpx;
+	margin-bottom: 25rpx;
+	border-left: 4rpx solid #1c4e80;
+}
+.wechat-title.data-v-3190821f {
+	font-size: 28rpx;
+	font-weight: bold;
+	color: #1c4e80;
+	display: block;
+	margin-bottom: 8rpx;
+}
+.wechat-desc.data-v-3190821f {
+	font-size: 24rpx;
+	color: #666;
+	display: block;
+}

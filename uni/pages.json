@@ -1,0 +1,65 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "校园出入预约系统"
+			}
+		},
+		{
+			"path": "pages/user/home",
+			"style": {
+			"navigationBarTitleText": "校园出入预约系统"
+			}
+		},
+		{
+			"path": "pages/admin/login",
+			"style": {
+			"navigationBarTitleText": "管理员登录"
+			}
+		},
+		{
+			"path": "pages/admin/home",
+			"style": {
+			"navigationBarTitleText": "审批管理"
+			}
+		},
+		{
+			"path": "pages/admin/adminhome",
+			"style": {
+			"navigationBarTitleText": "后台管理"
+			}
+		},
+		{
+			"path": "pages/admin/aud",
+			"style": {
+			"navigationBarTitleText": "审批信息管理"
+			}
+		},
+		{
+			"path": "pages/admin/mgr",
+			"style": {
+			"navigationBarTitleText": "审批账号管理"
+			}
+		},
+		{
+			"path": "pages/admin/not",
+			"style": {
+			"navigationBarTitleText": "通知管理"
+			}
+		},
+		{
+			"path": "pages/admin/screen",
+			"style": {
+			"navigationBarTitleText": "数据看板"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "校园出入预约系统",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {}
+}
