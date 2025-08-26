@@ -2,6 +2,8 @@
   "pages": [
     "pages/index/index",
     "pages/user/home",
+    "pages/user/form",
+    "pages/user/group",
     "pages/admin/login",
     "pages/admin/home",
     "pages/admin/adminhome",

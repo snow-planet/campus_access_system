@@ -3,7 +3,7 @@
 		<!-- 顶部导航栏 -->
 		<view class="header">
 			<view class="header-left">
-				<view class="logout-link" @tap="logout">
+				<view class="logout-link" @tap.stop="logout">
 					<text>← 返回首页</text>
 				</view>
 			</view>
@@ -19,19 +19,19 @@
 		<view class="tab-buttons">
 			<view 
 				:class="['tab-button', activeTab === 'notice' ? 'tab-button-active' : '']"
-				@tap="activeTab = 'notice'"
+				@tap.stop="() => activeTab = 'notice'"
 			>
 				<text>公告查看</text>
 			</view>
 			<view 
 				:class="['tab-button', activeTab === 'personal' ? 'tab-button-active' : '']"
-				@tap="activeTab = 'personal'"
+				@tap.stop="() => activeTab = 'personal'"
 			>
 				<text>个人预约</text>
 			</view>
 			<view 
 				:class="['tab-button', activeTab === 'group' ? 'tab-button-active' : '']"
-				@tap="activeTab = 'group'"
+				@tap.stop="() => activeTab = 'group'"
 			>
 				<text>团体预约</text>
 			</view>
@@ -48,7 +48,7 @@
 					<scroll-view class="announcement-list" scroll-y="true" :show-scrollbar="false">
 						<view v-if="announcements.length > 0">
 							<!-- 修复v-if和v-for不能同级使用的问题 -->
-							<view class="announcement-item" v-for="(item, index) in announcements" :key="index" @tap="viewAnnouncement(item)">
+							<view class="announcement-item" v-for="(item, index) in announcements" :key="item.notification_id || index" @tap.stop="() => viewAnnouncement(item)">
 								<view class="announcement-content">
 									<view class="announcement-meta">
 										<text class="announcement-type" :class="item.important ? 'important' : ''">{{item.type}}</text>
@@ -81,61 +81,52 @@
 	</view>
 </template>
 
-<script>
-// 修复组件导入方式，避免使用动态导入
-import PersonalForm from './form.vue';
-import GroupForm from './group.vue';
+<script setup>
+import { ref, unref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import PersonalForm from './form.vue'
+import GroupForm from './group.vue'
+import { fetchHomepageAnnouncements } from '../../api/notifications.js'
 
-export default {
-	data() {
-		return {
-			activeTab: 'notice',
-			// 模拟公告数据
-			announcements: [
-				{
-					id: 1,
-					type: '重要通知',
-					content: '校园出入管理系统将于本周六进行升级维护，届时系统将暂停服务2小时。',
-					time: '2023-10-15',
-					important: true
-				},
-				{
-					id: 2,
-					type: '规则更新',
-					content: '为进一步加强校园安全管理，即日起所有预约需提前至少2小时提交。',
-					time: '2023-10-10',
-					important: false
-				},
-				{
-					id: 3,
-					type: '温馨提示',
-					content: '请师生们合理安排预约时间，避免高峰期系统拥堵。',
-					time: '2023-10-05',
-					important: false
-				}
-			]
+const activeTab = ref('notice')
+const announcements = ref([])
+
+const logout = () => {
+	uni.navigateBack()
+}
+
+const viewAnnouncement = (item) => {
+	uni.showModal({
+		title: item.type,
+		content: item.content,
+		showCancel: false,
+		confirmText: '知道了'
+	})
+}
+
+const loadAnnouncements = async () => {
+	try {
+		const res = await fetchHomepageAnnouncements()
+		if (res && res.code === 0 && Array.isArray(res.data)) {
+			announcements.value = res.data.map(n => ({
+				notification_id: n.notification_id,
+				type: n.title || '系统公告',
+				content: n.content,
+				time: (n.created_at || '').toString().slice(0,10),
+				important: !!n.is_active,
+			}))
+		} else {
+			announcements.value = []
 		}
-	},
-	methods: {
-		// 返回首页
-		logout() {
-			uni.navigateBack()
-		},
-		// 查看公告详情
-		viewAnnouncement(item) {
-			uni.showModal({
-				title: item.type,
-				content: item.content,
-				showCancel: false,
-				confirmText: '知道了'
-			})
-		}
-	},
-	components: {
-		'personal-form': PersonalForm,
-		'group-form': GroupForm
+	} catch (e) {
+		announcements.value = []
+		uni.showToast({ title: '公告加载失败', icon: 'none' })
 	}
 }
+
+onShow(() => {
+	loadAnnouncements()
+})
 </script>
 
 <style scoped>

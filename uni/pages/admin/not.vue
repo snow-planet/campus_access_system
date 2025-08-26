@@ -22,7 +22,7 @@
               <p>{{ truncateContent(announcement.content, 50) }}</p>
               <view class="announcement-actions">
                 <button @click="showAnnouncementModal(announcement)" class="btn-edit">编辑</button>
-                <button @click="deleteAnnouncement(announcement.notification_id)" class="btn-delete">删除</button>
+                <button @click="deleteAnnouncementItem(announcement.notification_id)" class="btn-delete">删除</button>
               </view>
             </view>
           </view>
@@ -85,6 +85,7 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue'
+import { fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement, fetchNotice, updateNotice } from '../../api/uniNotifications.js'
 
 export default {
   name: 'NotificationManagement',
@@ -108,7 +109,7 @@ export default {
     
     // 初始化数据
     onMounted(() => {
-      fetchAnnouncements()
+      fetchAnnouncementsList()
       fetchNotices()
     })
     
@@ -118,49 +119,48 @@ export default {
     })
     
     // 获取公告列表
-    const fetchAnnouncements = async () => {
+    const fetchAnnouncementsList = async () => {
       try {
-        // 模拟数据
-        announcements.value = [
-          {
-            notification_id: 1,
-            title: '系统维护通知',
-            content: '本系统将于本周六凌晨2点至4点进行维护，期间可能无法正常使用。',
-            type: 'announcement',
-            display_location: 'homepage',
-            publisher_id: 1,
-            is_active: true,
-            created_at: '2023-06-10 09:30:00',
-            updated_at: '2023-06-10 09:30:00'
-          },
-          {
-            notification_id: 2,
-            title: '关于暑假期间入校预约调整的通知',
-            content: '暑假期间（7月1日至8月31日），个人预约入校时间调整为上午9点至下午5点。',
-            type: 'announcement',
-            display_location: 'homepage',
-            publisher_id: 1,
-            is_active: false,
-            created_at: '2023-06-01 14:20:00',
-            updated_at: '2023-06-15 16:45:00'
-          }
-        ]
+        const res = await fetchAnnouncements({ page: 1, limit: 50 })
+        const body = res?.data || res
+        if (body?.code === 0 && body?.data) {
+          announcements.value = body.data.announcements || []
+        } else {
+          announcements.value = []
+        }
       } catch (error) {
         console.error('获取公告列表失败:', error)
+        uni.showToast({ title: '获取公告列表失败', icon: 'none' })
       }
     }
     
     // 获取入校须知
     const fetchNotices = async () => {
       try {
-        // 模拟数据
-        individualNotice.value = '个人预约入校须知内容...'
-        groupNotice.value = '团体预约入校须知内容...'
+        // 获取个人预约须知
+        const individualRes = await fetchNotice('individual_notice')
+        const individualBody = individualRes?.data || individualRes
+        if (individualBody?.code === 0 && individualBody?.data) {
+          individualNotice.value = individualBody.data.content || ''
+        } else {
+          individualNotice.value = '暂无个人预约入校须知'
+        }
+        
+        // 获取团队预约须知
+        const groupRes = await fetchNotice('group_notice')
+        const groupBody = groupRes?.data || groupRes
+        if (groupBody?.code === 0 && groupBody?.data) {
+          groupNotice.value = groupBody.data.content || ''
+        } else {
+          groupNotice.value = '暂无团队预约入校须知'
+        }
+        
         currentNoticeContent.value = activeNoticeTab.value === 'individual' 
           ? individualNotice.value 
           : groupNotice.value
       } catch (error) {
         console.error('获取入校须知失败:', error)
+        uni.showToast({ title: '获取入校须知失败', icon: 'none' })
       }
     }
     
@@ -184,8 +184,27 @@ export default {
     // 保存公告
     const saveAnnouncement = async () => {
       try {
+        // 获取当前用户ID（这里需要从存储中获取）
+        const publisherId = uni.getStorageSync('user_id') || 1
+        
+        const payload = {
+          title: currentAnnouncement.value.title,
+          content: currentAnnouncement.value.content,
+          display_location: currentAnnouncement.value.display_location,
+          publisher_id: publisherId,
+          is_active: currentAnnouncement.value.is_active
+        }
+        
+        if (editingAnnouncement.value) {
+          // 更新公告
+          await updateAnnouncement(editingAnnouncement.value.notification_id, payload)
+        } else {
+          // 创建公告
+          await createAnnouncement(payload)
+        }
+        
         showModal.value = false
-        fetchAnnouncements()
+        fetchAnnouncementsList()
         uni.showToast({
           title: '保存成功',
           icon: 'success'
@@ -200,14 +219,15 @@ export default {
     }
     
     // 删除公告
-    const deleteAnnouncement = async (id) => {
+    const deleteAnnouncementItem = async (id) => {
       uni.showModal({
         title: '确认删除',
         content: '确定要删除这条公告吗？',
         success: async (res) => {
           if (res.confirm) {
             try {
-              fetchAnnouncements()
+              await deleteAnnouncement(id)
+              fetchAnnouncementsList()
               uni.showToast({
                 title: '删除成功',
                 icon: 'success'
@@ -227,11 +247,31 @@ export default {
     // 保存入校须知
     const saveNotice = async () => {
       try {
+        // 获取当前用户ID
+        const publisherId = uni.getStorageSync('user_id') || 1
+        
+        const noticeType = activeNoticeTab.value === 'individual' ? 'individual_notice' : 'group_notice'
+        const title = activeNoticeTab.value === 'individual' ? '个人预约入校须知' : '团队预约入校须知'
+        
+        const payload = {
+          title,
+          content: currentNoticeContent.value,
+          publisher_id: publisherId
+        }
+        
+        await updateNotice(noticeType, payload)
+        
+        // 更新本地数据
+        if (activeNoticeTab.value === 'individual') {
+          individualNotice.value = currentNoticeContent.value
+        } else {
+          groupNotice.value = currentNoticeContent.value
+        }
+        
         uni.showToast({
           title: '保存成功',
           icon: 'success'
         })
-        fetchNotices()
       } catch (error) {
         console.error('保存入校须知失败:', error)
         uni.showToast({
@@ -264,7 +304,7 @@ export default {
       currentNoticeContent,
       showAnnouncementModal,
       saveAnnouncement,
-      deleteAnnouncement,
+      deleteAnnouncementItem,
       saveNotice,
       resetNotice,
       truncateContent

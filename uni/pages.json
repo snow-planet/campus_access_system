@@ -13,6 +13,18 @@
 			}
 		},
 		{
+			"path": "pages/user/form",
+			"style": {
+			"navigationBarTitleText": "个人预约申请"
+			}
+		},
+		{
+			"path": "pages/user/group",
+			"style": {
+			"navigationBarTitleText": "团队预约申请"
+			}
+		},
+		{
 			"path": "pages/admin/login",
 			"style": {
 			"navigationBarTitleText": "管理员登录"

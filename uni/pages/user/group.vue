@@ -8,23 +8,15 @@
 				</view>
 				<scroll-view class="modal-content" scroll-y="true" @scroll="handleScroll" :scroll-top="scrollTop">
 					<view class="notice-content">
-						<text class="notice-subtitle">团体预约入校注意事项</text>
-						<view class="notice-list">
-							<text class="notice-item">1. 请提前至少3个工作日进行团体预约申请</text>
-							<text class="notice-item">2. 团体负责人需提供所有成员名单及身份证信息</text>
-							<text class="notice-item">3. 入校时所有成员需携带有效身份证件以备查验</text>
-							<text class="notice-item">4. 请按照预约时间段集体入校，不得分散进入</text>
-							<text class="notice-item">5. 团体车辆请停放在指定停车场，不得随意停放</text>
-							<text class="notice-item">6. 入校后请遵守校园管理规定，保持集体行动</text>
-							<text class="notice-item">7. 团体活动不得影响正常教学秩序</text>
-							<text class="notice-item">8. 如行程有变，请及时取消或修改预约</text>
-							<text class="notice-item">9. 严禁携带违禁物品入校</text>
-							<text class="notice-item">10. 活动结束后请及时离校，保持环境整洁</text>
-							<text class="notice-item">11. 团体负责人需对成员行为负责</text>
-							<text class="notice-item">12. 如有任何问题，请及时与审批人或保卫处联系</text>
+						<text class="notice-subtitle">{{ noticeTitle }}</text>
+						<view class="notice-text" v-if="noticeContent">
+							<text class="notice-content-text">{{ noticeContent }}</text>
+						</view>
+						<view class="notice-loading" v-else>
+							<text class="loading-text">正在加载入校须知...</text>
 						</view>
 						<view class="notice-highlight">
-							<text>请仔细阅读以上须知，如违反规定可能会影响今后的团体预约申请。</text>
+							<text>请仔细阅读以上须知，如违反规定可能会影响今后的团队预约申请。</text>
 						</view>
 					</view>
 				</scroll-view>
@@ -94,10 +86,30 @@
 							v-model="formData.contactPhone" 
 						/>
 					</view>
+					<!-- #ifdef MP-WEIXIN -->
+				<view class="wechat-auth-section">
 					<view class="wechat-tip">
-						<button class="wechat-title">微信验证</button>
-						<text class="wechat-desc">请完成微信授权并关注公众号便于接收通知</text>
+						<text class="wechat-title">微信授权</text>
+						<text class="wechat-desc">请完成微信授权以便接收预约审批通知</text>
 					</view>
+					<view class="auth-status" v-if="!isWechatLoggedIn">
+						<button class="wechat-auth-btn" @tap="handleWechatAuth" :disabled="authLoading">
+							<text v-if="authLoading">授权中...</text>
+							<text v-else>微信授权登录</text>
+						</button>
+					</view>
+					<view class="login-status" v-else>
+						<text class="login-success">✓ 已完成微信授权</text>
+					</view>
+				</view>
+				<!-- #endif -->
+
+				<!-- #ifndef MP-WEIXIN -->
+				<view class="wechat-tip">
+					<text class="wechat-title">微信授权</text>
+					<text class="wechat-desc">请在微信小程序中使用此功能</text>
+				</view>
+				<!-- #endif -->
 					<view class="form-group">
 						<text class="form-label"><text class="required">*</text>通行日期</text>
 						<picker mode="date" :value="formData.visitDate" :start="minDate" @change="onDateChange">
@@ -109,25 +121,7 @@
 					</view>
 				</view>
 
-				<!-- #ifdef MP-WEIXIN -->
-				<view class="wechat-login-section" v-if="!isWechatLoggedIn">
-					<view class="wechat-login-prompt">
-						<text class="prompt-text">请使用微信扫码登录并关注公众号，以便接收团体预约通知</text>
-						<view class="qrcode-container">
-							<image src="/static/wechat-qrcode.png" class="qrcode-image" mode="aspectFit"></image>
-						</view>
-						<button class="wechat-confirm-btn" @tap="handleWechatLogin">
-							我已扫码关注
-						</button>
-					</view>
-				</view>
-				<!-- #endif -->
 
-				<!-- #ifdef MP-WEIXIN -->
-				<view class="login-status" v-else>
-					<text class="login-success">✓ 已微信授权登录</text>
-				</view>
-				<!-- #endif -->
 
 				<view class="form-group time-input-group">
 					<text class="form-label">预计进入时段</text>
@@ -185,10 +179,38 @@
 				</view>
 			</view>
 		</view>
+		
+		<!-- 公众号关注弹窗 -->
+		<view v-if="showQrcodeModal" class="modal-overlay">
+			<view class="qrcode-modal">
+				<view class="modal-header">
+					<text class="modal-title">关注公众号</text>
+					<view class="close-btn" @tap="closeQrcodeModal">
+						<uni-icons type="closeempty" size="24" color="#fff"></uni-icons>
+					</view>
+				</view>
+				<view class="qrcode-content">
+					<text class="qrcode-title">团体预约申请已提交成功！</text>
+					<text class="qrcode-desc">请扫码关注公众号，及时接收预约审批结果通知</text>
+					<view class="qrcode-container">
+						<image src="/static/wechat-qrcode.png" class="qrcode-image" mode="aspectFit"></image>
+					</view>
+					<text class="qrcode-hint">长按识别二维码关注公众号</text>
+				</view>
+				<view class="qrcode-footer">
+					<button class="confirm-btn" @tap="closeQrcodeModal">我知道了</button>
+				</view>
+			</view>
+		</view>
 	</view>
 </template>
 
 <script>
+import { wechatLogin } from '../../api/auth.js'
+import { fetchApprovers } from '../../api/users.js'
+import { createGroupReservation } from '../../api/groupReservations.js'
+import { fetchNotice } from '../../api/uniNotifications.js'
+
 export default {
 	data() {
 		const today = new Date();
@@ -198,16 +220,20 @@ export default {
 		const minDate = `${year}-${month}-${day}`;
 		
 		return {
-			showNoticeModal: true,
+				showNoticeModal: true,
 			agreeNotice: false,
 			isScrolledToBottom: false,
-			isWechatLoggedIn: false,
-			minDate: minDate,
-			purposeIndex: 0,
-			approverIndex: 0,
-			scrollTop: 0,
-			contentHeight: 0,
-			scrollViewHeight: 0,
+			noticeContent: '',
+			noticeTitle: '团队预约入校须知',
+				isWechatLoggedIn: false,
+				authLoading: false,
+				showQrcodeModal: false,
+				minDate: minDate,
+				purposeIndex: 0,
+				approverIndex: 0,
+				scrollTop: 0,
+				contentHeight: 0,
+				scrollViewHeight: 0,
 			formData: {
 				purpose: '',
 				visitorCount: '',
@@ -226,12 +252,7 @@ export default {
 				{ id: 3, name: '参加会议' },
 				{ id: 4, name: '参观访问' }
 			],
-			approvers: [
-				{ id: 1, name: '张老师 - 计算机学院' },
-				{ id: 2, name: '李老师 - 电子工程学院' },
-				{ id: 3, name: '王老师 - 保卫处' },
-				{ id: 4, name: '赵老师 - 机械工程学院' }
-			]
+			approvers: []
 		}
 	},
 	computed: {
@@ -286,22 +307,128 @@ export default {
 		closeNotice() {
 			if (this.agreeNotice) {
 				this.showNoticeModal = false;
+				if (this.approvers.length === 0) {
+					this.loadApprovers();
+				}
 			}
 		},
-		handleWechatLogin() {
-			// 模拟微信登录
-			uni.showLoading({
-				title: '登录中...'
-			});
-			
-			setTimeout(() => {
-				uni.hideLoading();
-				this.isWechatLoggedIn = true;
-				uni.showToast({
-					title: '微信授权成功',
-					icon: 'success'
-				});
-			}, 1500);
+
+		// 微信授权登录（真实对接）
+		handleWechatAuth() {
+			// #ifdef MP-WEIXIN
+			if (this.authLoading) return;
+			this.authLoading = true;
+			uni.showLoading({ title: '授权中' });
+			uni.login({
+				provider: 'weixin',
+				success: async (loginRes) => {
+					try {
+						const code = loginRes?.code
+						if (!code) throw new Error('未获取到微信code')
+						const payload = {
+							code,
+							username: this.formData?.contactName || '微信用户',
+							phone: this.formData?.contactPhone || '未填写',
+							real_name: this.formData?.contactName || '微信用户'
+						}
+						const res = await wechatLogin(payload)
+						const body = res?.data || res
+						const user = body?.data || body
+						const userId = user?.user_id
+						const openid = user?.openid
+						if (!userId) throw new Error('登录返回数据异常')
+						try { uni.setStorageSync('user_id', userId) } catch(e) {}
+						try { uni.setStorageSync('openid', openid || '') } catch(e) {}
+						this.isWechatLoggedIn = true
+						uni.showToast({ title: '授权成功', icon: 'success' })
+					} catch (err) {
+						uni.showToast({ title: '授权失败，请重试', icon: 'none' })
+					} finally {
+						this.authLoading = false
+						uni.hideLoading()
+					}
+				},
+				fail: () => {
+					this.authLoading = false
+					uni.hideLoading()
+					uni.showToast({ title: '授权失败', icon: 'none' })
+				}
+			})
+			// #endif
+
+			// #ifndef MP-WEIXIN
+			uni.showToast({ title: '请在微信小程序中使用授权', icon: 'none' })
+			// #endif
+		},
+
+		// 显示公众号二维码
+		showQrcodePrompt() {
+			// 删除：不再显示公众号关注弹窗
+			this.showQrcodeModal = false;
+		},
+
+		// 关闭二维码弹窗
+		closeQrcodeModal() {
+			// 删除：不再显示公众号关注弹窗
+			this.showQrcodeModal = false;
+		},
+
+		// 检查登录状态（读取本地缓存）
+		checkLoginStatus() {
+			try {
+				const uid = uni.getStorageSync('user_id')
+				if (uid) this.isWechatLoggedIn = true
+			} catch(e) {}
+		},
+
+		// 加载入校须知
+		loadNotice() {
+			fetchNotice('group_notice')
+				.then((res) => {
+					console.log('团队入校须知API响应:', res)
+					// 后端返回格式：{code: 0, data: {notification_id, title, content, updated_at}}
+					if (res && res.code === 0 && res.data) {
+						this.noticeTitle = res.data.title || '团队预约入校须知'
+						this.noticeContent = res.data.content || ''
+					} else {
+						console.log('团队入校须知数据格式异常，使用默认内容')
+						// 使用默认内容
+						this.noticeContent = '1. 请提前至少3个工作日进行团队预约申请\n2. 团队负责人需提供所有成员名单及身份证信息\n3. 入校时所有成员需携带有效身份证件以备查验\n4. 请按照预约时间段集体入校，不得分散进入\n5. 团队车辆请停放在指定停车场，不得随意停放\n6. 入校后请遵守校园管理规定，保持集体行动\n7. 团队活动不得影响正常教学秩序\n8. 如行程有变，请及时取消或修改预约\n9. 严禁携带违禁物品入校\n10. 活动结束后请及时离校，保持环境整洁\n11. 团队负责人需对成员行为负责\n12. 如有任何问题，请及时与审批人或保卫处联系'
+					}
+				})
+				.catch((err) => {
+					console.error('加载入校须知失败:', err)
+					// 使用默认内容
+					this.noticeContent = '1. 请提前至少3个工作日进行团队预约申请\n2. 团队负责人需提供所有成员名单及身份证信息\n3. 入校时所有成员需携带有效身份证件以备查验\n4. 请按照预约时间段集体入校，不得分散进入\n5. 团队车辆请停放在指定停车场，不得随意停放\n6. 入校后请遵守校园管理规定，保持集体行动\n7. 团队活动不得影响正常教学秩序\n8. 如行程有变，请及时取消或修改预约\n9. 严禁携带违禁物品入校\n10. 活动结束后请及时离校，保持环境整洁\n11. 团队负责人需对成员行为负责\n12. 如有任何问题，请及时与审批人或保卫处联系'
+				})
+		},
+
+		// 加载审批人列表（真实接口）
+		loadApprovers() {
+			uni.showLoading({ title: '加载审批人' })
+			fetchApprovers()
+				.then((res) => {
+					const body = res?.data || res
+					const list = body?.data || body || []
+					this.approvers = (Array.isArray(list) ? list : []).map(u => ({
+						id: u.user_id,
+						name: `${u.real_name || u.username || '审批人'}${u.college ? ' - ' + u.college : ''}`
+					}))
+					this.approverIndex = -1
+					this.formData.approverId = ''
+					if (this.approvers.length > 0) {
+						uni.showToast({ title: `加载到${this.approvers.length}个审批人`, icon: 'success' })
+					} else {
+						uni.showToast({ title: '未找到审批人数据', icon: 'none' })
+					}
+				})
+				.catch((err) => {
+					console.error('加载审批人失败:', err)
+					uni.showToast({ title: '审批人加载失败', icon: 'none' })
+				})
+				.finally(() => {
+					uni.hideLoading()
+				})
 		},
 		onPurposeChange(e) {
 			const index = e.detail.value;
@@ -315,8 +442,14 @@ export default {
 			this.formData.gate = e.detail.value;
 		},
 		onApproverChange(e) {
-			this.approverIndex = e.detail.value;
-			this.formData.approverId = this.approvers[this.approverIndex].id;
+			const index = parseInt(e.detail.value);
+			this.approverIndex = index;
+			
+			if (this.approvers && this.approvers.length > index && index >= 0 && this.approvers[index]) {
+				this.formData.approverId = this.approvers[index].id;
+			} else {
+				this.formData.approverId = '';
+			}
 		},
 		resetForm() {
 			// 重置表单数据
@@ -333,7 +466,7 @@ export default {
 				approverId: ''
 			};
 			this.purposeIndex = 0;
-			this.approverIndex = 0;
+			this.approverIndex = -1;
 		},
 		submitForm() {
 			// 表单验证
@@ -345,13 +478,11 @@ export default {
 				});
 				return;
 			}
-			
-			// 来访人数验证
-			if (this.formData.visitorCount < 2) {
-				uni.showToast({
-					title: '团体人数至少2人',
-					icon: 'none'
-				});
+
+			// 访客人数验证
+			const visitorCount = parseInt(this.formData.visitorCount)
+			if (isNaN(visitorCount) || visitorCount < 1 || visitorCount > 100) {
+				uni.showToast({ title: '访客人数必须在1-100之间', icon: 'none' });
 				return;
 			}
 			
@@ -365,29 +496,66 @@ export default {
 				return;
 			}
 			
-			uni.showLoading({
-				title: '提交中...'
-			});
-			
-			// 模拟提交
-			setTimeout(() => {
-				uni.hideLoading();
-				uni.showToast({
-					title: '团体申请提交成功',
-					icon: 'success'
-				});
-				
-				// 重置表单
-				this.resetForm();
-				
-				// 返回上一页或跳转到成功页面
-				setTimeout(() => {
-					uni.navigateBack();
-				}, 1500);
-			}, 1500);
+			// #ifdef MP-WEIXIN
+			if (!this.isWechatLoggedIn) {
+				uni.showToast({ title: '请先完成微信授权', icon: 'none' });
+				return;
+			}
+			// #endif
+
+			const uid = uni.getStorageSync('user_id')
+			if (!uid) {
+				uni.showToast({ title: '未获取到用户信息，请先授权', icon: 'none' })
+				return
+			}
+
+			const payload = {
+				user_id: uid,
+				purpose: this.formData.purpose,
+				visitor_count: visitorCount,
+				contact_name: this.formData.contactName,
+				contact_phone: this.formData.contactPhone,
+				visit_date: this.formData.visitDate,
+				entry_time: this.formData.entryTime || '09:00',
+				exit_time: this.formData.exitTime || '20:00',
+				gate: this.formData.gate,
+				license_plate: this.formData.carNumber || '',
+				approver_id: this.formData.approverId,
+			}
+
+			uni.showLoading({ title: '提交中...' })
+			createGroupReservation(payload)
+				.then((res) => {
+					const body = res?.data || res
+					if (body?.code && body.code !== 0) {
+						throw new Error(body?.message || '提交失败')
+					}
+					uni.showToast({ title: '团队预约申请提交成功', icon: 'success' })
+					this.resetForm()
+				})
+				.catch((err) => {
+					uni.showToast({ title: err?.message || '提交失败，请稍后重试', icon: 'none' })
+				})
+				.finally(() => {
+					uni.hideLoading()
+				})
 		}
 	},
+	onLoad() {
+		// 检查用户登录状态
+		this.checkLoginStatus();
+		// 加载审批人列表
+		this.loadApprovers();
+		// 加载入校须知
+		this.loadNotice();
+	},
 	mounted() {
+		// 检查用户登录状态
+		this.checkLoginStatus();
+		// 加载审批人列表
+		this.loadApprovers();
+		// 加载入校须知
+		this.loadNotice();
 		this.$nextTick(() => {
 			setTimeout(() => {
 				this.checkScrollability();
@@ -460,16 +628,27 @@ export default {
 	line-height: 1.4;
 }
 
-.notice-list {
+.notice-text {
 	display: flex;
 	flex-direction: column;
 	gap: 12rpx;
 }
 
-.notice-item {
+.notice-content-text {
 	font-size: 24rpx;
 	color: #333;
-	line-height: 1.4;
+	line-height: 1.6;
+	white-space: pre-line;
+}
+
+.notice-loading {
+	text-align: center;
+	padding: 40rpx 0;
+}
+
+.loading-text {
+	font-size: 24rpx;
+	color: #999;
 }
 
 .notice-highlight {
@@ -669,32 +848,80 @@ export default {
 	right: 30rpx;
 }
 
-/* 微信登录部分 */
-.wechat-login-section {
-	background: #f9f9f9;
-	border-radius: 16rpx;
-	padding: 40rpx;
+/* 微信授权部分 */
+.wechat-auth-section {
 	margin-bottom: 40rpx;
-	text-align: center;
-	border: 2rpx dashed #e8e8e8;
 }
 
-.wechat-login-prompt {
+.auth-status {
+	margin-top: 20rpx;
+}
+
+.wechat-auth-btn {
+	background: #07c160;
+	color: white;
+	border: none;
+	padding: 20rpx 40rpx;
+	border-radius: 12rpx;
+	font-size: 28rpx;
+	font-weight: 500;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.wechat-auth-btn:disabled {
+	background: #ccc;
+	color: #999;
+}
+
+/* 公众号二维码弹窗 */
+.qrcode-modal {
+	background: white;
+	border-radius: 20rpx;
+	width: 100%;
+	max-width: 600rpx;
 	display: flex;
 	flex-direction: column;
-	gap: 30rpx;
+	overflow: hidden;
+	box-sizing: border-box;
 }
 
-.prompt-text {
-	font-size: 28rpx;
+.close-btn {
+	position: absolute;
+	right: 20rpx;
+	top: 50%;
+	transform: translateY(-50%);
+	padding: 10rpx;
+}
+
+.qrcode-content {
+	padding: 40rpx 30rpx;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 25rpx;
+}
+
+.qrcode-title {
+	font-size: 32rpx;
 	color: #1c4e80;
-	font-weight: 500;
+	font-weight: 600;
+}
+
+.qrcode-desc {
+	font-size: 26rpx;
+	color: #666;
+	line-height: 1.4;
 }
 
 .qrcode-container {
-	margin: 0 auto;
+	margin: 20rpx auto;
 	width: 300rpx;
 	height: 300rpx;
+	border: 2rpx solid #e8e8e8;
+	border-radius: 12rpx;
+	padding: 20rpx;
+	box-sizing: border-box;
 }
 
 .qrcode-image {
@@ -702,14 +929,13 @@ export default {
 	height: 100%;
 }
 
-.wechat-confirm-btn {
-	background: #07c160;
-	color: white;
-	border: none;
-	padding: 20rpx;
-	border-radius: 12rpx;
-	font-size: 32rpx;
-	font-weight: 500;
+.qrcode-hint {
+	font-size: 24rpx;
+	color: #999;
+}
+
+.qrcode-footer {
+	padding: 20rpx 30rpx 30rpx;
 }
 
 .login-status {

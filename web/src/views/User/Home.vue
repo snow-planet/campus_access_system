@@ -55,14 +55,24 @@
                 <h3>系统公告</h3>
               </div>
               <div class="notice-body">
-                <div class="notice-empty">
-                  <div class="notice-title">暂无公告</div>
-                  <div class="notice-text">当前没有系统公告信息。</div>
-                  <div class="notice-date">发布时间：</div>
-                </div>
+                <template v-if="loading">
+                  <div class="notice-title">加载中...</div>
+                </template>
+                <template v-else>
+                  <div v-if="currentAnnouncement" class="notice-current">
+                    <div class="notice-title">{{ currentAnnouncement.title }}</div>
+                    <div class="notice-text">{{ currentAnnouncement.content }}</div>
+                    <div class="notice-date">发布时间：{{ (currentAnnouncement.created_at || '').toString().slice(0,10) }}</div>
+                  </div>
+                  <div v-else class="notice-empty">
+                    <div class="notice-title">暂无公告</div>
+                    <div class="notice-text">当前没有系统公告信息。</div>
+                    <div class="notice-date">发布时间：</div>
+                  </div>
+                </template>
                 <div class="notice-controls">
-                  <button class="notice-btn" disabled>‹</button>
-                  <button class="notice-btn" disabled>›</button>
+                  <button class="notice-btn" :disabled="!announcements.length" @click="prevAnnouncement">‹</button>
+                  <button class="notice-btn" :disabled="!announcements.length" @click="nextAnnouncement">›</button>
                 </div>
               </div>
             </div>
@@ -105,19 +115,63 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { BankOutlined, QrcodeOutlined, LogoutOutlined } from '@ant-design/icons-vue';
 import PersonalForm from '../User/Form.vue';
 import GroupForm from '../User/Groud.vue';
+import { fetchHomepageAnnouncements } from '../../api/notifications.js'
 
 const router = useRouter();
 const activeTab = ref('notice');
+
+// 公告数据与状态
+const announcements = ref([])
+const currentIndex = ref(0)
+const currentAnnouncement = ref(null)
+const loading = ref(false)
+
+const loadAnnouncements = async () => {
+  try {
+    loading.value = true
+    const res = await fetchHomepageAnnouncements()
+    if (res && res.code === 0 && Array.isArray(res.data)) {
+      announcements.value = res.data
+      currentIndex.value = 0
+      currentAnnouncement.value = announcements.value[0] || null
+    } else {
+      announcements.value = []
+      currentAnnouncement.value = null
+    }
+  } catch (e) {
+    console.error('加载公告失败:', e)
+    announcements.value = []
+    currentAnnouncement.value = null
+  } finally {
+    loading.value = false
+  }
+}
+
+const prevAnnouncement = () => {
+  if (!announcements.value.length) return
+  currentIndex.value = (currentIndex.value - 1 + announcements.value.length) % announcements.value.length
+  currentAnnouncement.value = announcements.value[currentIndex.value]
+}
+
+const nextAnnouncement = () => {
+  if (!announcements.value.length) return
+  currentIndex.value = (currentIndex.value + 1) % announcements.value.length
+  currentAnnouncement.value = announcements.value[currentIndex.value]
+}
 
 // 返回首页
 const logout = () => {
   router.push('/');
 }
+
+onMounted(() => {
+  loadAnnouncements()
+})
 </script>
 
 <style scoped>

@@ -11,22 +11,17 @@
               <h2>团体入校须知</h2>
             </div>
             <div class="modal-content" ref="noticeContent">
-              <h3>团体预约入校注意事项</h3>
-              <ol>
-                <li>请提前至少3个工作日进行团体预约申请</li>
-                <li>团体负责人需提供所有成员名单及身份证信息</li>
-                <li>入校时所有成员需携带有效身份证件以备查验</li>
-                <li>请按照预约时间段集体入校，不得分散进入</li>
-                <li>团体车辆请停放在指定停车场，不得随意停放</li>
-                <li>入校后请遵守校园管理规定，保持集体行动</li>
-                <li>团体活动不得影响正常教学秩序</li>
-                <li>如行程有变，请及时取消或修改预约</li>
-                <li>严禁携带违禁物品入校</li>
-                <li>活动结束后请及时离校，保持环境整洁</li>
-                <li>团体负责人需对成员行为负责</li>
-                <li>如有任何问题，请及时与审批人或保卫处联系</li>
-              </ol>
-              <p class="notice-highlight">请仔细阅读以上须知，如违反规定可能会影响今后的团体预约申请。</p>
+              <h3>{{ noticeTitle }}</h3>
+              <div v-if="noticeLoading" class="notice-loading">
+                <p>正在加载入校须知...</p>
+              </div>
+              <div v-else-if="noticeText" class="notice-text">
+                <pre class="notice-content">{{ noticeText }}</pre>
+              </div>
+              <div v-else class="notice-error">
+                <p>暂无入校须知内容</p>
+              </div>
+              <p class="notice-highlight">请仔细阅读以上须知，如违反规定可能会影响今后的团队预约申请。</p>
             </div>
             <div class="modal-footer">
               <label class="agree-checkbox">
@@ -103,21 +98,26 @@
           </div>
 
           <div class="wechat-login-section" v-if="!isWechatLoggedIn">
-              <div class="wechat-login-prompt">
-                <p>请使用微信扫码登录并关注公众号，以便接收团体预约通知</p>
-                <div class="qrcode-container">
-                  <!-- 这里放置微信二维码图片或生成组件 -->
-                  <img src="../../assets/vue.svg" alt="微信扫码关注" class="qrcode-image">
-                </div>
+            <div class="wechat-login-prompt">
+              <p>请使用微信扫码登录并关注公众号，以便接收团队预约通知</p>
+              <div class="qrcode-container">
+                <img v-if="qrUrl" :src="qrUrl" alt="微信扫码登录" class="qrcode-image" />
+                <div v-else class="qrcode-image" style="display:flex;align-items:center;justify-content:center;color:#999;">点击下方按钮获取二维码</div>
+              </div>
+              <div class="qr-actions">
                 <button type="button" class="wechat-confirm-btn" @click="handleWechatLogin">
-                  我已扫码关注
+                  {{ qrUrl ? '重新获取二维码' : '获取登录二维码' }}
+                </button>
+                <button v-if="isDevelopment && loginScene" type="button" class="dev-auth-btn" @click="handleDevAuth">
+                  模拟扫码授权
                 </button>
               </div>
             </div>
+          </div>
 
-            <div class="login-status" v-else>
-              <span class="login-success">✓ 已微信授权登录</span>
-            </div>
+          <div class="login-status" v-else>
+            <span class="login-success">✓ 已微信授权登录</span>
+          </div>
 
           <div class="form-group">
             <label class="form-label">预计进入时段</label>
@@ -180,11 +180,25 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { createGroupReservation } from '../../api/reservation.js'
+import { createLoginQRCode, pollLoginStatus } from '../../api/webAuth'
+import { createWebGroupReservation } from '../../api/webGroupReservation'
+import { fetchNotice } from '../../api/webNotifications'
+import { request } from '../../utils/request'
 
 const router = useRouter()
 const noticeContent = ref(null)
 const isScrolledToBottom = ref(false)
+const noticeTitle = ref('团队预约入校须知')
+const noticeText = ref('')
+const noticeLoading = ref(true)
+
+// 微信登录会话
+const isWechatLoggedIn = ref(false)
+const wechatOpenId = ref('')
+const loginScene = ref('')
+const qrUrl = ref('')
+const pollingTimer = ref(null)
+const isDevelopment = ref(false)
 
 // 表单数据
 const formData = ref({
@@ -201,24 +215,18 @@ const formData = ref({
   remark: '',
 })
 
-// 添加微信登录状态
-const isWechatLoggedIn = ref(false)
-
-// 处理微信登录
-const handleWechatLogin = () => {
-  // 这里应该实现实际的微信登录逻辑
-  // 暂时模拟登录成功
-  isWechatLoggedIn.value = true
-  alert('微信授权成功！您将收到公众号通知')
+// 审批人列表（从后端获取）
+const approvers = ref([])
+async function loadApprovers() {
+  try {
+    const res = await request({ url: '/api/users', method: 'GET', data: { role: 'approver' } })
+    if (res && res.code === 0) {
+      approvers.value = (res.data || []).map(u => ({ id: u.user_id, name: u.real_name || u.username, department: u.college || '' }))
+    }
+  } catch (e) {
+    alert('加载审批人失败')
+  }
 }
-
-// 审批人列表（模拟数据）
-const approvers = ref([
-  { id: 1, name: '张老师', department: '计算机学院' },
-  { id: 2, name: '李老师', department: '电子工程学院' },
-  { id: 3, name: '王老师', department: '保卫处' },
-  { id: 4, name: '赵老师', department: '机械工程学院' }
-])
 
 // 控制弹窗显示
 const showNoticeModal = ref(true)
@@ -236,11 +244,86 @@ const handleScroll = () => {
   }
 }
 
+// 加载入校须知
+const loadNotice = async () => {
+  try {
+    noticeLoading.value = true
+    const res = await fetchNotice('group_notice')
+    if (res && res._status === 'OK' && res.data) {
+      noticeTitle.value = res.data.title || '团队预约入校须知'
+      noticeText.value = res.data.content || ''
+    } else {
+      // 使用默认内容
+      noticeText.value = '1. 请提前至少3个工作日进行团队预约申请\n2. 团队负责人需提供所有成员名单及身份证信息\n3. 入校时所有成员需携带有效身份证件以备查验\n4. 请按照预约时间段集体入校，不得分散进入\n5. 团队车辆请停放在指定停车场，不得随意停放\n6. 入校后请遵守校园管理规定，保持集体行动\n7. 团队活动不得影响正常教学秩序\n8. 如行程有变，请及时取消或修改预约\n9. 严禁携带违禁物品入校\n10. 活动结束后请及时离校，保持环境整洁\n11. 团队负责人需对成员行为负责\n12. 如有任何问题，请及时与审批人或保卫处联系'
+    }
+  } catch (error) {
+    console.error('加载入校须知失败:', error)
+    // 使用默认内容
+    noticeText.value = '1. 请提前至少3个工作日进行团队预约申请\n2. 团队负责人需提供所有成员名单及身份证信息\n3. 入校时所有成员需携带有效身份证件以备查验\n4. 请按照预约时间段集体入校，不得分散进入\n5. 团队车辆请停放在指定停车场，不得随意停放\n6. 入校后请遵守校园管理规定，保持集体行动\n7. 团队活动不得影响正常教学秩序\n8. 如行程有变，请及时取消或修改预约\n9. 严禁携带违禁物品入校\n10. 活动结束后请及时离校，保持环境整洁\n11. 团队负责人需对成员行为负责\n12. 如有任何问题，请及时与审批人或保卫处联系'
+  } finally {
+    noticeLoading.value = false
+  }
+}
+
 // 关闭弹窗
 const closeNotice = () => {
   if (agreeNotice.value) {
     showNoticeModal.value = false
   }
+}
+
+// 生成二维码并开始轮询
+async function handleWechatLogin() {
+  try {
+    const res = await createLoginQRCode()
+    if (res && res._status === 'OK') {
+      loginScene.value = res.data.scene
+      qrUrl.value = res.data.qrUrl
+      isDevelopment.value = res.data.isDev || false
+      startPolling()
+    } else {
+      alert('获取二维码失败')
+    }
+  } catch (e) {
+    alert('获取二维码失败')
+  }
+}
+
+// 开发模式：模拟扫码授权
+async function handleDevAuth() {
+  try {
+    const res = await request({ 
+      url: '/api/web/auth/dev-authorize', 
+      method: 'POST', 
+      data: { scene: loginScene.value } 
+    })
+    if (res && res._status === 'OK') {
+      isWechatLoggedIn.value = true
+      wechatOpenId.value = res.data.openid
+      clearInterval(pollingTimer.value)
+      alert('模拟授权成功！')
+    } else {
+      alert('模拟授权失败')
+    }
+  } catch (e) {
+    alert('模拟授权失败：' + (e?.message || '未知错误'))
+  }
+}
+
+function startPolling() {
+  clearInterval(pollingTimer.value)
+  pollingTimer.value = setInterval(async () => {
+    try {
+      const r = await pollLoginStatus(loginScene.value)
+      if (r && r._status === 'OK' && r.data.status === 'authorized' && r.data.openid) {
+        isWechatLoggedIn.value = true
+        wechatOpenId.value = r.data.openid
+        clearInterval(pollingTimer.value)
+      }
+    } catch (e) {
+      // 忽略轮询错误
+    }
+  }, 2000)
 }
 
 // 初始化滚动监听
@@ -250,6 +333,8 @@ onMounted(() => {
       noticeContent.value.addEventListener('scroll', handleScroll)
     }
   })
+  loadApprovers()
+  loadNotice()
 })
 
 // 导航方法
@@ -278,9 +363,10 @@ const submitForm = async () => {
     return
   }
   
-  // 来访人数验证
-  if (formData.value.visitorCount < 2) {
-    alert('团体预约人数至少需要2人')
+  // 访客人数验证
+  const visitorCount = parseInt(formData.value.visitorCount)
+  if (isNaN(visitorCount) || visitorCount < 1 || visitorCount > 100) {
+    alert('访客人数必须在1-100之间')
     return
   }
   
@@ -291,21 +377,29 @@ const submitForm = async () => {
     return
   }
   
+  if (!isWechatLoggedIn.value || !wechatOpenId.value) {
+    alert('请先完成微信扫码授权')
+    return
+  }
+  
   try {
-    // 格式化时间
-    const requestData = {
-      ...formData.value,
-      // 如果没有填写时间，使用默认值
-      entryTime: formData.value.entryTime || '09:00:00',
-      exitTime: formData.value.exitTime || '20:00:00'
+    const payload = {
+      openid: wechatOpenId.value,
+      purpose: formData.value.purpose,
+      visitor_count: visitorCount,
+      contact_name: formData.value.contactName,
+      contact_phone: formData.value.contactPhone,
+      visit_date: formData.value.visitDate,
+      entry_time: formData.value.entryTime || null,
+      exit_time: formData.value.exitTime || null,
+      gate: formData.value.gate,
+      license_plate: formData.value.carNumber || null,
+      approver_id: formData.value.approverId,
     }
     
-    // 提交团体预约
-    const response = await createGroupReservation(requestData)
-    
-    if (response._status === 'OK') {
-      alert(response.data.message || '团体申请提交成功！请等待审核结果。')
-      // 重置表单
+    const res = await createWebGroupReservation(payload)
+    if (res && res._status === 'OK') {
+      alert('团队预约申请提交成功！请留意公众号消息。')
       formData.value = {
         purpose: '',
         visitorCount: '',
@@ -318,10 +412,12 @@ const submitForm = async () => {
         carNumber: '',
         approverId: ''
       }
+    } else {
+      alert('提交失败，请稍后重试')
     }
   } catch (error) {
     console.error('提交失败:', error)
-    alert(error.message || '提交失败，请稍后重试')
+    alert(error?.message || '提交失败，请稍后重试')
   }
 }
 </script>
@@ -398,12 +494,23 @@ const submitForm = async () => {
   margin-top: 0;
 }
 
-.modal-content ol {
-  padding-left: 20px;
+.notice-loading, .notice-error {
+  text-align: center;
+  padding: 20px;
+  color: #999;
 }
 
-.modal-content li {
-  margin-bottom: 10px;
+.notice-text {
+  margin: 15px 0;
+}
+
+.notice-content {
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-line;
+  margin: 0;
 }
 
 .notice-highlight {
@@ -482,6 +589,13 @@ const submitForm = async () => {
   border: 1px solid #e8e8e8;
 }
 
+.qr-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .wechat-confirm-btn {
   background: #07c160;
   color: white;
@@ -494,6 +608,21 @@ const submitForm = async () => {
 
 .wechat-confirm-btn:hover {
   background: #06ae56;
+}
+
+.dev-auth-btn {
+  background: #ff9500;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.dev-auth-btn:hover {
+  background: #e6850e;
 }
 
 .login-status {

@@ -19,7 +19,7 @@
               </div>
               <div class="announcement-actions">
                 <button @click="showAnnouncementModal(announcement)" class="btn-edit">编辑</button>
-                <button @click="deleteAnnouncement(announcement.notification_id)" class="btn-delete">删除</button>
+                <button @click="deleteAnnouncementItem(announcement.notification_id)" class="btn-delete">删除</button>
               </div>
             </div>
           </div>
@@ -77,6 +77,7 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue'
+import { fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement, fetchNotice, updateNotice } from '../../api/webNotifications.js'
 
 export default {
   name: 'NotificationManagement',
@@ -100,7 +101,7 @@ export default {
     
     // 初始化数据
     onMounted(() => {
-      fetchAnnouncements()
+      fetchAnnouncementsList()
       fetchNotices()
     })
     
@@ -110,64 +111,45 @@ export default {
     })
     
     // 获取公告列表
-    const fetchAnnouncements = async () => {
+    const fetchAnnouncementsList = async () => {
       try {
-        // 模拟API调用
-        const response = await fetch('/api/notifications?type=announcement')
-        announcements.value = await response.json()
+        const res = await fetchAnnouncements({ page: 1, limit: 50 })
+        if (res && res._status === 'OK' && res.data) {
+          announcements.value = res.data.announcements || []
+        } else {
+          announcements.value = []
+        }
       } catch (error) {
         console.error('获取公告列表失败:', error)
-        // 模拟数据
-        announcements.value = [
-          {
-            notification_id: 1,
-            title: '系统维护通知',
-            content: '本系统将于本周六凌晨2点至4点进行维护，期间可能无法正常使用。',
-            type: 'announcement',
-            display_location: 'homepage',
-            publisher_id: 1,
-            is_active: true,
-            created_at: '2023-06-10 09:30:00',
-            updated_at: '2023-06-10 09:30:00'
-          },
-          {
-            notification_id: 2,
-            title: '关于暑假期间入校预约调整的通知',
-            content: '暑假期间（7月1日至8月31日），个人预约入校时间调整为上午9点至下午5点。',
-            type: 'announcement',
-            display_location: 'homepage',
-            publisher_id: 1,
-            is_active: false,
-            created_at: '2023-06-01 14:20:00',
-            updated_at: '2023-06-15 16:45:00'
-          }
-        ]
+        alert('获取公告列表失败')
       }
     }
     
     // 获取入校须知
     const fetchNotices = async () => {
       try {
-        // 模拟API调用
-        const individualResponse = await fetch('/api/notifications?type=individual_notice')
-        const individualData = await individualResponse.json()
-        individualNotice.value = individualData.length > 0 ? individualData[0].content : ''
+        // 获取个人预约须知
+        const individualRes = await fetchNotice('individual_notice')
+        if (individualRes && individualRes._status === 'OK' && individualRes.data) {
+          individualNotice.value = individualRes.data.content || ''
+        } else {
+          individualNotice.value = '暂无个人预约入校须知'
+        }
         
-        const groupResponse = await fetch('/api/notifications?type=group_notice')
-        const groupData = await groupResponse.json()
-        groupNotice.value = groupData.length > 0 ? groupData[0].content : ''
+        // 获取团队预约须知
+        const groupRes = await fetchNotice('group_notice')
+        if (groupRes && groupRes._status === 'OK' && groupRes.data) {
+          groupNotice.value = groupRes.data.content || ''
+        } else {
+          groupNotice.value = '暂无团队预约入校须知'
+        }
         
         currentNoticeContent.value = activeNoticeTab.value === 'individual' 
           ? individualNotice.value 
           : groupNotice.value
       } catch (error) {
         console.error('获取入校须知失败:', error)
-        // 模拟数据
-        individualNotice.value = '个人预约入校须知内容...'
-        groupNotice.value = '团体预约入校须知内容...'
-        currentNoticeContent.value = activeNoticeTab.value === 'individual' 
-          ? individualNotice.value 
-          : groupNotice.value
+        alert('获取入校须知失败')
       }
     }
     
@@ -191,32 +173,28 @@ export default {
     // 保存公告
     const saveAnnouncement = async () => {
       try {
+        // 获取当前用户ID（这里需要从存储中获取）
+        const publisherId = localStorage.getItem('user_id') || 1
+        
+        const payload = {
+          title: currentAnnouncement.value.title,
+          content: currentAnnouncement.value.content,
+          display_location: currentAnnouncement.value.display_location,
+          publisher_id: publisherId,
+          is_active: currentAnnouncement.value.is_active
+        }
+        
         if (editingAnnouncement.value) {
           // 更新公告
-          await fetch(`/api/notifications/${editingAnnouncement.value.notification_id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(currentAnnouncement.value)
-          })
+          await updateAnnouncement(editingAnnouncement.value.notification_id, payload)
         } else {
-          // 创建新公告
-          await fetch('/api/notifications', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              ...currentAnnouncement.value,
-              type: 'announcement',
-              publisher_id: 1 // 假设当前用户ID为1
-            })
-          })
+          // 创建公告
+          await createAnnouncement(payload)
         }
         
         showModal.value = false
-        fetchAnnouncements() // 刷新列表
+        fetchAnnouncementsList()
+        alert('保存成功')
       } catch (error) {
         console.error('保存公告失败:', error)
         alert('保存失败，请重试')
@@ -224,15 +202,13 @@ export default {
     }
     
     // 删除公告
-    const deleteAnnouncement = async (id) => {
+    const deleteAnnouncementItem = async (id) => {
       if (!confirm('确定要删除这条公告吗？')) return
       
       try {
-        await fetch(`/api/notifications/${id}`, {
-          method: 'DELETE'
-        })
-        
-        fetchAnnouncements() // 刷新列表
+        await deleteAnnouncement(id)
+        fetchAnnouncementsList()
+        alert('删除成功')
       } catch (error) {
         console.error('删除公告失败:', error)
         alert('删除失败，请重试')
@@ -242,26 +218,28 @@ export default {
     // 保存入校须知
     const saveNotice = async () => {
       try {
-        const type = activeNoticeTab.value === 'individual' ? 'individual_notice' : 'group_notice'
-        const display_location = activeNoticeTab.value === 'individual' ? 'individual_form' : 'group_form'
+        // 获取当前用户ID
+        const publisherId = localStorage.getItem('user_id') || 1
         
-        await fetch('/api/notifications', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            title: activeNoticeTab.value === 'individual' ? '个人预约入校须知' : '团体预约入校须知',
-            content: currentNoticeContent.value,
-            type: type,
-            display_location: display_location,
-            publisher_id: 1, // 假设当前用户ID为1
-            is_active: true
-          })
-        })
+        const noticeType = activeNoticeTab.value === 'individual' ? 'individual_notice' : 'group_notice'
+        const title = activeNoticeTab.value === 'individual' ? '个人预约入校须知' : '团队预约入校须知'
+        
+        const payload = {
+          title,
+          content: currentNoticeContent.value,
+          publisher_id: publisherId
+        }
+        
+        await updateNotice(noticeType, payload)
+        
+        // 更新本地数据
+        if (activeNoticeTab.value === 'individual') {
+          individualNotice.value = currentNoticeContent.value
+        } else {
+          groupNotice.value = currentNoticeContent.value
+        }
         
         alert('保存成功')
-        fetchNotices() // 刷新内容
       } catch (error) {
         console.error('保存入校须知失败:', error)
         alert('保存失败，请重试')
@@ -296,7 +274,7 @@ export default {
       currentNoticeContent,
       showAnnouncementModal,
       saveAnnouncement,
-      deleteAnnouncement,
+      deleteAnnouncementItem,
       saveNotice,
       resetNotice,
       truncateContent,

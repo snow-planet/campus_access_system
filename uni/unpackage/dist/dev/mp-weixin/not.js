@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
+const api_uniNotifications = require("./api/uniNotifications.js");
 const _sfc_main = {
   name: "NotificationManagement",
   setup() {
@@ -17,49 +18,46 @@ const _sfc_main = {
     const groupNotice = common_vendor.ref("");
     const currentNoticeContent = common_vendor.ref("");
     common_vendor.onMounted(() => {
-      fetchAnnouncements();
+      fetchAnnouncementsList();
       fetchNotices();
     });
     common_vendor.watch(activeNoticeTab, (newTab) => {
       currentNoticeContent.value = newTab === "individual" ? individualNotice.value : groupNotice.value;
     });
-    const fetchAnnouncements = async () => {
+    const fetchAnnouncementsList = async () => {
       try {
-        announcements.value = [
-          {
-            notification_id: 1,
-            title: "系统维护通知",
-            content: "本系统将于本周六凌晨2点至4点进行维护，期间可能无法正常使用。",
-            type: "announcement",
-            display_location: "homepage",
-            publisher_id: 1,
-            is_active: true,
-            created_at: "2023-06-10 09:30:00",
-            updated_at: "2023-06-10 09:30:00"
-          },
-          {
-            notification_id: 2,
-            title: "关于暑假期间入校预约调整的通知",
-            content: "暑假期间（7月1日至8月31日），个人预约入校时间调整为上午9点至下午5点。",
-            type: "announcement",
-            display_location: "homepage",
-            publisher_id: 1,
-            is_active: false,
-            created_at: "2023-06-01 14:20:00",
-            updated_at: "2023-06-15 16:45:00"
-          }
-        ];
+        const res = await api_uniNotifications.fetchAnnouncements({ page: 1, limit: 50 });
+        const body = (res == null ? void 0 : res.data) || res;
+        if ((body == null ? void 0 : body.code) === 0 && (body == null ? void 0 : body.data)) {
+          announcements.value = body.data.announcements || [];
+        } else {
+          announcements.value = [];
+        }
       } catch (error) {
         console.error("获取公告列表失败:", error);
+        common_vendor.index.showToast({ title: "获取公告列表失败", icon: "none" });
       }
     };
     const fetchNotices = async () => {
       try {
-        individualNotice.value = "个人预约入校须知内容...";
-        groupNotice.value = "团体预约入校须知内容...";
+        const individualRes = await api_uniNotifications.fetchNotice("individual_notice");
+        const individualBody = (individualRes == null ? void 0 : individualRes.data) || individualRes;
+        if ((individualBody == null ? void 0 : individualBody.code) === 0 && (individualBody == null ? void 0 : individualBody.data)) {
+          individualNotice.value = individualBody.data.content || "";
+        } else {
+          individualNotice.value = "暂无个人预约入校须知";
+        }
+        const groupRes = await api_uniNotifications.fetchNotice("group_notice");
+        const groupBody = (groupRes == null ? void 0 : groupRes.data) || groupRes;
+        if ((groupBody == null ? void 0 : groupBody.code) === 0 && (groupBody == null ? void 0 : groupBody.data)) {
+          groupNotice.value = groupBody.data.content || "";
+        } else {
+          groupNotice.value = "暂无团队预约入校须知";
+        }
         currentNoticeContent.value = activeNoticeTab.value === "individual" ? individualNotice.value : groupNotice.value;
       } catch (error) {
         console.error("获取入校须知失败:", error);
+        common_vendor.index.showToast({ title: "获取入校须知失败", icon: "none" });
       }
     };
     const showAnnouncementModal = (announcement) => {
@@ -79,8 +77,21 @@ const _sfc_main = {
     };
     const saveAnnouncement = async () => {
       try {
+        const publisherId = common_vendor.index.getStorageSync("user_id") || 1;
+        const payload = {
+          title: currentAnnouncement.value.title,
+          content: currentAnnouncement.value.content,
+          display_location: currentAnnouncement.value.display_location,
+          publisher_id: publisherId,
+          is_active: currentAnnouncement.value.is_active
+        };
+        if (editingAnnouncement.value) {
+          await api_uniNotifications.updateAnnouncement(editingAnnouncement.value.notification_id, payload);
+        } else {
+          await api_uniNotifications.createAnnouncement(payload);
+        }
         showModal.value = false;
-        fetchAnnouncements();
+        fetchAnnouncementsList();
         common_vendor.index.showToast({
           title: "保存成功",
           icon: "success"
@@ -93,14 +104,15 @@ const _sfc_main = {
         });
       }
     };
-    const deleteAnnouncement = async (id) => {
+    const deleteAnnouncementItem = async (id) => {
       common_vendor.index.showModal({
         title: "确认删除",
         content: "确定要删除这条公告吗？",
         success: async (res) => {
           if (res.confirm) {
             try {
-              fetchAnnouncements();
+              await api_uniNotifications.deleteAnnouncement(id);
+              fetchAnnouncementsList();
               common_vendor.index.showToast({
                 title: "删除成功",
                 icon: "success"
@@ -118,11 +130,24 @@ const _sfc_main = {
     };
     const saveNotice = async () => {
       try {
+        const publisherId = common_vendor.index.getStorageSync("user_id") || 1;
+        const noticeType = activeNoticeTab.value === "individual" ? "individual_notice" : "group_notice";
+        const title = activeNoticeTab.value === "individual" ? "个人预约入校须知" : "团队预约入校须知";
+        const payload = {
+          title,
+          content: currentNoticeContent.value,
+          publisher_id: publisherId
+        };
+        await api_uniNotifications.updateNotice(noticeType, payload);
+        if (activeNoticeTab.value === "individual") {
+          individualNotice.value = currentNoticeContent.value;
+        } else {
+          groupNotice.value = currentNoticeContent.value;
+        }
         common_vendor.index.showToast({
           title: "保存成功",
           icon: "success"
         });
-        fetchNotices();
       } catch (error) {
         console.error("保存入校须知失败:", error);
         common_vendor.index.showToast({
@@ -150,7 +175,7 @@ const _sfc_main = {
       currentNoticeContent,
       showAnnouncementModal,
       saveAnnouncement,
-      deleteAnnouncement,
+      deleteAnnouncementItem,
       saveNotice,
       resetNotice,
       truncateContent
@@ -165,7 +190,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         a: common_vendor.t(announcement.title),
         b: common_vendor.t($setup.truncateContent(announcement.content, 50)),
         c: common_vendor.o(($event) => $setup.showAnnouncementModal(announcement), announcement.notification_id),
-        d: common_vendor.o(($event) => $setup.deleteAnnouncement(announcement.notification_id), announcement.notification_id),
+        d: common_vendor.o(($event) => $setup.deleteAnnouncementItem(announcement.notification_id), announcement.notification_id),
         e: announcement.notification_id,
         f: !announcement.is_active ? 1 : ""
       };

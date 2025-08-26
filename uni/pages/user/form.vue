@@ -8,18 +8,12 @@
 				</view>
 				<scroll-view class="modal-content" scroll-y="true" @scroll="handleScroll" :scroll-top="scrollTop">
 					<view class="notice-content">
-						<text class="notice-subtitle">个人预约入校注意事项</text>
-						<view class="notice-list">
-							<text class="notice-item">1. 请提前至少1个工作日进行预约申请</text>
-							<text class="notice-item">2. 入校时请携带有效身份证件以备查验</text>
-							<text class="notice-item">3. 请按照预约时间段入校，不得提前或超时</text>
-							<text class="notice-item">4. 车辆请停放在指定停车场，不得随意停放</text>
-							<text class="notice-item">5. 入校后请遵守校园管理规定，不得进入非申请区域</text>
-							<text class="notice-item">6. 如有随行人员，请在事由中说明并确保其携带身份证件</text>
-							<text class="notice-item">7. 如行程有变，请及时取消或修改预约</text>
-							<text class="notice-item">8. 严禁携带违禁物品入校</text>
-							<text class="notice-item">9. 入校期间请保持环境整洁，不得乱扔垃圾</text>
-							<text class="notice-item">10. 如有任何问题，请及时与审批人或保卫处联系</text>
+						<text class="notice-subtitle">{{ noticeTitle }}</text>
+						<view class="notice-text" v-if="noticeContent">
+							<text class="notice-content-text">{{ noticeContent }}</text>
+						</view>
+						<view class="notice-loading" v-else>
+							<text class="loading-text">正在加载入校须知...</text>
 						</view>
 						<view class="notice-highlight">
 							<text>请仔细阅读以上须知，如违反规定可能会影响今后的预约申请。</text>
@@ -143,10 +137,15 @@
 				</view>
 
 				<view class="form-group">
-					<text class="form-label"><text class="required">*</text>审批人</text>
-					<picker @change="onApproverChange" :value="approverIndex" :range="approvers" range-key="name">
-						<view class="picker-input">
-							<text>{{ selectedApprover || '请选择审批人' }}</text>
+					<view class="approver-header">
+						<text class="form-label"><text class="required">*</text>审批人</text>
+						<button class="refresh-btn" @tap="loadApprovers" v-if="approvers.length === 0">
+							<text>刷新</text>
+						</button>
+					</view>
+					<picker @change="onApproverChange" :value="approverIndex" :range="approvers" range-key="name" :disabled="approvers.length === 0">
+						<view class="picker-input" :class="{ disabled: approvers.length === 0 }">
+							<text>{{ approvers.length === 0 ? '加载审批人中...' : (selectedApprover || '请选择审批人') }}</text>
 							<uni-icons type="arrowdown" size="16" color="#999" class="picker-arrow"></uni-icons>
 						</view>
 					</picker>
@@ -185,6 +184,11 @@
 </template>
 
 <script>
+import { wechatLogin } from '../../api/auth.js'
+import { fetchApprovers } from '../../api/users.js'
+import { createIndividualReservation } from '../../api/reservations.js'
+import { fetchNotice } from '../../api/uniNotifications.js'
+
 export default {
 	data() {
 		const today = new Date();
@@ -195,8 +199,10 @@ export default {
 		
 		return {
 				showNoticeModal: true,
-				agreeNotice: false,
-				isScrolledToBottom: false,
+			agreeNotice: false,
+			isScrolledToBottom: false,
+			noticeContent: '',
+			noticeTitle: '个人预约入校须知',
 				isWechatLoggedIn: false,
 				authLoading: false,
 				showQrcodeModal: false,
@@ -278,54 +284,134 @@ export default {
 		closeNotice() {
 			if (this.agreeNotice) {
 				this.showNoticeModal = false;
+				// 确保在表单显示时重新加载审批人数据
+				if (this.approvers.length === 0) {
+					this.loadApprovers();
+				}
 			}
 		},
-		// 微信授权登录（模拟）
+		// 微信授权登录（真实对接）
 		handleWechatAuth() {
+			// #ifdef MP-WEIXIN
+			if (this.authLoading) return;
 			this.authLoading = true;
-			
-			// 模拟授权过程
-			setTimeout(() => {
-				this.isWechatLoggedIn = true;
-				this.authLoading = false;
-				// 保存登录状态到本地
-				uni.setStorageSync('isWechatLoggedIn', true);
-				uni.showToast({
-					title: '授权成功',
-					icon: 'success'
-				});
-			}, 1000);
+			uni.showLoading({ title: '授权中' });
+			uni.login({
+				provider: 'weixin',
+				success: async (loginRes) => {
+					try {
+						const code = loginRes?.code
+						if (!code) throw new Error('未获取到微信code')
+						const payload = {
+							code,
+							username: this.formData?.name || '微信用户',
+							phone: this.formData?.phone || '未填写',
+							real_name: this.formData?.name || '微信用户'
+						}
+						const res = await wechatLogin(payload)
+						const body = res?.data || res
+						const user = body?.data || body
+						const userId = user?.user_id
+						const openid = user?.openid
+						if (!userId) throw new Error('登录返回数据异常')
+						try { uni.setStorageSync('user_id', userId) } catch(e) {}
+						try { uni.setStorageSync('openid', openid || '') } catch(e) {}
+						this.isWechatLoggedIn = true
+						uni.showToast({ title: '授权成功', icon: 'success' })
+					} catch (err) {
+						uni.showToast({ title: '授权失败，请重试', icon: 'none' })
+					} finally {
+						this.authLoading = false
+						uni.hideLoading()
+					}
+				},
+				fail: () => {
+					this.authLoading = false
+					uni.hideLoading()
+					uni.showToast({ title: '授权失败', icon: 'none' })
+				}
+			})
+			// #endif
+
+			// #ifndef MP-WEIXIN
+			uni.showToast({ title: '请在微信小程序中使用授权', icon: 'none' })
+			// #endif
 		},
-		
+
 		// 显示公众号二维码
 		showQrcodePrompt() {
-			this.showQrcodeModal = true;
-		},
-		
-		// 关闭二维码弹窗
-		closeQrcodeModal() {
+			// 删除：不再显示公众号关注弹窗
 			this.showQrcodeModal = false;
 		},
-		
-		// 检查登录状态（模拟）
+
+		// 关闭二维码弹窗
+		closeQrcodeModal() {
+			// 删除：不再显示公众号关注弹窗
+			this.showQrcodeModal = false;
+		},
+
+		// 检查登录状态（读取本地缓存）
 		checkLoginStatus() {
-			// 模拟检查本地登录状态
-			const isLoggedIn = uni.getStorageSync('isWechatLoggedIn');
-			if (isLoggedIn) {
-				this.isWechatLoggedIn = true;
-			}
+			try {
+				const uid = uni.getStorageSync('user_id')
+				if (uid) this.isWechatLoggedIn = true
+			} catch(e) {}
 		},
-		
-		// 加载审批人列表（静态数据）
+
+		// 加载入校须知
+		loadNotice() {
+			fetchNotice('individual_notice')
+				.then((res) => {
+					console.log('入校须知API响应:', res)
+					// 后端返回格式：{code: 0, data: {notification_id, title, content, updated_at}}
+					if (res && res.code === 0 && res.data) {
+						this.noticeTitle = res.data.title || '个人预约入校须知'
+						this.noticeContent = res.data.content || ''
+					} else {
+						console.log('入校须知数据格式异常，使用默认内容')
+						// 使用默认内容
+						this.noticeContent = '1. 请提前至少1个工作日进行预约申请\n2. 入校时请携带有效身份证件以备查验\n3. 请按照预约时间段入校，不得提前或超时\n4. 车辆请停放在指定停车场，不得随意停放\n5. 入校后请遵守校园管理规定，不得进入非申请区域\n6. 如有随行人员，请在事由中说明并确保其携带身份证件\n7. 如行程有变，请及时取消或修改预约\n8. 严禁携带违禁物品入校\n9. 入校期间请保持环境整洁，不得乱扔垃圾\n10. 如有任何问题，请及时与审批人或保卫处联系'
+					}
+				})
+				.catch((err) => {
+					console.error('加载入校须知失败:', err)
+					// 使用默认内容
+					this.noticeContent = '1. 请提前至少1个工作日进行预约申请\n2. 入校时请携带有效身份证件以备查验\n3. 请按照预约时间段入校，不得提前或超时\n4. 车辆请停放在指定停车场，不得随意停放\n5. 入校后请遵守校园管理规定，不得进入非申请区域\n6. 如有随行人员，请在事由中说明并确保其携带身份证件\n7. 如行程有变，请及时取消或修改预约\n8. 严禁携带违禁物品入校\n9. 入校期间请保持环境整洁，不得乱扔垃圾\n10. 如有任何问题，请及时与审批人或保卫处联系'
+				})
+		},
+
+		// 加载审批人列表（真实接口）
 		loadApprovers() {
-			// 使用静态审批人列表
-			this.approvers = [
-				{ id: 'approver_1', name: '张老师 - 计算机学院' },
-				{ id: 'approver_2', name: '李老师 - 电子工程学院' },
-				{ id: 'approver_3', name: '王老师 - 保卫处' },
-				{ id: 'approver_4', name: '赵老师 - 机械工程学院' }
-			];
+			uni.showLoading({ title: '加载审批人' })
+			fetchApprovers()
+				.then((res) => {
+					console.log('审批人API响应:', res)
+					const body = res?.data || res
+					const list = body?.data || body || []
+					console.log('解析后的审批人列表:', list)
+					this.approvers = (Array.isArray(list) ? list : []).map(u => ({
+						id: u.user_id,
+						name: `${u.real_name || u.username || '审批人'}${u.college ? ' - ' + u.college : ''}`
+					}))
+					console.log('最终审批人数组:', this.approvers)
+					// 重置审批人选择状态
+					this.approverIndex = -1
+					this.formData.approverId = ''
+					if (this.approvers.length > 0) {
+						uni.showToast({ title: `加载到${this.approvers.length}个审批人`, icon: 'success' })
+					} else {
+						uni.showToast({ title: '未找到审批人数据', icon: 'none' })
+					}
+				})
+				.catch((err) => {
+					console.error('加载审批人失败:', err)
+					uni.showToast({ title: '审批人加载失败', icon: 'none' })
+				})
+				.finally(() => {
+					uni.hideLoading()
+				})
 		},
+
 		onPurposeChange(e) {
 			const index = e.detail.value;
 			this.purposeIndex = index;
@@ -348,10 +434,9 @@ export default {
 			this.approverIndex = index;
 			
 			// 安全检查，确保审批人存在
-			if (this.approvers && this.approvers.length > index && this.approvers[index]) {
+			if (this.approvers && this.approvers.length > index && index >= 0 && this.approvers[index]) {
 				this.formData.approverId = this.approvers[index].id;
 			} else {
-				console.error('审批人选择错误，索引:', index, '审批人列表:', this.approvers);
 				this.formData.approverId = '';
 			}
 		},
@@ -381,65 +466,77 @@ export default {
 				});
 				return;
 			}
-			
 			// 手机号验证
 			const phoneRegex = /^1[3-9]\d{9}$/;
 			if (!phoneRegex.test(this.formData.phone)) {
-				uni.showToast({
-					title: '请输入正确的手机号码',
-					icon: 'none'
-				});
+				uni.showToast({ title: '请输入正确的手机号码', icon: 'none' });
 				return;
 			}
-			
-			// 检查微信授权状态
 			// #ifdef MP-WEIXIN
 			if (!this.isWechatLoggedIn) {
-				uni.showToast({
-					title: '请先完成微信授权',
-					icon: 'none'
-				});
+				uni.showToast({ title: '请先完成微信授权', icon: 'none' });
 				return;
 			}
 			// #endif
-			
-			uni.showLoading({
-				title: '提交中...'
-			});
-			
-			// 模拟提交过程
-			setTimeout(() => {
-				uni.hideLoading();
-				
-				// 模拟成功提交
-				uni.showToast({
-					title: '申请提交成功',
-					icon: 'success'
-				});
-				
-				// 显示公众号关注提示
-				setTimeout(() => {
-					this.showQrcodePrompt();
-				}, 1000);
-				
-				// 重置表单
-				this.resetForm();
-			}, 1500);
+
+			const uid = uni.getStorageSync('user_id')
+			if (!uid) {
+				uni.showToast({ title: '未获取到用户信息，请先授权', icon: 'none' })
+				return
+			}
+
+			const payload = {
+				user_id: uid,
+				purpose: this.formData.purpose,
+				visit_date: this.formData.visitDate,
+				entry_time: this.formData.entryTime || '09:00',
+				exit_time: this.formData.exitTime || '20:00',
+				gate: this.formData.gate,
+				license_plate: this.formData.carNumber || '',
+				approver_id: this.formData.approverId,
+			}
+
+			uni.showLoading({ title: '提交中...' })
+			createIndividualReservation(payload)
+				.then((res) => {
+					const body = res?.data || res
+					if (body?.code && body.code !== 0) {
+						throw new Error(body?.message || '提交失败')
+					}
+					uni.showToast({ title: '申请提交成功', icon: 'success' })
+					setTimeout(() => { this.showQrcodePrompt() }, 600)
+					this.resetForm()
+				})
+				.catch(() => {
+					uni.showToast({ title: '提交失败，请稍后重试', icon: 'none' })
+				})
+				.finally(() => {
+					uni.hideLoading()
+				})
 		}
 	},
 		onLoad() {
-			// 检查用户登录状态
-			this.checkLoginStatus();
-			// 加载审批人列表
-			this.loadApprovers();
-		},
-		mounted() {
-			this.$nextTick(() => {
-				setTimeout(() => {
-					this.checkScrollability();
-				}, 100);
-			});
-		}
+		// 检查用户登录状态
+		this.checkLoginStatus();
+		// 加载审批人列表
+		this.loadApprovers();
+		// 加载入校须知
+		this.loadNotice();
+	},
+	// 添加mounted钩子，确保组件作为子组件时也能正确加载数据
+	mounted() {
+		// 检查用户登录状态
+		this.checkLoginStatus();
+		// 加载审批人列表
+		this.loadApprovers();
+		// 加载入校须知
+		this.loadNotice();
+		this.$nextTick(() => {
+			setTimeout(() => {
+				this.checkScrollability();
+			}, 100);
+		});
+	}
 }
 </script>
 
@@ -506,16 +603,27 @@ export default {
 	line-height: 1.4;
 }
 
-.notice-list {
+.notice-text {
 	display: flex;
 	flex-direction: column;
 	gap: 12rpx;
 }
 
-.notice-item {
+.notice-content-text {
 	font-size: 24rpx;
 	color: #333;
-	line-height: 1.4;
+	line-height: 1.6;
+	white-space: pre-line;
+}
+
+.notice-loading {
+	text-align: center;
+	padding: 40rpx 0;
+}
+
+.loading-text {
+	font-size: 24rpx;
+	color: #999;
 }
 
 .notice-highlight {
@@ -864,6 +972,29 @@ export default {
 	margin-right: 40rpx;
 }
 
+/* 审批人区域样式 */
+.approver-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20rpx;
+}
+
+.refresh-btn {
+	background: #1c4e80;
+	color: white;
+	border: none;
+	padding: 8rpx 16rpx;
+	border-radius: 6rpx;
+	font-size: 24rpx;
+}
+
+.picker-input.disabled {
+	background: #f5f5f5;
+	color: #999;
+	border-color: #e0e0e0;
+}
+
 /* 表单操作按钮 */
 .form-actions {
 	display: flex;
@@ -965,3 +1096,4 @@ export default {
 	}
 }
 </style>
+/* 删除公众号二维码弹窗样式与相关元素，这里保持空以避免影响 */
