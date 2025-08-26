@@ -280,64 +280,21 @@ export default {
 				this.showNoticeModal = false;
 			}
 		},
-		// 微信授权登录
+		// 微信授权登录（模拟）
 		handleWechatAuth() {
 			this.authLoading = true;
 			
-			// #ifdef MP-WEIXIN
-			uni.getUserProfile({
-				desc: '用于完善用户资料',
-				success: (res) => {
-					console.log('获取用户信息成功', res.userInfo);
-					// 调用云函数进行登录
-					this.loginWithWechat(res.userInfo);
-				},
-				fail: (err) => {
-					console.error('获取用户信息失败', err);
-					uni.showToast({
-						title: '授权失败，请重试',
-						icon: 'none'
-					});
-					this.authLoading = false;
-				}
-			});
-			// #endif
-		},
-		
-		// 调用云函数登录
-		async loginWithWechat(userInfo) {
-			try {
-				const result = await uniCloud.callFunction({
-					name: 'user-auth',
-					data: {
-						action: 'login',
-						userInfo: userInfo
-					}
-				});
-				
-				if (result.result.code === 0) {
-					this.isWechatLoggedIn = true;
-					// 保存用户信息到本地
-					uni.setStorageSync('userInfo', result.result.data);
-					uni.showToast({
-						title: '授权成功',
-						icon: 'success'
-					});
-				} else {
-					uni.showToast({
-						title: result.result.message || '授权失败',
-						icon: 'none'
-					});
-				}
-			} catch (error) {
-				console.error('登录失败', error);
-				uni.showToast({
-					title: '网络错误，请重试',
-					icon: 'none'
-				});
-			} finally {
+			// 模拟授权过程
+			setTimeout(() => {
+				this.isWechatLoggedIn = true;
 				this.authLoading = false;
-			}
+				// 保存登录状态到本地
+				uni.setStorageSync('isWechatLoggedIn', true);
+				uni.showToast({
+					title: '授权成功',
+					icon: 'success'
+				});
+			}, 1000);
 		},
 		
 		// 显示公众号二维码
@@ -350,58 +307,24 @@ export default {
 			this.showQrcodeModal = false;
 		},
 		
-		// 检查登录状态
+		// 检查登录状态（模拟）
 		checkLoginStatus() {
-			const userInfo = uni.getStorageSync('userInfo');
-			if (userInfo && userInfo.openid) {
+			// 模拟检查本地登录状态
+			const isLoggedIn = uni.getStorageSync('isWechatLoggedIn');
+			if (isLoggedIn) {
 				this.isWechatLoggedIn = true;
-				// 预填用户信息
-				if (userInfo.real_name) {
-					this.formData.name = userInfo.real_name;
-				}
-				if (userInfo.phone) {
-					this.formData.phone = userInfo.phone;
-				}
 			}
 		},
 		
-		// 加载审批人列表
-		async loadApprovers() {
-			uni.showLoading({
-				title: '加载审批人...'
-			});
-			
-			try {
-				const result = await uniCloud.callFunction({
-					name: 'user-auth',
-					data: {
-						action: 'getApprovers'
-					}
-				});
-				
-				if (result.result.code === 0 && result.result.data && result.result.data.length > 0) {
-					// 使用真实的云数据库数据
-					this.approvers = result.result.data.map(approver => ({
-						id: approver._id || approver.user_id,
-						name: `${approver.real_name} - ${approver.college || '未设置学院'}`
-					}));
-					console.log('成功加载真实审批人数据:', this.approvers);
-				} else {
-					console.error('未找到审批人数据:', result.result.message);
-					uni.showToast({
-						title: '暂无可用审批人',
-						icon: 'none'
-					});
-				}
-			} catch (error) {
-				console.error('加载审批人列表错误:', error);
-				uni.showToast({
-					title: '加载审批人失败',
-					icon: 'none'
-				});
-			} finally {
-				uni.hideLoading();
-			}
+		// 加载审批人列表（静态数据）
+		loadApprovers() {
+			// 使用静态审批人列表
+			this.approvers = [
+				{ id: 'approver_1', name: '张老师 - 计算机学院' },
+				{ id: 'approver_2', name: '李老师 - 电子工程学院' },
+				{ id: 'approver_3', name: '王老师 - 保卫处' },
+				{ id: 'approver_4', name: '赵老师 - 机械工程学院' }
+			];
 		},
 		onPurposeChange(e) {
 			const index = e.detail.value;
@@ -448,7 +371,7 @@ export default {
 			this.purposeIndex = 0;
 			this.approverIndex = -1; // 重置为未选择状态
 		},
-		async submitForm() {
+		submitForm() {
 			// 表单验证
 			if (!this.formData.purpose || !this.formData.name || !this.formData.phone || 
 				!this.formData.visitDate || !this.formData.approverId) {
@@ -484,55 +407,24 @@ export default {
 				title: '提交中...'
 			});
 			
-			try {
-				// 调用云函数提交预约
-				const result = await uniCloud.callFunction({
-					name: 'reservation-manager',
-					data: {
-						action: 'create',
-						reservationData: {
-							purpose: this.formData.purpose,
-							real_name: this.formData.name,
-							phone: this.formData.phone,
-							visit_date: this.formData.visitDate,
-							entry_time: this.formData.entryTime || '09:00:00',
-							exit_time: this.formData.exitTime || '20:00:00',
-							gate: this.formData.gate,
-							license_plate: this.formData.carNumber,
-							approver_id: this.formData.approverId
-						}
-					}
-				});
-				
+			// 模拟提交过程
+			setTimeout(() => {
 				uni.hideLoading();
 				
-				if (result.result.code === 0) {
-					uni.showToast({
-						title: '申请提交成功',
-						icon: 'success'
-					});
-					
-					// 显示公众号关注提示
-					setTimeout(() => {
-						this.showQrcodePrompt();
-					}, 1000);
-					
-					// 重置表单
-					this.resetForm();
-				} else {
-					uni.showToast({
-						title: result.result.message || '提交失败',
-						icon: 'none'
-					});
-				}
-			} catch (error) {
-				uni.hideLoading();
-				console.error('提交失败', error);
+				// 模拟成功提交
 				uni.showToast({
-					title: '网络错误，请重试',
-					icon: 'none'
+					title: '申请提交成功',
+					icon: 'success'
 				});
-			}
+				
+				// 显示公众号关注提示
+				setTimeout(() => {
+					this.showQrcodePrompt();
+				}, 1000);
+				
+				// 重置表单
+				this.resetForm();
+			}, 1500);
 		}
 	},
 		onLoad() {

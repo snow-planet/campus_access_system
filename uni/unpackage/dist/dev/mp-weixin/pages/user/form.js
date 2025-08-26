@@ -88,57 +88,18 @@ const _sfc_main = {
         this.showNoticeModal = false;
       }
     },
-    // 微信授权登录
+    // 微信授权登录（模拟）
     handleWechatAuth() {
       this.authLoading = true;
-      common_vendor.index.getUserProfile({
-        desc: "用于完善用户资料",
-        success: (res) => {
-          console.log("获取用户信息成功", res.userInfo);
-          this.loginWithWechat(res.userInfo);
-        },
-        fail: (err) => {
-          console.error("获取用户信息失败", err);
-          common_vendor.index.showToast({
-            title: "授权失败，请重试",
-            icon: "none"
-          });
-          this.authLoading = false;
-        }
-      });
-    },
-    // 调用云函数登录
-    async loginWithWechat(userInfo) {
-      try {
-        const result = await common_vendor.Ys.callFunction({
-          name: "user-auth",
-          data: {
-            action: "login",
-            userInfo
-          }
-        });
-        if (result.result.code === 0) {
-          this.isWechatLoggedIn = true;
-          common_vendor.index.setStorageSync("userInfo", result.result.data);
-          common_vendor.index.showToast({
-            title: "授权成功",
-            icon: "success"
-          });
-        } else {
-          common_vendor.index.showToast({
-            title: result.result.message || "授权失败",
-            icon: "none"
-          });
-        }
-      } catch (error) {
-        console.error("登录失败", error);
-        common_vendor.index.showToast({
-          title: "网络错误，请重试",
-          icon: "none"
-        });
-      } finally {
+      setTimeout(() => {
+        this.isWechatLoggedIn = true;
         this.authLoading = false;
-      }
+        common_vendor.index.setStorageSync("isWechatLoggedIn", true);
+        common_vendor.index.showToast({
+          title: "授权成功",
+          icon: "success"
+        });
+      }, 1e3);
     },
     // 显示公众号二维码
     showQrcodePrompt() {
@@ -148,57 +109,21 @@ const _sfc_main = {
     closeQrcodeModal() {
       this.showQrcodeModal = false;
     },
-    // 检查登录状态
+    // 检查登录状态（模拟）
     checkLoginStatus() {
-      const userInfo = common_vendor.index.getStorageSync("userInfo");
-      if (userInfo && userInfo.openid) {
+      const isLoggedIn = common_vendor.index.getStorageSync("isWechatLoggedIn");
+      if (isLoggedIn) {
         this.isWechatLoggedIn = true;
-        if (userInfo.real_name) {
-          this.formData.name = userInfo.real_name;
-        }
-        if (userInfo.phone) {
-          this.formData.phone = userInfo.phone;
-        }
       }
     },
-    // 加载审批人列表
-    async loadApprovers() {
-      common_vendor.index.showLoading({
-        title: "加载审批人..."
-      });
-      try {
-        const result = await common_vendor.Ys.callFunction({
-          name: "user-auth",
-          // 确保云函数名称正确
-          data: {
-            action: "getApprovers"
-          }
-        });
-        console.log("审批人获取结果:", result);
-        if (result.result.code === 0 && result.result.data && result.result.data.length > 0) {
-          this.approvers = result.result.data.map((approver) => ({
-            id: approver._id || approver.user_id,
-            name: `${approver.real_name} - ${approver.college || "未设置学院"}`
-          }));
-          console.log("成功加载审批人数据:", this.approvers);
-        } else {
-          console.warn("未找到审批人数据或数据为空:", result.result);
-          this.approvers = [];
-          common_vendor.index.showToast({
-            title: result.result.message || "暂无可用审批人",
-            icon: "none"
-          });
-        }
-      } catch (error) {
-        console.error("加载审批人列表错误:", error);
-        this.approvers = [];
-        common_vendor.index.showToast({
-          title: "加载审批人失败",
-          icon: "none"
-        });
-      } finally {
-        common_vendor.index.hideLoading();
-      }
+    // 加载审批人列表（静态数据）
+    loadApprovers() {
+      this.approvers = [
+        { id: "approver_1", name: "张老师 - 计算机学院" },
+        { id: "approver_2", name: "李老师 - 电子工程学院" },
+        { id: "approver_3", name: "王老师 - 保卫处" },
+        { id: "approver_4", name: "赵老师 - 机械工程学院" }
+      ];
     },
     onPurposeChange(e) {
       const index = e.detail.value;
@@ -218,23 +143,12 @@ const _sfc_main = {
       this.formData.gate = e.detail.value;
     },
     onApproverChange(e) {
-      try {
-        const index = parseInt(e.detail.value);
-        console.log("选择的审批人索引:", index, "审批人列表:", this.approvers);
-        this.approverIndex = index;
-        if (Array.isArray(this.approvers) && this.approvers.length > 0 && index >= 0 && index < this.approvers.length && this.approvers[index]) {
-          this.formData.approverId = this.approvers[index].id;
-          console.log("选择的审批人ID:", this.formData.approverId);
-        } else {
-          console.error("审批人选择错误，索引:", index, "审批人列表:", this.approvers);
-          this.formData.approverId = "";
-          common_vendor.index.showToast({
-            title: "请选择有效的审批人",
-            icon: "none"
-          });
-        }
-      } catch (error) {
-        console.error("审批人选择处理错误:", error);
+      const index = parseInt(e.detail.value);
+      this.approverIndex = index;
+      if (this.approvers && this.approvers.length > index && this.approvers[index]) {
+        this.formData.approverId = this.approvers[index].id;
+      } else {
+        console.error("审批人选择错误，索引:", index, "审批人列表:", this.approvers);
         this.formData.approverId = "";
       }
     },
@@ -253,7 +167,7 @@ const _sfc_main = {
       this.purposeIndex = 0;
       this.approverIndex = -1;
     },
-    async submitForm() {
+    submitForm() {
       if (!this.formData.purpose || !this.formData.name || !this.formData.phone || !this.formData.visitDate || !this.formData.approverId) {
         common_vendor.index.showToast({
           title: "请填写所有必填项",
@@ -279,48 +193,17 @@ const _sfc_main = {
       common_vendor.index.showLoading({
         title: "提交中..."
       });
-      try {
-        const result = await common_vendor.Ys.callFunction({
-          name: "reservation-manager",
-          data: {
-            action: "create",
-            reservationData: {
-              purpose: this.formData.purpose,
-              real_name: this.formData.name,
-              phone: this.formData.phone,
-              visit_date: this.formData.visitDate,
-              entry_time: this.formData.entryTime || "09:00:00",
-              exit_time: this.formData.exitTime || "20:00:00",
-              gate: this.formData.gate,
-              license_plate: this.formData.carNumber,
-              approver_id: this.formData.approverId
-            }
-          }
-        });
+      setTimeout(() => {
         common_vendor.index.hideLoading();
-        if (result.result.code === 0) {
-          common_vendor.index.showToast({
-            title: "申请提交成功",
-            icon: "success"
-          });
-          setTimeout(() => {
-            this.showQrcodePrompt();
-          }, 1e3);
-          this.resetForm();
-        } else {
-          common_vendor.index.showToast({
-            title: result.result.message || "提交失败",
-            icon: "none"
-          });
-        }
-      } catch (error) {
-        common_vendor.index.hideLoading();
-        console.error("提交失败", error);
         common_vendor.index.showToast({
-          title: "网络错误，请重试",
-          icon: "none"
+          title: "申请提交成功",
+          icon: "success"
         });
-      }
+        setTimeout(() => {
+          this.showQrcodePrompt();
+        }, 1e3);
+        this.resetForm();
+      }, 1500);
     }
   },
   onLoad() {

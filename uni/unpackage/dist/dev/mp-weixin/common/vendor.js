@@ -65,7 +65,7 @@ const cacheStringFunction = (fn) => {
 };
 const camelizeRE = /-(\w)/g;
 const camelize = cacheStringFunction((str) => {
-  return str.replace(camelizeRE, (_2, c2) => c2 ? c2.toUpperCase() : "");
+  return str.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : "");
 });
 const hyphenateRE = /\B([A-Z])/g;
 const hyphenate = cacheStringFunction(
@@ -75,8 +75,8 @@ const capitalize = cacheStringFunction((str) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 });
 const toHandlerKey = cacheStringFunction((str) => {
-  const s2 = str ? `on${capitalize(str)}` : ``;
-  return s2;
+  const s = str ? `on${capitalize(str)}` : ``;
+  return s;
 });
 const hasChanged = (value, oldValue) => !Object.is(value, oldValue);
 const invokeArrayFns$1 = (fns, arg) => {
@@ -137,7 +137,7 @@ const replacer = (_key, val) => {
     };
   } else if (isSet(val)) {
     return {
-      [`Set(${val.size})`]: [...val.values()].map((v4) => stringifySymbol(v4))
+      [`Set(${val.size})`]: [...val.values()].map((v) => stringifySymbol(v))
     };
   } else if (isSymbol(val)) {
     return stringifySymbol(val);
@@ -146,9 +146,9 @@ const replacer = (_key, val) => {
   }
   return val;
 };
-const stringifySymbol = (v4, i = "") => {
+const stringifySymbol = (v, i = "") => {
   var _a2;
-  return isSymbol(v4) ? `Symbol(${(_a2 = v4.description) != null ? _a2 : i})` : v4;
+  return isSymbol(v) ? `Symbol(${(_a2 = v.description) != null ? _a2 : i})` : v;
 };
 const SLOT_DEFAULT_NAME = "d";
 const ON_SHOW = "onShow";
@@ -331,9 +331,9 @@ const invokeCreateErrorHandler = once((app, createErrorHandler2) => {
     return createErrorHandler2(app);
   }
 });
-const E$1 = function() {
+const E = function() {
 };
-E$1.prototype = {
+E.prototype = {
   on: function(name, callback, ctx) {
     var e2 = this.e || (this.e = {});
     (e2[name] || (e2[name] = [])).push({
@@ -378,7 +378,7 @@ E$1.prototype = {
     return this;
   }
 };
-var E$1$1 = E$1;
+var E$1 = E;
 const LOCALE_ZH_HANS = "zh-Hans";
 const LOCALE_ZH_HANT = "zh-Hant";
 const LOCALE_EN$1 = "en";
@@ -964,7 +964,7 @@ const EmitProtocol = [
     required: true
   }
 ];
-const emitter = new E$1$1();
+const emitter = new E$1();
 const $on = defineSyncApi(API_ON, (name, callback) => {
   emitter.on(name, callback);
   return () => emitter.off(name, callback);
@@ -1031,7 +1031,7 @@ function invokeGetPushCidCallbacks(cid2, errMsg) {
   getPushCidCallbacks.length = 0;
 }
 const API_GET_PUSH_CLIENT_ID = "getPushClientId";
-const getPushClientId = defineAsyncApi(API_GET_PUSH_CLIENT_ID, (_2, { resolve: resolve2, reject }) => {
+const getPushClientId = defineAsyncApi(API_GET_PUSH_CLIENT_ID, (_, { resolve: resolve2, reject }) => {
   Promise.resolve().then(() => {
     if (typeof enabled === "undefined") {
       enabled = false;
@@ -1222,7 +1222,7 @@ if (typeof global !== "undefined") {
 const UUID_KEY = "__DC_STAT_UUID";
 let deviceId;
 function useDeviceId(global2 = wx) {
-  return function addDeviceId(_2, toRes) {
+  return function addDeviceId(_, toRes) {
     deviceId = deviceId || global2.getStorageSync(UUID_KEY);
     if (!deviceId) {
       deviceId = Date.now() + "" + Math.floor(Math.random() * 1e7);
@@ -1614,9 +1614,9 @@ function warn$1$1(msg, ...args) {
       instance,
       11,
       [
-        msg + args.map((a2) => {
+        msg + args.map((a) => {
           var _a2, _b2;
-          return (_b2 = (_a2 = a2.toString) == null ? void 0 : _a2.call(a2)) != null ? _b2 : JSON.stringify(a2);
+          return (_b2 = (_a2 = a.toString) == null ? void 0 : _a2.call(a)) != null ? _b2 : JSON.stringify(a);
         }).join(""),
         instance && instance.proxy,
         trace.map(
@@ -1846,7 +1846,7 @@ function queuePostFlushCb$1(cb) {
 function flushPostFlushCbs$1(seen) {
   if (pendingPostFlushCbs$1.length) {
     const deduped = [...new Set(pendingPostFlushCbs$1)].sort(
-      (a2, b2) => getId$1(a2) - getId$1(b2)
+      (a, b) => getId$1(a) - getId$1(b)
     );
     pendingPostFlushCbs$1.length = 0;
     if (activePostFlushCbs$1) {
@@ -1868,12 +1868,12 @@ function flushPostFlushCbs$1(seen) {
   }
 }
 const getId$1 = (job) => job.id == null ? Infinity : job.id;
-const comparator$1 = (a2, b2) => {
-  const diff2 = getId$1(a2) - getId$1(b2);
+const comparator$1 = (a, b) => {
+  const diff2 = getId$1(a) - getId$1(b);
   if (diff2 === 0) {
-    if (a2.pre && !b2.pre)
+    if (a.pre && !b.pre)
       return -1;
-    if (b2.pre && !a2.pre)
+    if (b.pre && !a.pre)
       return 1;
   }
   return diff2;
@@ -2027,26 +2027,26 @@ function tryWrap(fn) {
   };
 }
 {
-  const g2 = getGlobalThis();
+  const g = getGlobalThis();
   const registerGlobalSetter = (key, setter) => {
     let setters;
-    if (!(setters = g2[key]))
-      setters = g2[key] = [];
+    if (!(setters = g[key]))
+      setters = g[key] = [];
     setters.push(setter);
-    return (v4) => {
+    return (v) => {
       if (setters.length > 1)
-        setters.forEach((set2) => set2(v4));
+        setters.forEach((set2) => set2(v));
       else
-        setters[0](v4);
+        setters[0](v);
     };
   };
   registerGlobalSetter(
     `__VUE_INSTANCE_SETTERS__`,
-    (v4) => v4
+    (v) => v
   );
   registerGlobalSetter(
     `__VUE_SSR_SETTERS__`,
-    (v4) => v4
+    (v) => v
   );
 }
 const classifyRE$1 = /(?:^|[-_])(\w)/g;
@@ -2133,15 +2133,15 @@ class EffectScope {
   }
   stop(fromParent) {
     if (this._active) {
-      let i, l2;
-      for (i = 0, l2 = this.effects.length; i < l2; i++) {
+      let i, l;
+      for (i = 0, l = this.effects.length; i < l; i++) {
         this.effects[i].stop();
       }
-      for (i = 0, l2 = this.cleanups.length; i < l2; i++) {
+      for (i = 0, l = this.cleanups.length; i < l; i++) {
         this.cleanups[i]();
       }
       if (this.scopes) {
-        for (i = 0, l2 = this.scopes.length; i < l2; i++) {
+        for (i = 0, l = this.scopes.length; i < l; i++) {
           this.scopes[i].stop(true);
         }
       }
@@ -2200,8 +2200,8 @@ class ReactiveEffect2 {
     }
     return this._dirtyLevel >= 4;
   }
-  set dirty(v4) {
-    this._dirtyLevel = v4 ? 4 : 0;
+  set dirty(v) {
+    this._dirtyLevel = v ? 4 : 0;
   }
   run() {
     this._dirtyLevel = 0;
@@ -2424,7 +2424,7 @@ function createArrayInstrumentations() {
   ["includes", "indexOf", "lastIndexOf"].forEach((key) => {
     instrumentations[key] = function(...args) {
       const arr = toRaw(this);
-      for (let i = 0, l2 = this.length; i < l2; i++) {
+      for (let i = 0, l = this.length; i < l; i++) {
         track(arr, "get", i + "");
       }
       const res = arr[key](...args);
@@ -2588,7 +2588,7 @@ const shallowReactiveHandlers = /* @__PURE__ */ new MutableReactiveHandler2(
 );
 const shallowReadonlyHandlers = /* @__PURE__ */ new ReadonlyReactiveHandler2(true);
 const toShallow = (value) => value;
-const getProto = (v4) => Reflect.getPrototypeOf(v4);
+const getProto = (v) => Reflect.getPrototypeOf(v);
 function get$1(target, key, isReadonly2 = false, isShallow2 = false) {
   target = target["__v_raw"];
   const rawTarget = toRaw(target);
@@ -3020,8 +3020,8 @@ getter: `, this.getter);
   get _dirty() {
     return this.effect.dirty;
   }
-  set _dirty(v4) {
-    this.effect.dirty = v4;
+  set _dirty(v) {
+    this.effect.dirty = v;
   }
   // #endregion
 }
@@ -3149,9 +3149,9 @@ function warn$1(msg, ...args) {
       instance,
       11,
       [
-        msg + args.map((a2) => {
+        msg + args.map((a) => {
           var _a2, _b2;
-          return (_b2 = (_a2 = a2.toString) == null ? void 0 : _a2.call(a2)) != null ? _b2 : JSON.stringify(a2);
+          return (_b2 = (_a2 = a.toString) == null ? void 0 : _a2.call(a)) != null ? _b2 : JSON.stringify(a);
         }).join(""),
         instance && instance.proxy,
         trace.map(
@@ -3431,7 +3431,7 @@ function flushPreFlushCbs(instance, seen, i = isFlushing ? flushIndex + 1 : 0) {
 function flushPostFlushCbs(seen) {
   if (pendingPostFlushCbs.length) {
     const deduped = [...new Set(pendingPostFlushCbs)].sort(
-      (a2, b2) => getId$2(a2) - getId$2(b2)
+      (a, b) => getId$2(a) - getId$2(b)
     );
     pendingPostFlushCbs.length = 0;
     if (activePostFlushCbs) {
@@ -3453,12 +3453,12 @@ function flushPostFlushCbs(seen) {
   }
 }
 const getId$2 = (job) => job.id == null ? Infinity : job.id;
-const comparator = (a2, b2) => {
-  const diff2 = getId$2(a2) - getId$2(b2);
+const comparator = (a, b) => {
+  const diff2 = getId$2(a) - getId$2(b);
   if (diff2 === 0) {
-    if (a2.pre && !b2.pre)
+    if (a.pre && !b.pre)
       return -1;
-    if (b2.pre && !a2.pre)
+    if (b.pre && !a.pre)
       return 1;
   }
   return diff2;
@@ -3651,7 +3651,7 @@ function emit(instance, event, ...rawArgs) {
     const modifiersKey = `${modelArg === "modelValue" ? "model" : modelArg}Modifiers`;
     const { number, trim: trim2 } = props[modifiersKey] || EMPTY_OBJ$1;
     if (trim2) {
-      args = rawArgs.map((a2) => isString$1(a2) ? a2.trim() : a2);
+      args = rawArgs.map((a) => isString$1(a) ? a.trim() : a);
     }
     if (number) {
       args = rawArgs.map(looseToNumber);
@@ -3920,7 +3920,7 @@ function doWatch(source, cb, {
     }
     if (cb) {
       const newValue = effect2.run();
-      if (deep || forceTrigger || (isMultiSource ? newValue.some((v4, i) => hasChanged(v4, oldValue[i])) : hasChanged(newValue, oldValue)) || false) {
+      if (deep || forceTrigger || (isMultiSource ? newValue.some((v, i) => hasChanged(v, oldValue[i])) : hasChanged(newValue, oldValue)) || false) {
         if (cleanup) {
           cleanup();
         }
@@ -4023,8 +4023,8 @@ function traverse(value, depth, currentDepth = 0, seen) {
       traverse(value[i], depth, currentDepth, seen);
     }
   } else if (isSet(value) || isMap(value)) {
-    value.forEach((v4) => {
-      traverse(v4, depth, currentDepth, seen);
+    value.forEach((v) => {
+      traverse(v, depth, currentDepth, seen);
     });
   } else if (isPlainObject(value)) {
     for (const key in value) {
@@ -4082,7 +4082,7 @@ function createAppAPI(render2, hydrate) {
       get config() {
         return context.config;
       },
-      set config(v4) {
+      set config(v) {
         {
           warn$1(
             `app.config cannot be replaced. Modify individual options instead.`
@@ -4667,7 +4667,7 @@ function applyOptions$1(instance) {
         enumerable: true,
         configurable: true,
         get: () => c2.value,
-        set: (v4) => c2.value = v4
+        set: (v) => c2.value = v
       });
       {
         checkDuplicateProperties("Computed", key);
@@ -4763,7 +4763,7 @@ function resolveInjections(injectOptions, ctx, checkDuplicateProperties = NOOP) 
         enumerable: true,
         configurable: true,
         get: () => injected.value,
-        set: (v4) => injected.value = v4
+        set: (v) => injected.value = v
       });
     } else {
       ctx[key] = injected;
@@ -5247,8 +5247,8 @@ function getType(ctor) {
   }
   return "";
 }
-function isSameType(a2, b2) {
-  return getType(a2) === getType(b2);
+function isSameType(a, b) {
+  return getType(a) === getType(b);
 }
 function getTypeIndex(type, expectedTypes) {
   if (isArray$2(expectedTypes)) {
@@ -5513,8 +5513,8 @@ let setInSSRSetupState;
   internalSetCurrentInstance = (i) => {
     currentInstance = i;
   };
-  setInSSRSetupState = (v4) => {
-    isInSSRComponentSetup = v4;
+  setInSSRSetupState = (v) => {
+    isInSSRComponentSetup = v;
   };
 }
 const setCurrentInstance = (instance) => {
@@ -5903,8 +5903,8 @@ function _diff(current, pre, path, result) {
     setResult(result, path, current);
   }
 }
-function setResult(result, k, v4) {
-  result[k] = v4;
+function setResult(result, k, v) {
+  result[k] = v;
 }
 function hasComponentEffect(instance) {
   return queue.includes(instance.update);
@@ -6328,7 +6328,7 @@ function setupRenderEffect(instance) {
         devtoolsComponentAdded(instance);
       }
     } else {
-      const { next, bu, u: u2 } = instance;
+      const { next, bu, u } = instance;
       {
         pushWarningContext(next || instance.vnode);
       }
@@ -6345,8 +6345,8 @@ function setupRenderEffect(instance) {
       {
         endMeasure(instance, `patch`);
       }
-      if (u2) {
-        queuePostRenderEffect(u2);
+      if (u) {
+        queuePostRenderEffect(u);
       }
       {
         devtoolsComponentUpdated(instance);
@@ -6736,7 +6736,7 @@ function vFor(source, renderItem) {
   let ret;
   if (isArray$2(source) || isString$1(source)) {
     ret = new Array(source.length);
-    for (let i = 0, l2 = source.length; i < l2; i++) {
+    for (let i = 0, l = source.length; i < l; i++) {
       ret[i] = renderItem(source[i], i, i);
     }
   } else if (typeof source === "number") {
@@ -6754,7 +6754,7 @@ function vFor(source, renderItem) {
     } else {
       const keys2 = Object.keys(source);
       ret = new Array(keys2.length);
-      for (let i = 0, l2 = keys2.length; i < l2; i++) {
+      for (let i = 0, l = keys2.length; i < l; i++) {
         const key = keys2[i];
         ret[i] = renderItem(source[key], key, i);
       }
@@ -6768,12 +6768,12 @@ function setRef(ref2, id, opts = {}) {
   const { $templateRefs } = getCurrentInstance();
   $templateRefs.push({ i: id, r: ref2, k: opts.k, f: opts.f });
 }
-const o$1 = (value, key) => vOn(value, key);
-const f$1 = (source, renderItem) => vFor(source, renderItem);
-const e$2 = (target, ...sources) => extend$1(target, ...sources);
-const n$1 = (value) => normalizeClass(value);
-const t$1 = (val) => toDisplayString(val);
-const p$1 = (props) => renderProps(props);
+const o = (value, key) => vOn(value, key);
+const f = (source, renderItem) => vFor(source, renderItem);
+const e$1 = (target, ...sources) => extend$1(target, ...sources);
+const n = (value) => normalizeClass(value);
+const t = (val) => toDisplayString(val);
+const p = (props) => renderProps(props);
 const sr = (ref2, id, opts) => setRef(ref2, id, opts);
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
@@ -7042,8 +7042,8 @@ function initLocale(appVm) {
     get() {
       return locale.value;
     },
-    set(v4) {
-      locale.value = v4;
+    set(v) {
+      locale.value = v;
     }
   });
 }
@@ -7282,7 +7282,7 @@ function initFormField(vm) {
     });
   }
 }
-function initData(_2) {
+function initData(_) {
   return {};
 }
 function initPropsObserver(componentOptions) {
@@ -7606,2832 +7606,6 @@ const createSubpackageApp = initCreateSubpackageApp();
   wx.createPluginApp = global.createPluginApp = createPluginApp;
   wx.createSubpackageApp = global.createSubpackageApp = createSubpackageApp;
 }
-const pages = [
-  {
-    path: "pages/index/index",
-    style: {
-      navigationBarTitleText: "校园出入预约系统"
-    }
-  },
-  {
-    path: "pages/user/home",
-    style: {
-      navigationBarTitleText: "校园出入预约系统"
-    }
-  },
-  {
-    path: "pages/admin/login",
-    style: {
-      navigationBarTitleText: "管理员登录"
-    }
-  },
-  {
-    path: "pages/admin/home",
-    style: {
-      navigationBarTitleText: "审批管理"
-    }
-  },
-  {
-    path: "pages/admin/adminhome",
-    style: {
-      navigationBarTitleText: "后台管理"
-    }
-  },
-  {
-    path: "pages/admin/aud",
-    style: {
-      navigationBarTitleText: "审批信息管理"
-    }
-  },
-  {
-    path: "pages/admin/mgr",
-    style: {
-      navigationBarTitleText: "审批账号管理"
-    }
-  },
-  {
-    path: "pages/admin/not",
-    style: {
-      navigationBarTitleText: "通知管理"
-    }
-  },
-  {
-    path: "pages/admin/screen",
-    style: {
-      navigationBarTitleText: "数据看板"
-    }
-  }
-];
-const globalStyle = {
-  navigationBarTextStyle: "black",
-  navigationBarTitleText: "校园出入预约系统",
-  navigationBarBackgroundColor: "#F8F8F8",
-  backgroundColor: "#F8F8F8"
-};
-const uniIdRouter = {};
-const e$1 = {
-  pages,
-  globalStyle,
-  uniIdRouter
-};
-var define_process_env_UNI_SECURE_NETWORK_CONFIG_default = [];
-function t(e2) {
-  return e2 && e2.__esModule && Object.prototype.hasOwnProperty.call(e2, "default") ? e2.default : e2;
-}
-function n(e2, t2, n2) {
-  return e2(n2 = { path: t2, exports: {}, require: function(e3, t3) {
-    return function() {
-      throw new Error("Dynamic requires are not currently supported by @rollup/plugin-commonjs");
-    }(null == t3 && n2.path);
-  } }, n2.exports), n2.exports;
-}
-var s = n(function(e2, t2) {
-  var n2;
-  e2.exports = (n2 = n2 || function(e3, t3) {
-    var n3 = Object.create || /* @__PURE__ */ function() {
-      function e4() {
-      }
-      return function(t4) {
-        var n4;
-        return e4.prototype = t4, n4 = new e4(), e4.prototype = null, n4;
-      };
-    }(), s2 = {}, r2 = s2.lib = {}, i2 = r2.Base = { extend: function(e4) {
-      var t4 = n3(this);
-      return e4 && t4.mixIn(e4), t4.hasOwnProperty("init") && this.init !== t4.init || (t4.init = function() {
-        t4.$super.init.apply(this, arguments);
-      }), t4.init.prototype = t4, t4.$super = this, t4;
-    }, create: function() {
-      var e4 = this.extend();
-      return e4.init.apply(e4, arguments), e4;
-    }, init: function() {
-    }, mixIn: function(e4) {
-      for (var t4 in e4)
-        e4.hasOwnProperty(t4) && (this[t4] = e4[t4]);
-      e4.hasOwnProperty("toString") && (this.toString = e4.toString);
-    }, clone: function() {
-      return this.init.prototype.extend(this);
-    } }, o2 = r2.WordArray = i2.extend({ init: function(e4, n4) {
-      e4 = this.words = e4 || [], this.sigBytes = n4 != t3 ? n4 : 4 * e4.length;
-    }, toString: function(e4) {
-      return (e4 || c2).stringify(this);
-    }, concat: function(e4) {
-      var t4 = this.words, n4 = e4.words, s3 = this.sigBytes, r3 = e4.sigBytes;
-      if (this.clamp(), s3 % 4)
-        for (var i3 = 0; i3 < r3; i3++) {
-          var o3 = n4[i3 >>> 2] >>> 24 - i3 % 4 * 8 & 255;
-          t4[s3 + i3 >>> 2] |= o3 << 24 - (s3 + i3) % 4 * 8;
-        }
-      else
-        for (i3 = 0; i3 < r3; i3 += 4)
-          t4[s3 + i3 >>> 2] = n4[i3 >>> 2];
-      return this.sigBytes += r3, this;
-    }, clamp: function() {
-      var t4 = this.words, n4 = this.sigBytes;
-      t4[n4 >>> 2] &= 4294967295 << 32 - n4 % 4 * 8, t4.length = e3.ceil(n4 / 4);
-    }, clone: function() {
-      var e4 = i2.clone.call(this);
-      return e4.words = this.words.slice(0), e4;
-    }, random: function(t4) {
-      for (var n4, s3 = [], r3 = function(t5) {
-        t5 = t5;
-        var n5 = 987654321, s4 = 4294967295;
-        return function() {
-          var r4 = ((n5 = 36969 * (65535 & n5) + (n5 >> 16) & s4) << 16) + (t5 = 18e3 * (65535 & t5) + (t5 >> 16) & s4) & s4;
-          return r4 /= 4294967296, (r4 += 0.5) * (e3.random() > 0.5 ? 1 : -1);
-        };
-      }, i3 = 0; i3 < t4; i3 += 4) {
-        var a3 = r3(4294967296 * (n4 || e3.random()));
-        n4 = 987654071 * a3(), s3.push(4294967296 * a3() | 0);
-      }
-      return new o2.init(s3, t4);
-    } }), a2 = s2.enc = {}, c2 = a2.Hex = { stringify: function(e4) {
-      for (var t4 = e4.words, n4 = e4.sigBytes, s3 = [], r3 = 0; r3 < n4; r3++) {
-        var i3 = t4[r3 >>> 2] >>> 24 - r3 % 4 * 8 & 255;
-        s3.push((i3 >>> 4).toString(16)), s3.push((15 & i3).toString(16));
-      }
-      return s3.join("");
-    }, parse: function(e4) {
-      for (var t4 = e4.length, n4 = [], s3 = 0; s3 < t4; s3 += 2)
-        n4[s3 >>> 3] |= parseInt(e4.substr(s3, 2), 16) << 24 - s3 % 8 * 4;
-      return new o2.init(n4, t4 / 2);
-    } }, u2 = a2.Latin1 = { stringify: function(e4) {
-      for (var t4 = e4.words, n4 = e4.sigBytes, s3 = [], r3 = 0; r3 < n4; r3++) {
-        var i3 = t4[r3 >>> 2] >>> 24 - r3 % 4 * 8 & 255;
-        s3.push(String.fromCharCode(i3));
-      }
-      return s3.join("");
-    }, parse: function(e4) {
-      for (var t4 = e4.length, n4 = [], s3 = 0; s3 < t4; s3++)
-        n4[s3 >>> 2] |= (255 & e4.charCodeAt(s3)) << 24 - s3 % 4 * 8;
-      return new o2.init(n4, t4);
-    } }, l2 = a2.Utf8 = { stringify: function(e4) {
-      try {
-        return decodeURIComponent(escape(u2.stringify(e4)));
-      } catch (e5) {
-        throw new Error("Malformed UTF-8 data");
-      }
-    }, parse: function(e4) {
-      return u2.parse(unescape(encodeURIComponent(e4)));
-    } }, h2 = r2.BufferedBlockAlgorithm = i2.extend({ reset: function() {
-      this._data = new o2.init(), this._nDataBytes = 0;
-    }, _append: function(e4) {
-      "string" == typeof e4 && (e4 = l2.parse(e4)), this._data.concat(e4), this._nDataBytes += e4.sigBytes;
-    }, _process: function(t4) {
-      var n4 = this._data, s3 = n4.words, r3 = n4.sigBytes, i3 = this.blockSize, a3 = r3 / (4 * i3), c3 = (a3 = t4 ? e3.ceil(a3) : e3.max((0 | a3) - this._minBufferSize, 0)) * i3, u3 = e3.min(4 * c3, r3);
-      if (c3) {
-        for (var l3 = 0; l3 < c3; l3 += i3)
-          this._doProcessBlock(s3, l3);
-        var h3 = s3.splice(0, c3);
-        n4.sigBytes -= u3;
-      }
-      return new o2.init(h3, u3);
-    }, clone: function() {
-      var e4 = i2.clone.call(this);
-      return e4._data = this._data.clone(), e4;
-    }, _minBufferSize: 0 });
-    r2.Hasher = h2.extend({ cfg: i2.extend(), init: function(e4) {
-      this.cfg = this.cfg.extend(e4), this.reset();
-    }, reset: function() {
-      h2.reset.call(this), this._doReset();
-    }, update: function(e4) {
-      return this._append(e4), this._process(), this;
-    }, finalize: function(e4) {
-      return e4 && this._append(e4), this._doFinalize();
-    }, blockSize: 16, _createHelper: function(e4) {
-      return function(t4, n4) {
-        return new e4.init(n4).finalize(t4);
-      };
-    }, _createHmacHelper: function(e4) {
-      return function(t4, n4) {
-        return new d2.HMAC.init(e4, n4).finalize(t4);
-      };
-    } });
-    var d2 = s2.algo = {};
-    return s2;
-  }(Math), n2);
-}), r = s, i$1 = (n(function(e2, t2) {
-  var n2;
-  e2.exports = (n2 = r, function(e3) {
-    var t3 = n2, s2 = t3.lib, r2 = s2.WordArray, i2 = s2.Hasher, o2 = t3.algo, a2 = [];
-    !function() {
-      for (var t4 = 0; t4 < 64; t4++)
-        a2[t4] = 4294967296 * e3.abs(e3.sin(t4 + 1)) | 0;
-    }();
-    var c2 = o2.MD5 = i2.extend({ _doReset: function() {
-      this._hash = new r2.init([1732584193, 4023233417, 2562383102, 271733878]);
-    }, _doProcessBlock: function(e4, t4) {
-      for (var n3 = 0; n3 < 16; n3++) {
-        var s3 = t4 + n3, r3 = e4[s3];
-        e4[s3] = 16711935 & (r3 << 8 | r3 >>> 24) | 4278255360 & (r3 << 24 | r3 >>> 8);
-      }
-      var i3 = this._hash.words, o3 = e4[t4 + 0], c3 = e4[t4 + 1], p2 = e4[t4 + 2], f2 = e4[t4 + 3], g2 = e4[t4 + 4], m2 = e4[t4 + 5], y2 = e4[t4 + 6], _2 = e4[t4 + 7], w2 = e4[t4 + 8], v22 = e4[t4 + 9], I2 = e4[t4 + 10], S2 = e4[t4 + 11], b2 = e4[t4 + 12], k2 = e4[t4 + 13], A2 = e4[t4 + 14], C2 = e4[t4 + 15], P2 = i3[0], T2 = i3[1], x2 = i3[2], O2 = i3[3];
-      P2 = u2(P2, T2, x2, O2, o3, 7, a2[0]), O2 = u2(O2, P2, T2, x2, c3, 12, a2[1]), x2 = u2(x2, O2, P2, T2, p2, 17, a2[2]), T2 = u2(T2, x2, O2, P2, f2, 22, a2[3]), P2 = u2(P2, T2, x2, O2, g2, 7, a2[4]), O2 = u2(O2, P2, T2, x2, m2, 12, a2[5]), x2 = u2(x2, O2, P2, T2, y2, 17, a2[6]), T2 = u2(T2, x2, O2, P2, _2, 22, a2[7]), P2 = u2(P2, T2, x2, O2, w2, 7, a2[8]), O2 = u2(O2, P2, T2, x2, v22, 12, a2[9]), x2 = u2(x2, O2, P2, T2, I2, 17, a2[10]), T2 = u2(T2, x2, O2, P2, S2, 22, a2[11]), P2 = u2(P2, T2, x2, O2, b2, 7, a2[12]), O2 = u2(O2, P2, T2, x2, k2, 12, a2[13]), x2 = u2(x2, O2, P2, T2, A2, 17, a2[14]), P2 = l2(P2, T2 = u2(T2, x2, O2, P2, C2, 22, a2[15]), x2, O2, c3, 5, a2[16]), O2 = l2(O2, P2, T2, x2, y2, 9, a2[17]), x2 = l2(x2, O2, P2, T2, S2, 14, a2[18]), T2 = l2(T2, x2, O2, P2, o3, 20, a2[19]), P2 = l2(P2, T2, x2, O2, m2, 5, a2[20]), O2 = l2(O2, P2, T2, x2, I2, 9, a2[21]), x2 = l2(x2, O2, P2, T2, C2, 14, a2[22]), T2 = l2(T2, x2, O2, P2, g2, 20, a2[23]), P2 = l2(P2, T2, x2, O2, v22, 5, a2[24]), O2 = l2(O2, P2, T2, x2, A2, 9, a2[25]), x2 = l2(x2, O2, P2, T2, f2, 14, a2[26]), T2 = l2(T2, x2, O2, P2, w2, 20, a2[27]), P2 = l2(P2, T2, x2, O2, k2, 5, a2[28]), O2 = l2(O2, P2, T2, x2, p2, 9, a2[29]), x2 = l2(x2, O2, P2, T2, _2, 14, a2[30]), P2 = h2(P2, T2 = l2(T2, x2, O2, P2, b2, 20, a2[31]), x2, O2, m2, 4, a2[32]), O2 = h2(O2, P2, T2, x2, w2, 11, a2[33]), x2 = h2(x2, O2, P2, T2, S2, 16, a2[34]), T2 = h2(T2, x2, O2, P2, A2, 23, a2[35]), P2 = h2(P2, T2, x2, O2, c3, 4, a2[36]), O2 = h2(O2, P2, T2, x2, g2, 11, a2[37]), x2 = h2(x2, O2, P2, T2, _2, 16, a2[38]), T2 = h2(T2, x2, O2, P2, I2, 23, a2[39]), P2 = h2(P2, T2, x2, O2, k2, 4, a2[40]), O2 = h2(O2, P2, T2, x2, o3, 11, a2[41]), x2 = h2(x2, O2, P2, T2, f2, 16, a2[42]), T2 = h2(T2, x2, O2, P2, y2, 23, a2[43]), P2 = h2(P2, T2, x2, O2, v22, 4, a2[44]), O2 = h2(O2, P2, T2, x2, b2, 11, a2[45]), x2 = h2(x2, O2, P2, T2, C2, 16, a2[46]), P2 = d2(P2, T2 = h2(T2, x2, O2, P2, p2, 23, a2[47]), x2, O2, o3, 6, a2[48]), O2 = d2(O2, P2, T2, x2, _2, 10, a2[49]), x2 = d2(x2, O2, P2, T2, A2, 15, a2[50]), T2 = d2(T2, x2, O2, P2, m2, 21, a2[51]), P2 = d2(P2, T2, x2, O2, b2, 6, a2[52]), O2 = d2(O2, P2, T2, x2, f2, 10, a2[53]), x2 = d2(x2, O2, P2, T2, I2, 15, a2[54]), T2 = d2(T2, x2, O2, P2, c3, 21, a2[55]), P2 = d2(P2, T2, x2, O2, w2, 6, a2[56]), O2 = d2(O2, P2, T2, x2, C2, 10, a2[57]), x2 = d2(x2, O2, P2, T2, y2, 15, a2[58]), T2 = d2(T2, x2, O2, P2, k2, 21, a2[59]), P2 = d2(P2, T2, x2, O2, g2, 6, a2[60]), O2 = d2(O2, P2, T2, x2, S2, 10, a2[61]), x2 = d2(x2, O2, P2, T2, p2, 15, a2[62]), T2 = d2(T2, x2, O2, P2, v22, 21, a2[63]), i3[0] = i3[0] + P2 | 0, i3[1] = i3[1] + T2 | 0, i3[2] = i3[2] + x2 | 0, i3[3] = i3[3] + O2 | 0;
-    }, _doFinalize: function() {
-      var t4 = this._data, n3 = t4.words, s3 = 8 * this._nDataBytes, r3 = 8 * t4.sigBytes;
-      n3[r3 >>> 5] |= 128 << 24 - r3 % 32;
-      var i3 = e3.floor(s3 / 4294967296), o3 = s3;
-      n3[15 + (r3 + 64 >>> 9 << 4)] = 16711935 & (i3 << 8 | i3 >>> 24) | 4278255360 & (i3 << 24 | i3 >>> 8), n3[14 + (r3 + 64 >>> 9 << 4)] = 16711935 & (o3 << 8 | o3 >>> 24) | 4278255360 & (o3 << 24 | o3 >>> 8), t4.sigBytes = 4 * (n3.length + 1), this._process();
-      for (var a3 = this._hash, c3 = a3.words, u3 = 0; u3 < 4; u3++) {
-        var l3 = c3[u3];
-        c3[u3] = 16711935 & (l3 << 8 | l3 >>> 24) | 4278255360 & (l3 << 24 | l3 >>> 8);
-      }
-      return a3;
-    }, clone: function() {
-      var e4 = i2.clone.call(this);
-      return e4._hash = this._hash.clone(), e4;
-    } });
-    function u2(e4, t4, n3, s3, r3, i3, o3) {
-      var a3 = e4 + (t4 & n3 | ~t4 & s3) + r3 + o3;
-      return (a3 << i3 | a3 >>> 32 - i3) + t4;
-    }
-    function l2(e4, t4, n3, s3, r3, i3, o3) {
-      var a3 = e4 + (t4 & s3 | n3 & ~s3) + r3 + o3;
-      return (a3 << i3 | a3 >>> 32 - i3) + t4;
-    }
-    function h2(e4, t4, n3, s3, r3, i3, o3) {
-      var a3 = e4 + (t4 ^ n3 ^ s3) + r3 + o3;
-      return (a3 << i3 | a3 >>> 32 - i3) + t4;
-    }
-    function d2(e4, t4, n3, s3, r3, i3, o3) {
-      var a3 = e4 + (n3 ^ (t4 | ~s3)) + r3 + o3;
-      return (a3 << i3 | a3 >>> 32 - i3) + t4;
-    }
-    t3.MD5 = i2._createHelper(c2), t3.HmacMD5 = i2._createHmacHelper(c2);
-  }(Math), n2.MD5);
-}), n(function(e2, t2) {
-  var n2;
-  e2.exports = (n2 = r, void function() {
-    var e3 = n2, t3 = e3.lib.Base, s2 = e3.enc.Utf8;
-    e3.algo.HMAC = t3.extend({ init: function(e4, t4) {
-      e4 = this._hasher = new e4.init(), "string" == typeof t4 && (t4 = s2.parse(t4));
-      var n3 = e4.blockSize, r2 = 4 * n3;
-      t4.sigBytes > r2 && (t4 = e4.finalize(t4)), t4.clamp();
-      for (var i2 = this._oKey = t4.clone(), o2 = this._iKey = t4.clone(), a2 = i2.words, c2 = o2.words, u2 = 0; u2 < n3; u2++)
-        a2[u2] ^= 1549556828, c2[u2] ^= 909522486;
-      i2.sigBytes = o2.sigBytes = r2, this.reset();
-    }, reset: function() {
-      var e4 = this._hasher;
-      e4.reset(), e4.update(this._iKey);
-    }, update: function(e4) {
-      return this._hasher.update(e4), this;
-    }, finalize: function(e4) {
-      var t4 = this._hasher, n3 = t4.finalize(e4);
-      return t4.reset(), t4.finalize(this._oKey.clone().concat(n3));
-    } });
-  }());
-}), n(function(e2, t2) {
-  e2.exports = r.HmacMD5;
-})), o = n(function(e2, t2) {
-  e2.exports = r.enc.Utf8;
-}), a = n(function(e2, t2) {
-  var n2;
-  e2.exports = (n2 = r, function() {
-    var e3 = n2, t3 = e3.lib.WordArray;
-    function s2(e4, n3, s3) {
-      for (var r2 = [], i2 = 0, o2 = 0; o2 < n3; o2++)
-        if (o2 % 4) {
-          var a2 = s3[e4.charCodeAt(o2 - 1)] << o2 % 4 * 2, c2 = s3[e4.charCodeAt(o2)] >>> 6 - o2 % 4 * 2;
-          r2[i2 >>> 2] |= (a2 | c2) << 24 - i2 % 4 * 8, i2++;
-        }
-      return t3.create(r2, i2);
-    }
-    e3.enc.Base64 = { stringify: function(e4) {
-      var t4 = e4.words, n3 = e4.sigBytes, s3 = this._map;
-      e4.clamp();
-      for (var r2 = [], i2 = 0; i2 < n3; i2 += 3)
-        for (var o2 = (t4[i2 >>> 2] >>> 24 - i2 % 4 * 8 & 255) << 16 | (t4[i2 + 1 >>> 2] >>> 24 - (i2 + 1) % 4 * 8 & 255) << 8 | t4[i2 + 2 >>> 2] >>> 24 - (i2 + 2) % 4 * 8 & 255, a2 = 0; a2 < 4 && i2 + 0.75 * a2 < n3; a2++)
-          r2.push(s3.charAt(o2 >>> 6 * (3 - a2) & 63));
-      var c2 = s3.charAt(64);
-      if (c2)
-        for (; r2.length % 4; )
-          r2.push(c2);
-      return r2.join("");
-    }, parse: function(e4) {
-      var t4 = e4.length, n3 = this._map, r2 = this._reverseMap;
-      if (!r2) {
-        r2 = this._reverseMap = [];
-        for (var i2 = 0; i2 < n3.length; i2++)
-          r2[n3.charCodeAt(i2)] = i2;
-      }
-      var o2 = n3.charAt(64);
-      if (o2) {
-        var a2 = e4.indexOf(o2);
-        -1 !== a2 && (t4 = a2);
-      }
-      return s2(e4, t4, r2);
-    }, _map: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" };
-  }(), n2.enc.Base64);
-});
-const c = "FUNCTION", u = "OBJECT", l = "CLIENT_DB", h = "pending", d = "fulfilled", p = "rejected";
-function f(e2) {
-  return Object.prototype.toString.call(e2).slice(8, -1).toLowerCase();
-}
-function g(e2) {
-  return "object" === f(e2);
-}
-function m$1(e2) {
-  return "function" == typeof e2;
-}
-function y(e2) {
-  return function() {
-    try {
-      return e2.apply(e2, arguments);
-    } catch (e3) {
-      console.error(e3);
-    }
-  };
-}
-const _ = "REJECTED", w = "NOT_PENDING";
-class v {
-  constructor({ createPromise: e2, retryRule: t2 = _ } = {}) {
-    this.createPromise = e2, this.status = null, this.promise = null, this.retryRule = t2;
-  }
-  get needRetry() {
-    if (!this.status)
-      return true;
-    switch (this.retryRule) {
-      case _:
-        return this.status === p;
-      case w:
-        return this.status !== h;
-    }
-  }
-  exec() {
-    return this.needRetry ? (this.status = h, this.promise = this.createPromise().then((e2) => (this.status = d, Promise.resolve(e2)), (e2) => (this.status = p, Promise.reject(e2))), this.promise) : this.promise;
-  }
-}
-function I(e2) {
-  return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
-}
-const S = true, b = "mp-weixin", A = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), C = b, P = I('{\n    "address": [\n        "127.0.0.1",\n        "172.17.99.119",\n        "192.168.80.1",\n        "192.168.83.1"\n    ],\n    "debugPort": 9000,\n    "initialLaunchType": "local",\n    "servePort": 7000,\n    "skipFiles": [\n        "<node_internals>/**",\n        "C:/Users/xueyi/Documents/HBuilderProjects/HBuilderX/plugins/unicloud/**/*.js"\n    ]\n}\n'), T = I('[{"provider":"aliyun","spaceName":"campus-access-system","spaceId":"mp-f0227447-ce45-4b09-899c-5567a562f818","clientSecret":"4C/HN5x6AsFz3Jo36PFtkw==","endpoint":"https://api.next.bspapp.com"}]') || [];
-let O = "";
-try {
-  O = "wx6a78eeab9884c8c0";
-} catch (e2) {
-}
-let E = {};
-function L(e2, t2 = {}) {
-  var n2, s2;
-  return n2 = E, s2 = e2, Object.prototype.hasOwnProperty.call(n2, s2) || (E[e2] = t2), E[e2];
-}
-const R = ["invoke", "success", "fail", "complete"], U = L("_globalUniCloudInterceptor");
-function N(e2, t2) {
-  U[e2] || (U[e2] = {}), g(t2) && Object.keys(t2).forEach((n2) => {
-    R.indexOf(n2) > -1 && function(e3, t3, n3) {
-      let s2 = U[e3][t3];
-      s2 || (s2 = U[e3][t3] = []), -1 === s2.indexOf(n3) && m$1(n3) && s2.push(n3);
-    }(e2, n2, t2[n2]);
-  });
-}
-function D(e2, t2) {
-  U[e2] || (U[e2] = {}), g(t2) ? Object.keys(t2).forEach((n2) => {
-    R.indexOf(n2) > -1 && function(e3, t3, n3) {
-      const s2 = U[e3][t3];
-      if (!s2)
-        return;
-      const r2 = s2.indexOf(n3);
-      r2 > -1 && s2.splice(r2, 1);
-    }(e2, n2, t2[n2]);
-  }) : delete U[e2];
-}
-function M(e2, t2) {
-  return e2 && 0 !== e2.length ? e2.reduce((e3, n2) => e3.then(() => n2(t2)), Promise.resolve()) : Promise.resolve();
-}
-function q(e2, t2) {
-  return U[e2] && U[e2][t2] || [];
-}
-function F(e2) {
-  N("callObject", e2);
-}
-const K = L("_globalUniCloudListener"), j = "response", $ = "needLogin", B = "refreshToken", W = "clientdb", H = "cloudfunction", J = "cloudobject";
-function z(e2) {
-  return K[e2] || (K[e2] = []), K[e2];
-}
-function V(e2, t2) {
-  const n2 = z(e2);
-  n2.includes(t2) || n2.push(t2);
-}
-function G(e2, t2) {
-  const n2 = z(e2), s2 = n2.indexOf(t2);
-  -1 !== s2 && n2.splice(s2, 1);
-}
-function Y(e2, t2) {
-  const n2 = z(e2);
-  for (let e3 = 0; e3 < n2.length; e3++) {
-    (0, n2[e3])(t2);
-  }
-}
-let Q, X = false;
-function Z() {
-  return Q || (Q = new Promise((e2) => {
-    X && e2(), function t2() {
-      if ("function" == typeof getCurrentPages) {
-        const t3 = getCurrentPages();
-        t3 && t3[0] && (X = true, e2());
-      }
-      X || setTimeout(() => {
-        t2();
-      }, 30);
-    }();
-  }), Q);
-}
-function ee(e2) {
-  const t2 = {};
-  for (const n2 in e2) {
-    const s2 = e2[n2];
-    m$1(s2) && (t2[n2] = y(s2));
-  }
-  return t2;
-}
-class te extends Error {
-  constructor(e2) {
-    super(e2.message), this.errMsg = e2.message || e2.errMsg || "unknown system error", this.code = this.errCode = e2.code || e2.errCode || "SYSTEM_ERROR", this.errSubject = this.subject = e2.subject || e2.errSubject, this.cause = e2.cause, this.requestId = e2.requestId;
-  }
-  toJson(e2 = 0) {
-    if (!(e2 >= 10))
-      return e2++, { errCode: this.errCode, errMsg: this.errMsg, errSubject: this.errSubject, cause: this.cause && this.cause.toJson ? this.cause.toJson(e2) : this.cause };
-  }
-}
-var ne = { request: (e2) => index.request(e2), uploadFile: (e2) => index.uploadFile(e2), setStorageSync: (e2, t2) => index.setStorageSync(e2, t2), getStorageSync: (e2) => index.getStorageSync(e2), removeStorageSync: (e2) => index.removeStorageSync(e2), clearStorageSync: () => index.clearStorageSync(), connectSocket: (e2) => index.connectSocket(e2) };
-function se(e2) {
-  return e2 && se(e2.__v_raw) || e2;
-}
-function re() {
-  return { token: ne.getStorageSync("uni_id_token") || ne.getStorageSync("uniIdToken"), tokenExpired: ne.getStorageSync("uni_id_token_expired") };
-}
-function ie({ token: e2, tokenExpired: t2 } = {}) {
-  e2 && ne.setStorageSync("uni_id_token", e2), t2 && ne.setStorageSync("uni_id_token_expired", t2);
-}
-let oe, ae;
-function ce() {
-  return oe || (oe = index.getSystemInfoSync()), oe;
-}
-function ue() {
-  let e2, t2;
-  try {
-    if (index.getLaunchOptionsSync) {
-      if (index.getLaunchOptionsSync.toString().indexOf("not yet implemented") > -1)
-        return;
-      const { scene: n2, channel: s2 } = index.getLaunchOptionsSync();
-      e2 = s2, t2 = n2;
-    }
-  } catch (e3) {
-  }
-  return { channel: e2, scene: t2 };
-}
-let le = {};
-function he() {
-  const e2 = index.getLocale && index.getLocale() || "en";
-  if (ae)
-    return { ...le, ...ae, locale: e2, LOCALE: e2 };
-  const t2 = ce(), { deviceId: n2, osName: s2, uniPlatform: r2, appId: i2 } = t2, o2 = ["appId", "appLanguage", "appName", "appVersion", "appVersionCode", "appWgtVersion", "browserName", "browserVersion", "deviceBrand", "deviceId", "deviceModel", "deviceType", "osName", "osVersion", "romName", "romVersion", "ua", "hostName", "hostVersion", "uniPlatform", "uniRuntimeVersion", "uniRuntimeVersionCode", "uniCompilerVersion", "uniCompilerVersionCode"];
-  for (const e3 in t2)
-    Object.hasOwnProperty.call(t2, e3) && -1 === o2.indexOf(e3) && delete t2[e3];
-  return ae = { PLATFORM: r2, OS: s2, APPID: i2, DEVICEID: n2, ...ue(), ...t2 }, { ...le, ...ae, locale: e2, LOCALE: e2 };
-}
-var de = { sign: function(e2, t2) {
-  let n2 = "";
-  return Object.keys(e2).sort().forEach(function(t3) {
-    e2[t3] && (n2 = n2 + "&" + t3 + "=" + e2[t3]);
-  }), n2 = n2.slice(1), i$1(n2, t2).toString();
-}, wrappedRequest: function(e2, t2) {
-  return new Promise((n2, s2) => {
-    t2(Object.assign(e2, { complete(e3) {
-      e3 || (e3 = {});
-      const t3 = e3.data && e3.data.header && e3.data.header["x-serverless-request-id"] || e3.header && e3.header["request-id"];
-      if (!e3.statusCode || e3.statusCode >= 400) {
-        const n3 = e3.data && e3.data.error && e3.data.error.code || "SYS_ERR", r3 = e3.data && e3.data.error && e3.data.error.message || e3.errMsg || "request:fail";
-        return s2(new te({ code: n3, message: r3, requestId: t3 }));
-      }
-      const r2 = e3.data;
-      if (r2.error)
-        return s2(new te({ code: r2.error.code, message: r2.error.message, requestId: t3 }));
-      r2.result = r2.data, r2.requestId = t3, delete r2.data, n2(r2);
-    } }));
-  });
-}, toBase64: function(e2) {
-  return a.stringify(o.parse(e2));
-} };
-var pe = class {
-  constructor(e2) {
-    ["spaceId", "clientSecret"].forEach((t2) => {
-      if (!Object.prototype.hasOwnProperty.call(e2, t2))
-        throw new Error(`${t2} required`);
-    }), this.config = Object.assign({}, { endpoint: 0 === e2.spaceId.indexOf("mp-") ? "https://api.next.bspapp.com" : "https://api.bspapp.com" }, e2), this.config.provider = "aliyun", this.config.requestUrl = this.config.endpoint + "/client", this.config.envType = this.config.envType || "public", this.config.accessTokenKey = "access_token_" + this.config.spaceId, this.adapter = ne, this._getAccessTokenPromiseHub = new v({ createPromise: () => this.requestAuth(this.setupRequest({ method: "serverless.auth.user.anonymousAuthorize", params: "{}" }, "auth")).then((e3) => {
-      if (!e3.result || !e3.result.accessToken)
-        throw new te({ code: "AUTH_FAILED", message: "获取accessToken失败" });
-      this.setAccessToken(e3.result.accessToken);
-    }), retryRule: w });
-  }
-  get hasAccessToken() {
-    return !!this.accessToken;
-  }
-  setAccessToken(e2) {
-    this.accessToken = e2;
-  }
-  requestWrapped(e2) {
-    return de.wrappedRequest(e2, this.adapter.request);
-  }
-  requestAuth(e2) {
-    return this.requestWrapped(e2);
-  }
-  request(e2, t2) {
-    return Promise.resolve().then(() => this.hasAccessToken ? t2 ? this.requestWrapped(e2) : this.requestWrapped(e2).catch((t3) => new Promise((e3, n2) => {
-      !t3 || "GATEWAY_INVALID_TOKEN" !== t3.code && "InvalidParameter.InvalidToken" !== t3.code ? n2(t3) : e3();
-    }).then(() => this.getAccessToken()).then(() => {
-      const t4 = this.rebuildRequest(e2);
-      return this.request(t4, true);
-    })) : this.getAccessToken().then(() => {
-      const t3 = this.rebuildRequest(e2);
-      return this.request(t3, true);
-    }));
-  }
-  rebuildRequest(e2) {
-    const t2 = Object.assign({}, e2);
-    return t2.data.token = this.accessToken, t2.header["x-basement-token"] = this.accessToken, t2.header["x-serverless-sign"] = de.sign(t2.data, this.config.clientSecret), t2;
-  }
-  setupRequest(e2, t2) {
-    const n2 = Object.assign({}, e2, { spaceId: this.config.spaceId, timestamp: Date.now() }), s2 = { "Content-Type": "application/json" };
-    return "auth" !== t2 && (n2.token = this.accessToken, s2["x-basement-token"] = this.accessToken), s2["x-serverless-sign"] = de.sign(n2, this.config.clientSecret), { url: this.config.requestUrl, method: "POST", data: n2, dataType: "json", header: s2 };
-  }
-  getAccessToken() {
-    return this._getAccessTokenPromiseHub.exec();
-  }
-  async authorize() {
-    await this.getAccessToken();
-  }
-  callFunction(e2) {
-    const t2 = { method: "serverless.function.runtime.invoke", params: JSON.stringify({ functionTarget: e2.name, functionArgs: e2.data || {} }) };
-    return this.request({ ...this.setupRequest(t2), timeout: e2.timeout });
-  }
-  getOSSUploadOptionsFromPath(e2) {
-    const t2 = { method: "serverless.file.resource.generateProximalSign", params: JSON.stringify(e2) };
-    return this.request(this.setupRequest(t2));
-  }
-  uploadFileToOSS({ url: e2, formData: t2, name: n2, filePath: s2, fileType: r2, onUploadProgress: i2 }) {
-    return new Promise((o2, a2) => {
-      const c2 = this.adapter.uploadFile({ url: e2, formData: t2, name: n2, filePath: s2, fileType: r2, header: { "X-OSS-server-side-encrpytion": "AES256" }, success(e3) {
-        e3 && e3.statusCode < 400 ? o2(e3) : a2(new te({ code: "UPLOAD_FAILED", message: "文件上传失败" }));
-      }, fail(e3) {
-        a2(new te({ code: e3.code || "UPLOAD_FAILED", message: e3.message || e3.errMsg || "文件上传失败" }));
-      } });
-      "function" == typeof i2 && c2 && "function" == typeof c2.onProgressUpdate && c2.onProgressUpdate((e3) => {
-        i2({ loaded: e3.totalBytesSent, total: e3.totalBytesExpectedToSend });
-      });
-    });
-  }
-  reportOSSUpload(e2) {
-    const t2 = { method: "serverless.file.resource.report", params: JSON.stringify(e2) };
-    return this.request(this.setupRequest(t2));
-  }
-  async uploadFile({ filePath: e2, cloudPath: t2, fileType: n2 = "image", cloudPathAsRealPath: s2 = false, onUploadProgress: r2, config: i2 }) {
-    if ("string" !== f(t2))
-      throw new te({ code: "INVALID_PARAM", message: "cloudPath必须为字符串类型" });
-    if (!(t2 = t2.trim()))
-      throw new te({ code: "INVALID_PARAM", message: "cloudPath不可为空" });
-    if (/:\/\//.test(t2))
-      throw new te({ code: "INVALID_PARAM", message: "cloudPath不合法" });
-    const o2 = i2 && i2.envType || this.config.envType;
-    if (s2 && ("/" !== t2[0] && (t2 = "/" + t2), t2.indexOf("\\") > -1))
-      throw new te({ code: "INVALID_PARAM", message: "使用cloudPath作为路径时，cloudPath不可包含“\\”" });
-    const a2 = (await this.getOSSUploadOptionsFromPath({ env: o2, filename: s2 ? t2.split("/").pop() : t2, fileId: s2 ? t2 : void 0 })).result, c2 = "https://" + a2.cdnDomain + "/" + a2.ossPath, { securityToken: u2, accessKeyId: l2, signature: h2, host: d2, ossPath: p2, id: g2, policy: m2, ossCallbackUrl: y2 } = a2, _2 = { "Cache-Control": "max-age=2592000", "Content-Disposition": "attachment", OSSAccessKeyId: l2, Signature: h2, host: d2, id: g2, key: p2, policy: m2, success_action_status: 200 };
-    if (u2 && (_2["x-oss-security-token"] = u2), y2) {
-      const e3 = JSON.stringify({ callbackUrl: y2, callbackBody: JSON.stringify({ fileId: g2, spaceId: this.config.spaceId }), callbackBodyType: "application/json" });
-      _2.callback = de.toBase64(e3);
-    }
-    const w2 = { url: "https://" + a2.host, formData: _2, fileName: "file", name: "file", filePath: e2, fileType: n2 };
-    if (await this.uploadFileToOSS(Object.assign({}, w2, { onUploadProgress: r2 })), y2)
-      return { success: true, filePath: e2, fileID: c2 };
-    if ((await this.reportOSSUpload({ id: g2 })).success)
-      return { success: true, filePath: e2, fileID: c2 };
-    throw new te({ code: "UPLOAD_FAILED", message: "文件上传失败" });
-  }
-  getTempFileURL({ fileList: e2 } = {}) {
-    return new Promise((t2, n2) => {
-      Array.isArray(e2) && 0 !== e2.length || n2(new te({ code: "INVALID_PARAM", message: "fileList的元素必须是非空的字符串" })), t2({ fileList: e2.map((e3) => ({ fileID: e3, tempFileURL: e3 })) });
-    });
-  }
-  async getFileInfo({ fileList: e2 } = {}) {
-    if (!Array.isArray(e2) || 0 === e2.length)
-      throw new te({ code: "INVALID_PARAM", message: "fileList的元素必须是非空的字符串" });
-    const t2 = { method: "serverless.file.resource.info", params: JSON.stringify({ id: e2.map((e3) => e3.split("?")[0]).join(",") }) };
-    return { fileList: (await this.request(this.setupRequest(t2))).result };
-  }
-};
-var fe = { init(e2) {
-  const t2 = new pe(e2), n2 = { signInAnonymously: function() {
-    return t2.authorize();
-  }, getLoginState: function() {
-    return Promise.resolve(false);
-  } };
-  return t2.auth = function() {
-    return n2;
-  }, t2.customAuth = t2.auth, t2;
-} };
-const ge = "undefined" != typeof location && "http:" === location.protocol ? "http:" : "https:";
-var me;
-!function(e2) {
-  e2.local = "local", e2.none = "none", e2.session = "session";
-}(me || (me = {}));
-var ye = function() {
-}, _e = n(function(e2, t2) {
-  var n2;
-  e2.exports = (n2 = r, function(e3) {
-    var t3 = n2, s2 = t3.lib, r2 = s2.WordArray, i2 = s2.Hasher, o2 = t3.algo, a2 = [], c2 = [];
-    !function() {
-      function t4(t5) {
-        for (var n4 = e3.sqrt(t5), s4 = 2; s4 <= n4; s4++)
-          if (!(t5 % s4))
-            return false;
-        return true;
-      }
-      function n3(e4) {
-        return 4294967296 * (e4 - (0 | e4)) | 0;
-      }
-      for (var s3 = 2, r3 = 0; r3 < 64; )
-        t4(s3) && (r3 < 8 && (a2[r3] = n3(e3.pow(s3, 0.5))), c2[r3] = n3(e3.pow(s3, 1 / 3)), r3++), s3++;
-    }();
-    var u2 = [], l2 = o2.SHA256 = i2.extend({ _doReset: function() {
-      this._hash = new r2.init(a2.slice(0));
-    }, _doProcessBlock: function(e4, t4) {
-      for (var n3 = this._hash.words, s3 = n3[0], r3 = n3[1], i3 = n3[2], o3 = n3[3], a3 = n3[4], l3 = n3[5], h2 = n3[6], d2 = n3[7], p2 = 0; p2 < 64; p2++) {
-        if (p2 < 16)
-          u2[p2] = 0 | e4[t4 + p2];
-        else {
-          var f2 = u2[p2 - 15], g2 = (f2 << 25 | f2 >>> 7) ^ (f2 << 14 | f2 >>> 18) ^ f2 >>> 3, m2 = u2[p2 - 2], y2 = (m2 << 15 | m2 >>> 17) ^ (m2 << 13 | m2 >>> 19) ^ m2 >>> 10;
-          u2[p2] = g2 + u2[p2 - 7] + y2 + u2[p2 - 16];
-        }
-        var _2 = s3 & r3 ^ s3 & i3 ^ r3 & i3, w2 = (s3 << 30 | s3 >>> 2) ^ (s3 << 19 | s3 >>> 13) ^ (s3 << 10 | s3 >>> 22), v22 = d2 + ((a3 << 26 | a3 >>> 6) ^ (a3 << 21 | a3 >>> 11) ^ (a3 << 7 | a3 >>> 25)) + (a3 & l3 ^ ~a3 & h2) + c2[p2] + u2[p2];
-        d2 = h2, h2 = l3, l3 = a3, a3 = o3 + v22 | 0, o3 = i3, i3 = r3, r3 = s3, s3 = v22 + (w2 + _2) | 0;
-      }
-      n3[0] = n3[0] + s3 | 0, n3[1] = n3[1] + r3 | 0, n3[2] = n3[2] + i3 | 0, n3[3] = n3[3] + o3 | 0, n3[4] = n3[4] + a3 | 0, n3[5] = n3[5] + l3 | 0, n3[6] = n3[6] + h2 | 0, n3[7] = n3[7] + d2 | 0;
-    }, _doFinalize: function() {
-      var t4 = this._data, n3 = t4.words, s3 = 8 * this._nDataBytes, r3 = 8 * t4.sigBytes;
-      return n3[r3 >>> 5] |= 128 << 24 - r3 % 32, n3[14 + (r3 + 64 >>> 9 << 4)] = e3.floor(s3 / 4294967296), n3[15 + (r3 + 64 >>> 9 << 4)] = s3, t4.sigBytes = 4 * n3.length, this._process(), this._hash;
-    }, clone: function() {
-      var e4 = i2.clone.call(this);
-      return e4._hash = this._hash.clone(), e4;
-    } });
-    t3.SHA256 = i2._createHelper(l2), t3.HmacSHA256 = i2._createHmacHelper(l2);
-  }(Math), n2.SHA256);
-}), we = _e, ve = n(function(e2, t2) {
-  e2.exports = r.HmacSHA256;
-});
-const Ie = () => {
-  let e2;
-  if (!Promise) {
-    e2 = () => {
-    }, e2.promise = {};
-    const t3 = () => {
-      throw new te({ message: 'Your Node runtime does support ES6 Promises. Set "global.Promise" to your preferred implementation of promises.' });
-    };
-    return Object.defineProperty(e2.promise, "then", { get: t3 }), Object.defineProperty(e2.promise, "catch", { get: t3 }), e2;
-  }
-  const t2 = new Promise((t3, n2) => {
-    e2 = (e3, s2) => e3 ? n2(e3) : t3(s2);
-  });
-  return e2.promise = t2, e2;
-};
-function Se(e2) {
-  return void 0 === e2;
-}
-function be(e2) {
-  return "[object Null]" === Object.prototype.toString.call(e2);
-}
-var ke;
-function Ae(e2) {
-  const t2 = (n2 = e2, "[object Array]" === Object.prototype.toString.call(n2) ? e2 : [e2]);
-  var n2;
-  for (const e3 of t2) {
-    const { isMatch: t3, genAdapter: n3, runtime: s2 } = e3;
-    if (t3())
-      return { adapter: n3(), runtime: s2 };
-  }
-}
-!function(e2) {
-  e2.WEB = "web", e2.WX_MP = "wx_mp";
-}(ke || (ke = {}));
-const Ce = { adapter: null, runtime: void 0 }, Pe = ["anonymousUuidKey"];
-class Te extends ye {
-  constructor() {
-    super(), Ce.adapter.root.tcbObject || (Ce.adapter.root.tcbObject = {});
-  }
-  setItem(e2, t2) {
-    Ce.adapter.root.tcbObject[e2] = t2;
-  }
-  getItem(e2) {
-    return Ce.adapter.root.tcbObject[e2];
-  }
-  removeItem(e2) {
-    delete Ce.adapter.root.tcbObject[e2];
-  }
-  clear() {
-    delete Ce.adapter.root.tcbObject;
-  }
-}
-function xe(e2, t2) {
-  switch (e2) {
-    case "local":
-      return t2.localStorage || new Te();
-    case "none":
-      return new Te();
-    default:
-      return t2.sessionStorage || new Te();
-  }
-}
-class Oe {
-  constructor(e2) {
-    if (!this._storage) {
-      this._persistence = Ce.adapter.primaryStorage || e2.persistence, this._storage = xe(this._persistence, Ce.adapter);
-      const t2 = `access_token_${e2.env}`, n2 = `access_token_expire_${e2.env}`, s2 = `refresh_token_${e2.env}`, r2 = `anonymous_uuid_${e2.env}`, i2 = `login_type_${e2.env}`, o2 = `user_info_${e2.env}`;
-      this.keys = { accessTokenKey: t2, accessTokenExpireKey: n2, refreshTokenKey: s2, anonymousUuidKey: r2, loginTypeKey: i2, userInfoKey: o2 };
-    }
-  }
-  updatePersistence(e2) {
-    if (e2 === this._persistence)
-      return;
-    const t2 = "local" === this._persistence;
-    this._persistence = e2;
-    const n2 = xe(e2, Ce.adapter);
-    for (const e3 in this.keys) {
-      const s2 = this.keys[e3];
-      if (t2 && Pe.includes(e3))
-        continue;
-      const r2 = this._storage.getItem(s2);
-      Se(r2) || be(r2) || (n2.setItem(s2, r2), this._storage.removeItem(s2));
-    }
-    this._storage = n2;
-  }
-  setStore(e2, t2, n2) {
-    if (!this._storage)
-      return;
-    const s2 = { version: n2 || "localCachev1", content: t2 }, r2 = JSON.stringify(s2);
-    try {
-      this._storage.setItem(e2, r2);
-    } catch (e3) {
-      throw e3;
-    }
-  }
-  getStore(e2, t2) {
-    try {
-      if (!this._storage)
-        return;
-    } catch (e3) {
-      return "";
-    }
-    t2 = t2 || "localCachev1";
-    const n2 = this._storage.getItem(e2);
-    if (!n2)
-      return "";
-    if (n2.indexOf(t2) >= 0) {
-      return JSON.parse(n2).content;
-    }
-    return "";
-  }
-  removeStore(e2) {
-    this._storage.removeItem(e2);
-  }
-}
-const Ee = {}, Le = {};
-function Re(e2) {
-  return Ee[e2];
-}
-class Ue {
-  constructor(e2, t2) {
-    this.data = t2 || null, this.name = e2;
-  }
-}
-class Ne extends Ue {
-  constructor(e2, t2) {
-    super("error", { error: e2, data: t2 }), this.error = e2;
-  }
-}
-const De = new class {
-  constructor() {
-    this._listeners = {};
-  }
-  on(e2, t2) {
-    return function(e3, t3, n2) {
-      n2[e3] = n2[e3] || [], n2[e3].push(t3);
-    }(e2, t2, this._listeners), this;
-  }
-  off(e2, t2) {
-    return function(e3, t3, n2) {
-      if (n2 && n2[e3]) {
-        const s2 = n2[e3].indexOf(t3);
-        -1 !== s2 && n2[e3].splice(s2, 1);
-      }
-    }(e2, t2, this._listeners), this;
-  }
-  fire(e2, t2) {
-    if (e2 instanceof Ne)
-      return console.error(e2.error), this;
-    const n2 = "string" == typeof e2 ? new Ue(e2, t2 || {}) : e2;
-    const s2 = n2.name;
-    if (this._listens(s2)) {
-      n2.target = this;
-      const e3 = this._listeners[s2] ? [...this._listeners[s2]] : [];
-      for (const t3 of e3)
-        t3.call(this, n2);
-    }
-    return this;
-  }
-  _listens(e2) {
-    return this._listeners[e2] && this._listeners[e2].length > 0;
-  }
-}();
-function Me(e2, t2) {
-  De.on(e2, t2);
-}
-function qe(e2, t2 = {}) {
-  De.fire(e2, t2);
-}
-function Fe(e2, t2) {
-  De.off(e2, t2);
-}
-const Ke = "loginStateChanged", je = "loginStateExpire", $e = "loginTypeChanged", Be = "anonymousConverted", We = "refreshAccessToken";
-var He;
-!function(e2) {
-  e2.ANONYMOUS = "ANONYMOUS", e2.WECHAT = "WECHAT", e2.WECHAT_PUBLIC = "WECHAT-PUBLIC", e2.WECHAT_OPEN = "WECHAT-OPEN", e2.CUSTOM = "CUSTOM", e2.EMAIL = "EMAIL", e2.USERNAME = "USERNAME", e2.NULL = "NULL";
-}(He || (He = {}));
-const Je = ["auth.getJwt", "auth.logout", "auth.signInWithTicket", "auth.signInAnonymously", "auth.signIn", "auth.fetchAccessTokenWithRefreshToken", "auth.signUpWithEmailAndPassword", "auth.activateEndUserMail", "auth.sendPasswordResetEmail", "auth.resetPasswordWithToken", "auth.isUsernameRegistered"], ze = { "X-SDK-Version": "1.3.5" };
-function Ve(e2, t2, n2) {
-  const s2 = e2[t2];
-  e2[t2] = function(t3) {
-    const r2 = {}, i2 = {};
-    n2.forEach((n3) => {
-      const { data: s3, headers: o3 } = n3.call(e2, t3);
-      Object.assign(r2, s3), Object.assign(i2, o3);
-    });
-    const o2 = t3.data;
-    return o2 && (() => {
-      var e3;
-      if (e3 = o2, "[object FormData]" !== Object.prototype.toString.call(e3))
-        t3.data = { ...o2, ...r2 };
-      else
-        for (const e4 in r2)
-          o2.append(e4, r2[e4]);
-    })(), t3.headers = { ...t3.headers || {}, ...i2 }, s2.call(e2, t3);
-  };
-}
-function Ge() {
-  const e2 = Math.random().toString(16).slice(2);
-  return { data: { seqId: e2 }, headers: { ...ze, "x-seqid": e2 } };
-}
-class Ye {
-  constructor(e2 = {}) {
-    var t2;
-    this.config = e2, this._reqClass = new Ce.adapter.reqClass({ timeout: this.config.timeout, timeoutMsg: `请求在${this.config.timeout / 1e3}s内未完成，已中断`, restrictedMethods: ["post"] }), this._cache = Re(this.config.env), this._localCache = (t2 = this.config.env, Le[t2]), Ve(this._reqClass, "post", [Ge]), Ve(this._reqClass, "upload", [Ge]), Ve(this._reqClass, "download", [Ge]);
-  }
-  async post(e2) {
-    return await this._reqClass.post(e2);
-  }
-  async upload(e2) {
-    return await this._reqClass.upload(e2);
-  }
-  async download(e2) {
-    return await this._reqClass.download(e2);
-  }
-  async refreshAccessToken() {
-    let e2, t2;
-    this._refreshAccessTokenPromise || (this._refreshAccessTokenPromise = this._refreshAccessToken());
-    try {
-      e2 = await this._refreshAccessTokenPromise;
-    } catch (e3) {
-      t2 = e3;
-    }
-    if (this._refreshAccessTokenPromise = null, this._shouldRefreshAccessTokenHook = null, t2)
-      throw t2;
-    return e2;
-  }
-  async _refreshAccessToken() {
-    const { accessTokenKey: e2, accessTokenExpireKey: t2, refreshTokenKey: n2, loginTypeKey: s2, anonymousUuidKey: r2 } = this._cache.keys;
-    this._cache.removeStore(e2), this._cache.removeStore(t2);
-    let i2 = this._cache.getStore(n2);
-    if (!i2)
-      throw new te({ message: "未登录CloudBase" });
-    const o2 = { refresh_token: i2 }, a2 = await this.request("auth.fetchAccessTokenWithRefreshToken", o2);
-    if (a2.data.code) {
-      const { code: e3 } = a2.data;
-      if ("SIGN_PARAM_INVALID" === e3 || "REFRESH_TOKEN_EXPIRED" === e3 || "INVALID_REFRESH_TOKEN" === e3) {
-        if (this._cache.getStore(s2) === He.ANONYMOUS && "INVALID_REFRESH_TOKEN" === e3) {
-          const e4 = this._cache.getStore(r2), t3 = this._cache.getStore(n2), s3 = await this.send("auth.signInAnonymously", { anonymous_uuid: e4, refresh_token: t3 });
-          return this.setRefreshToken(s3.refresh_token), this._refreshAccessToken();
-        }
-        qe(je), this._cache.removeStore(n2);
-      }
-      throw new te({ code: a2.data.code, message: `刷新access token失败：${a2.data.code}` });
-    }
-    if (a2.data.access_token)
-      return qe(We), this._cache.setStore(e2, a2.data.access_token), this._cache.setStore(t2, a2.data.access_token_expire + Date.now()), { accessToken: a2.data.access_token, accessTokenExpire: a2.data.access_token_expire };
-    a2.data.refresh_token && (this._cache.removeStore(n2), this._cache.setStore(n2, a2.data.refresh_token), this._refreshAccessToken());
-  }
-  async getAccessToken() {
-    const { accessTokenKey: e2, accessTokenExpireKey: t2, refreshTokenKey: n2 } = this._cache.keys;
-    if (!this._cache.getStore(n2))
-      throw new te({ message: "refresh token不存在，登录状态异常" });
-    let s2 = this._cache.getStore(e2), r2 = this._cache.getStore(t2), i2 = true;
-    return this._shouldRefreshAccessTokenHook && !await this._shouldRefreshAccessTokenHook(s2, r2) && (i2 = false), (!s2 || !r2 || r2 < Date.now()) && i2 ? this.refreshAccessToken() : { accessToken: s2, accessTokenExpire: r2 };
-  }
-  async request(e2, t2, n2) {
-    const s2 = `x-tcb-trace_${this.config.env}`;
-    let r2 = "application/x-www-form-urlencoded";
-    const i2 = { action: e2, env: this.config.env, dataVersion: "2019-08-16", ...t2 };
-    if (-1 === Je.indexOf(e2)) {
-      const { refreshTokenKey: e3 } = this._cache.keys;
-      this._cache.getStore(e3) && (i2.access_token = (await this.getAccessToken()).accessToken);
-    }
-    let o2;
-    if ("storage.uploadFile" === e2) {
-      o2 = new FormData();
-      for (let e3 in o2)
-        o2.hasOwnProperty(e3) && void 0 !== o2[e3] && o2.append(e3, i2[e3]);
-      r2 = "multipart/form-data";
-    } else {
-      r2 = "application/json", o2 = {};
-      for (let e3 in i2)
-        void 0 !== i2[e3] && (o2[e3] = i2[e3]);
-    }
-    let a2 = { headers: { "content-type": r2 } };
-    n2 && n2.timeout && (a2.timeout = n2.timeout), n2 && n2.onUploadProgress && (a2.onUploadProgress = n2.onUploadProgress);
-    const c2 = this._localCache.getStore(s2);
-    c2 && (a2.headers["X-TCB-Trace"] = c2);
-    const { parse: u2, inQuery: l2, search: h2 } = t2;
-    let d2 = { env: this.config.env };
-    u2 && (d2.parse = true), l2 && (d2 = { ...l2, ...d2 });
-    let p2 = function(e3, t3, n3 = {}) {
-      const s3 = /\?/.test(t3);
-      let r3 = "";
-      for (let e4 in n3)
-        "" === r3 ? !s3 && (t3 += "?") : r3 += "&", r3 += `${e4}=${encodeURIComponent(n3[e4])}`;
-      return /^http(s)?\:\/\//.test(t3 += r3) ? t3 : `${e3}${t3}`;
-    }(ge, "//tcb-api.tencentcloudapi.com/web", d2);
-    h2 && (p2 += h2);
-    const f2 = await this.post({ url: p2, data: o2, ...a2 }), g2 = f2.header && f2.header["x-tcb-trace"];
-    if (g2 && this._localCache.setStore(s2, g2), 200 !== Number(f2.status) && 200 !== Number(f2.statusCode) || !f2.data)
-      throw new te({ code: "NETWORK_ERROR", message: "network request error" });
-    return f2;
-  }
-  async send(e2, t2 = {}, n2 = {}) {
-    const s2 = await this.request(e2, t2, { ...n2, onUploadProgress: t2.onUploadProgress });
-    if ("ACCESS_TOKEN_EXPIRED" === s2.data.code && -1 === Je.indexOf(e2)) {
-      await this.refreshAccessToken();
-      const s3 = await this.request(e2, t2, { ...n2, onUploadProgress: t2.onUploadProgress });
-      if (s3.data.code)
-        throw new te({ code: s3.data.code, message: s3.data.message });
-      return s3.data;
-    }
-    if (s2.data.code)
-      throw new te({ code: s2.data.code, message: s2.data.message });
-    return s2.data;
-  }
-  setRefreshToken(e2) {
-    const { accessTokenKey: t2, accessTokenExpireKey: n2, refreshTokenKey: s2 } = this._cache.keys;
-    this._cache.removeStore(t2), this._cache.removeStore(n2), this._cache.setStore(s2, e2);
-  }
-}
-const Qe = {};
-function Xe(e2) {
-  return Qe[e2];
-}
-class Ze {
-  constructor(e2) {
-    this.config = e2, this._cache = Re(e2.env), this._request = Xe(e2.env);
-  }
-  setRefreshToken(e2) {
-    const { accessTokenKey: t2, accessTokenExpireKey: n2, refreshTokenKey: s2 } = this._cache.keys;
-    this._cache.removeStore(t2), this._cache.removeStore(n2), this._cache.setStore(s2, e2);
-  }
-  setAccessToken(e2, t2) {
-    const { accessTokenKey: n2, accessTokenExpireKey: s2 } = this._cache.keys;
-    this._cache.setStore(n2, e2), this._cache.setStore(s2, t2);
-  }
-  async refreshUserInfo() {
-    const { data: e2 } = await this._request.send("auth.getUserInfo", {});
-    return this.setLocalUserInfo(e2), e2;
-  }
-  setLocalUserInfo(e2) {
-    const { userInfoKey: t2 } = this._cache.keys;
-    this._cache.setStore(t2, e2);
-  }
-}
-class et {
-  constructor(e2) {
-    if (!e2)
-      throw new te({ code: "PARAM_ERROR", message: "envId is not defined" });
-    this._envId = e2, this._cache = Re(this._envId), this._request = Xe(this._envId), this.setUserInfo();
-  }
-  linkWithTicket(e2) {
-    if ("string" != typeof e2)
-      throw new te({ code: "PARAM_ERROR", message: "ticket must be string" });
-    return this._request.send("auth.linkWithTicket", { ticket: e2 });
-  }
-  linkWithRedirect(e2) {
-    e2.signInWithRedirect();
-  }
-  updatePassword(e2, t2) {
-    return this._request.send("auth.updatePassword", { oldPassword: t2, newPassword: e2 });
-  }
-  updateEmail(e2) {
-    return this._request.send("auth.updateEmail", { newEmail: e2 });
-  }
-  updateUsername(e2) {
-    if ("string" != typeof e2)
-      throw new te({ code: "PARAM_ERROR", message: "username must be a string" });
-    return this._request.send("auth.updateUsername", { username: e2 });
-  }
-  async getLinkedUidList() {
-    const { data: e2 } = await this._request.send("auth.getLinkedUidList", {});
-    let t2 = false;
-    const { users: n2 } = e2;
-    return n2.forEach((e3) => {
-      e3.wxOpenId && e3.wxPublicId && (t2 = true);
-    }), { users: n2, hasPrimaryUid: t2 };
-  }
-  setPrimaryUid(e2) {
-    return this._request.send("auth.setPrimaryUid", { uid: e2 });
-  }
-  unlink(e2) {
-    return this._request.send("auth.unlink", { platform: e2 });
-  }
-  async update(e2) {
-    const { nickName: t2, gender: n2, avatarUrl: s2, province: r2, country: i2, city: o2 } = e2, { data: a2 } = await this._request.send("auth.updateUserInfo", { nickName: t2, gender: n2, avatarUrl: s2, province: r2, country: i2, city: o2 });
-    this.setLocalUserInfo(a2);
-  }
-  async refresh() {
-    const { data: e2 } = await this._request.send("auth.getUserInfo", {});
-    return this.setLocalUserInfo(e2), e2;
-  }
-  setUserInfo() {
-    const { userInfoKey: e2 } = this._cache.keys, t2 = this._cache.getStore(e2);
-    ["uid", "loginType", "openid", "wxOpenId", "wxPublicId", "unionId", "qqMiniOpenId", "email", "hasPassword", "customUserId", "nickName", "gender", "avatarUrl"].forEach((e3) => {
-      this[e3] = t2[e3];
-    }), this.location = { country: t2.country, province: t2.province, city: t2.city };
-  }
-  setLocalUserInfo(e2) {
-    const { userInfoKey: t2 } = this._cache.keys;
-    this._cache.setStore(t2, e2), this.setUserInfo();
-  }
-}
-class tt {
-  constructor(e2) {
-    if (!e2)
-      throw new te({ code: "PARAM_ERROR", message: "envId is not defined" });
-    this._cache = Re(e2);
-    const { refreshTokenKey: t2, accessTokenKey: n2, accessTokenExpireKey: s2 } = this._cache.keys, r2 = this._cache.getStore(t2), i2 = this._cache.getStore(n2), o2 = this._cache.getStore(s2);
-    this.credential = { refreshToken: r2, accessToken: i2, accessTokenExpire: o2 }, this.user = new et(e2);
-  }
-  get isAnonymousAuth() {
-    return this.loginType === He.ANONYMOUS;
-  }
-  get isCustomAuth() {
-    return this.loginType === He.CUSTOM;
-  }
-  get isWeixinAuth() {
-    return this.loginType === He.WECHAT || this.loginType === He.WECHAT_OPEN || this.loginType === He.WECHAT_PUBLIC;
-  }
-  get loginType() {
-    return this._cache.getStore(this._cache.keys.loginTypeKey);
-  }
-}
-class nt extends Ze {
-  async signIn() {
-    this._cache.updatePersistence("local");
-    const { anonymousUuidKey: e2, refreshTokenKey: t2 } = this._cache.keys, n2 = this._cache.getStore(e2) || void 0, s2 = this._cache.getStore(t2) || void 0, r2 = await this._request.send("auth.signInAnonymously", { anonymous_uuid: n2, refresh_token: s2 });
-    if (r2.uuid && r2.refresh_token) {
-      this._setAnonymousUUID(r2.uuid), this.setRefreshToken(r2.refresh_token), await this._request.refreshAccessToken(), qe(Ke), qe($e, { env: this.config.env, loginType: He.ANONYMOUS, persistence: "local" });
-      const e3 = new tt(this.config.env);
-      return await e3.user.refresh(), e3;
-    }
-    throw new te({ message: "匿名登录失败" });
-  }
-  async linkAndRetrieveDataWithTicket(e2) {
-    const { anonymousUuidKey: t2, refreshTokenKey: n2 } = this._cache.keys, s2 = this._cache.getStore(t2), r2 = this._cache.getStore(n2), i2 = await this._request.send("auth.linkAndRetrieveDataWithTicket", { anonymous_uuid: s2, refresh_token: r2, ticket: e2 });
-    if (i2.refresh_token)
-      return this._clearAnonymousUUID(), this.setRefreshToken(i2.refresh_token), await this._request.refreshAccessToken(), qe(Be, { env: this.config.env }), qe($e, { loginType: He.CUSTOM, persistence: "local" }), { credential: { refreshToken: i2.refresh_token } };
-    throw new te({ message: "匿名转化失败" });
-  }
-  _setAnonymousUUID(e2) {
-    const { anonymousUuidKey: t2, loginTypeKey: n2 } = this._cache.keys;
-    this._cache.removeStore(t2), this._cache.setStore(t2, e2), this._cache.setStore(n2, He.ANONYMOUS);
-  }
-  _clearAnonymousUUID() {
-    this._cache.removeStore(this._cache.keys.anonymousUuidKey);
-  }
-}
-class st extends Ze {
-  async signIn(e2) {
-    if ("string" != typeof e2)
-      throw new te({ code: "PARAM_ERROR", message: "ticket must be a string" });
-    const { refreshTokenKey: t2 } = this._cache.keys, n2 = await this._request.send("auth.signInWithTicket", { ticket: e2, refresh_token: this._cache.getStore(t2) || "" });
-    if (n2.refresh_token)
-      return this.setRefreshToken(n2.refresh_token), await this._request.refreshAccessToken(), qe(Ke), qe($e, { env: this.config.env, loginType: He.CUSTOM, persistence: this.config.persistence }), await this.refreshUserInfo(), new tt(this.config.env);
-    throw new te({ message: "自定义登录失败" });
-  }
-}
-let rt$1 = class rt extends Ze {
-  async signIn(e2, t2) {
-    if ("string" != typeof e2)
-      throw new te({ code: "PARAM_ERROR", message: "email must be a string" });
-    const { refreshTokenKey: n2 } = this._cache.keys, s2 = await this._request.send("auth.signIn", { loginType: "EMAIL", email: e2, password: t2, refresh_token: this._cache.getStore(n2) || "" }), { refresh_token: r2, access_token: i2, access_token_expire: o2 } = s2;
-    if (r2)
-      return this.setRefreshToken(r2), i2 && o2 ? this.setAccessToken(i2, o2) : await this._request.refreshAccessToken(), await this.refreshUserInfo(), qe(Ke), qe($e, { env: this.config.env, loginType: He.EMAIL, persistence: this.config.persistence }), new tt(this.config.env);
-    throw s2.code ? new te({ code: s2.code, message: `邮箱登录失败: ${s2.message}` }) : new te({ message: "邮箱登录失败" });
-  }
-  async activate(e2) {
-    return this._request.send("auth.activateEndUserMail", { token: e2 });
-  }
-  async resetPasswordWithToken(e2, t2) {
-    return this._request.send("auth.resetPasswordWithToken", { token: e2, newPassword: t2 });
-  }
-};
-class it extends Ze {
-  async signIn(e2, t2) {
-    if ("string" != typeof e2)
-      throw new te({ code: "PARAM_ERROR", message: "username must be a string" });
-    "string" != typeof t2 && (t2 = "", console.warn("password is empty"));
-    const { refreshTokenKey: n2 } = this._cache.keys, s2 = await this._request.send("auth.signIn", { loginType: He.USERNAME, username: e2, password: t2, refresh_token: this._cache.getStore(n2) || "" }), { refresh_token: r2, access_token_expire: i2, access_token: o2 } = s2;
-    if (r2)
-      return this.setRefreshToken(r2), o2 && i2 ? this.setAccessToken(o2, i2) : await this._request.refreshAccessToken(), await this.refreshUserInfo(), qe(Ke), qe($e, { env: this.config.env, loginType: He.USERNAME, persistence: this.config.persistence }), new tt(this.config.env);
-    throw s2.code ? new te({ code: s2.code, message: `用户名密码登录失败: ${s2.message}` }) : new te({ message: "用户名密码登录失败" });
-  }
-}
-class ot {
-  constructor(e2) {
-    this.config = e2, this._cache = Re(e2.env), this._request = Xe(e2.env), this._onAnonymousConverted = this._onAnonymousConverted.bind(this), this._onLoginTypeChanged = this._onLoginTypeChanged.bind(this), Me($e, this._onLoginTypeChanged);
-  }
-  get currentUser() {
-    const e2 = this.hasLoginState();
-    return e2 && e2.user || null;
-  }
-  get loginType() {
-    return this._cache.getStore(this._cache.keys.loginTypeKey);
-  }
-  anonymousAuthProvider() {
-    return new nt(this.config);
-  }
-  customAuthProvider() {
-    return new st(this.config);
-  }
-  emailAuthProvider() {
-    return new rt$1(this.config);
-  }
-  usernameAuthProvider() {
-    return new it(this.config);
-  }
-  async signInAnonymously() {
-    return new nt(this.config).signIn();
-  }
-  async signInWithEmailAndPassword(e2, t2) {
-    return new rt$1(this.config).signIn(e2, t2);
-  }
-  signInWithUsernameAndPassword(e2, t2) {
-    return new it(this.config).signIn(e2, t2);
-  }
-  async linkAndRetrieveDataWithTicket(e2) {
-    this._anonymousAuthProvider || (this._anonymousAuthProvider = new nt(this.config)), Me(Be, this._onAnonymousConverted);
-    return await this._anonymousAuthProvider.linkAndRetrieveDataWithTicket(e2);
-  }
-  async signOut() {
-    if (this.loginType === He.ANONYMOUS)
-      throw new te({ message: "匿名用户不支持登出操作" });
-    const { refreshTokenKey: e2, accessTokenKey: t2, accessTokenExpireKey: n2 } = this._cache.keys, s2 = this._cache.getStore(e2);
-    if (!s2)
-      return;
-    const r2 = await this._request.send("auth.logout", { refresh_token: s2 });
-    return this._cache.removeStore(e2), this._cache.removeStore(t2), this._cache.removeStore(n2), qe(Ke), qe($e, { env: this.config.env, loginType: He.NULL, persistence: this.config.persistence }), r2;
-  }
-  async signUpWithEmailAndPassword(e2, t2) {
-    return this._request.send("auth.signUpWithEmailAndPassword", { email: e2, password: t2 });
-  }
-  async sendPasswordResetEmail(e2) {
-    return this._request.send("auth.sendPasswordResetEmail", { email: e2 });
-  }
-  onLoginStateChanged(e2) {
-    Me(Ke, () => {
-      const t3 = this.hasLoginState();
-      e2.call(this, t3);
-    });
-    const t2 = this.hasLoginState();
-    e2.call(this, t2);
-  }
-  onLoginStateExpired(e2) {
-    Me(je, e2.bind(this));
-  }
-  onAccessTokenRefreshed(e2) {
-    Me(We, e2.bind(this));
-  }
-  onAnonymousConverted(e2) {
-    Me(Be, e2.bind(this));
-  }
-  onLoginTypeChanged(e2) {
-    Me($e, () => {
-      const t2 = this.hasLoginState();
-      e2.call(this, t2);
-    });
-  }
-  async getAccessToken() {
-    return { accessToken: (await this._request.getAccessToken()).accessToken, env: this.config.env };
-  }
-  hasLoginState() {
-    const { refreshTokenKey: e2 } = this._cache.keys;
-    return this._cache.getStore(e2) ? new tt(this.config.env) : null;
-  }
-  async isUsernameRegistered(e2) {
-    if ("string" != typeof e2)
-      throw new te({ code: "PARAM_ERROR", message: "username must be a string" });
-    const { data: t2 } = await this._request.send("auth.isUsernameRegistered", { username: e2 });
-    return t2 && t2.isRegistered;
-  }
-  getLoginState() {
-    return Promise.resolve(this.hasLoginState());
-  }
-  async signInWithTicket(e2) {
-    return new st(this.config).signIn(e2);
-  }
-  shouldRefreshAccessToken(e2) {
-    this._request._shouldRefreshAccessTokenHook = e2.bind(this);
-  }
-  getUserInfo() {
-    return this._request.send("auth.getUserInfo", {}).then((e2) => e2.code ? e2 : { ...e2.data, requestId: e2.seqId });
-  }
-  getAuthHeader() {
-    const { refreshTokenKey: e2, accessTokenKey: t2 } = this._cache.keys, n2 = this._cache.getStore(e2);
-    return { "x-cloudbase-credentials": this._cache.getStore(t2) + "/@@/" + n2 };
-  }
-  _onAnonymousConverted(e2) {
-    const { env: t2 } = e2.data;
-    t2 === this.config.env && this._cache.updatePersistence(this.config.persistence);
-  }
-  _onLoginTypeChanged(e2) {
-    const { loginType: t2, persistence: n2, env: s2 } = e2.data;
-    s2 === this.config.env && (this._cache.updatePersistence(n2), this._cache.setStore(this._cache.keys.loginTypeKey, t2));
-  }
-}
-const at = function(e2, t2) {
-  t2 = t2 || Ie();
-  const n2 = Xe(this.config.env), { cloudPath: s2, filePath: r2, onUploadProgress: i2, fileType: o2 = "image" } = e2;
-  return n2.send("storage.getUploadMetadata", { path: s2 }).then((e3) => {
-    const { data: { url: a2, authorization: c2, token: u2, fileId: l2, cosFileId: h2 }, requestId: d2 } = e3, p2 = { key: s2, signature: c2, "x-cos-meta-fileid": h2, success_action_status: "201", "x-cos-security-token": u2 };
-    n2.upload({ url: a2, data: p2, file: r2, name: s2, fileType: o2, onUploadProgress: i2 }).then((e4) => {
-      201 === e4.statusCode ? t2(null, { fileID: l2, requestId: d2 }) : t2(new te({ code: "STORAGE_REQUEST_FAIL", message: `STORAGE_REQUEST_FAIL: ${e4.data}` }));
-    }).catch((e4) => {
-      t2(e4);
-    });
-  }).catch((e3) => {
-    t2(e3);
-  }), t2.promise;
-}, ct = function(e2, t2) {
-  t2 = t2 || Ie();
-  const n2 = Xe(this.config.env), { cloudPath: s2 } = e2;
-  return n2.send("storage.getUploadMetadata", { path: s2 }).then((e3) => {
-    t2(null, e3);
-  }).catch((e3) => {
-    t2(e3);
-  }), t2.promise;
-}, ut = function({ fileList: e2 }, t2) {
-  if (t2 = t2 || Ie(), !e2 || !Array.isArray(e2))
-    return { code: "INVALID_PARAM", message: "fileList必须是非空的数组" };
-  for (let t3 of e2)
-    if (!t3 || "string" != typeof t3)
-      return { code: "INVALID_PARAM", message: "fileList的元素必须是非空的字符串" };
-  const n2 = { fileid_list: e2 };
-  return Xe(this.config.env).send("storage.batchDeleteFile", n2).then((e3) => {
-    e3.code ? t2(null, e3) : t2(null, { fileList: e3.data.delete_list, requestId: e3.requestId });
-  }).catch((e3) => {
-    t2(e3);
-  }), t2.promise;
-}, lt$1 = function({ fileList: e2 }, t2) {
-  t2 = t2 || Ie(), e2 && Array.isArray(e2) || t2(null, { code: "INVALID_PARAM", message: "fileList必须是非空的数组" });
-  let n2 = [];
-  for (let s3 of e2)
-    "object" == typeof s3 ? (s3.hasOwnProperty("fileID") && s3.hasOwnProperty("maxAge") || t2(null, { code: "INVALID_PARAM", message: "fileList的元素必须是包含fileID和maxAge的对象" }), n2.push({ fileid: s3.fileID, max_age: s3.maxAge })) : "string" == typeof s3 ? n2.push({ fileid: s3 }) : t2(null, { code: "INVALID_PARAM", message: "fileList的元素必须是字符串" });
-  const s2 = { file_list: n2 };
-  return Xe(this.config.env).send("storage.batchGetDownloadUrl", s2).then((e3) => {
-    e3.code ? t2(null, e3) : t2(null, { fileList: e3.data.download_list, requestId: e3.requestId });
-  }).catch((e3) => {
-    t2(e3);
-  }), t2.promise;
-}, ht = async function({ fileID: e2 }, t2) {
-  const n2 = (await lt$1.call(this, { fileList: [{ fileID: e2, maxAge: 600 }] })).fileList[0];
-  if ("SUCCESS" !== n2.code)
-    return t2 ? t2(n2) : new Promise((e3) => {
-      e3(n2);
-    });
-  const s2 = Xe(this.config.env);
-  let r2 = n2.download_url;
-  if (r2 = encodeURI(r2), !t2)
-    return s2.download({ url: r2 });
-  t2(await s2.download({ url: r2 }));
-}, dt = function({ name: e2, data: t2, query: n2, parse: s2, search: r2, timeout: i2 }, o2) {
-  const a2 = o2 || Ie();
-  let c2;
-  try {
-    c2 = t2 ? JSON.stringify(t2) : "";
-  } catch (e3) {
-    return Promise.reject(e3);
-  }
-  if (!e2)
-    return Promise.reject(new te({ code: "PARAM_ERROR", message: "函数名不能为空" }));
-  const u2 = { inQuery: n2, parse: s2, search: r2, function_name: e2, request_data: c2 };
-  return Xe(this.config.env).send("functions.invokeFunction", u2, { timeout: i2 }).then((e3) => {
-    if (e3.code)
-      a2(null, e3);
-    else {
-      let t3 = e3.data.response_data;
-      if (s2)
-        a2(null, { result: t3, requestId: e3.requestId });
-      else
-        try {
-          t3 = JSON.parse(e3.data.response_data), a2(null, { result: t3, requestId: e3.requestId });
-        } catch (e4) {
-          a2(new te({ message: "response data must be json" }));
-        }
-    }
-    return a2.promise;
-  }).catch((e3) => {
-    a2(e3);
-  }), a2.promise;
-}, pt = { timeout: 15e3, persistence: "session" }, ft = {};
-class gt {
-  constructor(e2) {
-    this.config = e2 || this.config, this.authObj = void 0;
-  }
-  init(e2) {
-    switch (Ce.adapter || (this.requestClient = new Ce.adapter.reqClass({ timeout: e2.timeout || 5e3, timeoutMsg: `请求在${(e2.timeout || 5e3) / 1e3}s内未完成，已中断` })), this.config = { ...pt, ...e2 }, true) {
-      case this.config.timeout > 6e5:
-        console.warn("timeout大于可配置上限[10分钟]，已重置为上限数值"), this.config.timeout = 6e5;
-        break;
-      case this.config.timeout < 100:
-        console.warn("timeout小于可配置下限[100ms]，已重置为下限数值"), this.config.timeout = 100;
-    }
-    return new gt(this.config);
-  }
-  auth({ persistence: e2 } = {}) {
-    if (this.authObj)
-      return this.authObj;
-    const t2 = e2 || Ce.adapter.primaryStorage || pt.persistence;
-    var n2;
-    return t2 !== this.config.persistence && (this.config.persistence = t2), function(e3) {
-      const { env: t3 } = e3;
-      Ee[t3] = new Oe(e3), Le[t3] = new Oe({ ...e3, persistence: "local" });
-    }(this.config), n2 = this.config, Qe[n2.env] = new Ye(n2), this.authObj = new ot(this.config), this.authObj;
-  }
-  on(e2, t2) {
-    return Me.apply(this, [e2, t2]);
-  }
-  off(e2, t2) {
-    return Fe.apply(this, [e2, t2]);
-  }
-  callFunction(e2, t2) {
-    return dt.apply(this, [e2, t2]);
-  }
-  deleteFile(e2, t2) {
-    return ut.apply(this, [e2, t2]);
-  }
-  getTempFileURL(e2, t2) {
-    return lt$1.apply(this, [e2, t2]);
-  }
-  downloadFile(e2, t2) {
-    return ht.apply(this, [e2, t2]);
-  }
-  uploadFile(e2, t2) {
-    return at.apply(this, [e2, t2]);
-  }
-  getUploadMetadata(e2, t2) {
-    return ct.apply(this, [e2, t2]);
-  }
-  registerExtension(e2) {
-    ft[e2.name] = e2;
-  }
-  async invokeExtension(e2, t2) {
-    const n2 = ft[e2];
-    if (!n2)
-      throw new te({ message: `扩展${e2} 必须先注册` });
-    return await n2.invoke(t2, this);
-  }
-  useAdapters(e2) {
-    const { adapter: t2, runtime: n2 } = Ae(e2) || {};
-    t2 && (Ce.adapter = t2), n2 && (Ce.runtime = n2);
-  }
-}
-var mt = new gt();
-function yt(e2, t2, n2) {
-  void 0 === n2 && (n2 = {});
-  var s2 = /\?/.test(t2), r2 = "";
-  for (var i2 in n2)
-    "" === r2 ? !s2 && (t2 += "?") : r2 += "&", r2 += i2 + "=" + encodeURIComponent(n2[i2]);
-  return /^http(s)?:\/\//.test(t2 += r2) ? t2 : "" + e2 + t2;
-}
-class _t {
-  post(e2) {
-    const { url: t2, data: n2, headers: s2, timeout: r2 } = e2;
-    return new Promise((e3, i2) => {
-      ne.request({ url: yt("https:", t2), data: n2, method: "POST", header: s2, timeout: r2, success(t3) {
-        e3(t3);
-      }, fail(e4) {
-        i2(e4);
-      } });
-    });
-  }
-  upload(e2) {
-    return new Promise((t2, n2) => {
-      const { url: s2, file: r2, data: i2, headers: o2, fileType: a2 } = e2, c2 = ne.uploadFile({ url: yt("https:", s2), name: "file", formData: Object.assign({}, i2), filePath: r2, fileType: a2, header: o2, success(e3) {
-        const n3 = { statusCode: e3.statusCode, data: e3.data || {} };
-        200 === e3.statusCode && i2.success_action_status && (n3.statusCode = parseInt(i2.success_action_status, 10)), t2(n3);
-      }, fail(e3) {
-        n2(new Error(e3.errMsg || "uploadFile:fail"));
-      } });
-      "function" == typeof e2.onUploadProgress && c2 && "function" == typeof c2.onProgressUpdate && c2.onProgressUpdate((t3) => {
-        e2.onUploadProgress({ loaded: t3.totalBytesSent, total: t3.totalBytesExpectedToSend });
-      });
-    });
-  }
-}
-const wt = { setItem(e2, t2) {
-  ne.setStorageSync(e2, t2);
-}, getItem: (e2) => ne.getStorageSync(e2), removeItem(e2) {
-  ne.removeStorageSync(e2);
-}, clear() {
-  ne.clearStorageSync();
-} };
-var vt = { genAdapter: function() {
-  return { root: {}, reqClass: _t, localStorage: wt, primaryStorage: "local" };
-}, isMatch: function() {
-  return true;
-}, runtime: "uni_app" };
-mt.useAdapters(vt);
-const It = mt, St = It.init;
-It.init = function(e2) {
-  e2.env = e2.spaceId;
-  const t2 = St.call(this, e2);
-  t2.config.provider = "tencent", t2.config.spaceId = e2.spaceId;
-  const n2 = t2.auth;
-  return t2.auth = function(e3) {
-    const t3 = n2.call(this, e3);
-    return ["linkAndRetrieveDataWithTicket", "signInAnonymously", "signOut", "getAccessToken", "getLoginState", "signInWithTicket", "getUserInfo"].forEach((e4) => {
-      var n3;
-      t3[e4] = (n3 = t3[e4], function(e5) {
-        e5 = e5 || {};
-        const { success: t4, fail: s2, complete: r2 } = ee(e5);
-        if (!(t4 || s2 || r2))
-          return n3.call(this, e5);
-        n3.call(this, e5).then((e6) => {
-          t4 && t4(e6), r2 && r2(e6);
-        }, (e6) => {
-          s2 && s2(e6), r2 && r2(e6);
-        });
-      }).bind(t3);
-    }), t3;
-  }, t2.customAuth = t2.auth, t2;
-};
-var bt = It;
-async function kt(e2, t2) {
-  const n2 = `http://${e2}:${t2}/system/ping`;
-  try {
-    const e3 = await (s2 = { url: n2, timeout: 500 }, new Promise((e4, t3) => {
-      ne.request({ ...s2, success(t4) {
-        e4(t4);
-      }, fail(e5) {
-        t3(e5);
-      } });
-    }));
-    return !(!e3.data || 0 !== e3.data.code);
-  } catch (e3) {
-    return false;
-  }
-  var s2;
-}
-async function At(e2, t2) {
-  let n2;
-  for (let s2 = 0; s2 < e2.length; s2++) {
-    const r2 = e2[s2];
-    if (await kt(r2, t2)) {
-      n2 = r2;
-      break;
-    }
-  }
-  return { address: n2, port: t2 };
-}
-const Ct = { "serverless.file.resource.generateProximalSign": "storage/generate-proximal-sign", "serverless.file.resource.report": "storage/report", "serverless.file.resource.delete": "storage/delete", "serverless.file.resource.getTempFileURL": "storage/get-temp-file-url" };
-var Pt = class {
-  constructor(e2) {
-    if (["spaceId", "clientSecret"].forEach((t2) => {
-      if (!Object.prototype.hasOwnProperty.call(e2, t2))
-        throw new Error(`${t2} required`);
-    }), !e2.endpoint)
-      throw new Error("集群空间未配置ApiEndpoint，配置后需要重新关联服务空间后生效");
-    this.config = Object.assign({}, e2), this.config.provider = "dcloud", this.config.requestUrl = this.config.endpoint + "/client", this.config.envType = this.config.envType || "public", this.adapter = ne;
-  }
-  async request(e2, t2 = true) {
-    const n2 = t2;
-    return e2 = n2 ? await this.setupLocalRequest(e2) : this.setupRequest(e2), Promise.resolve().then(() => n2 ? this.requestLocal(e2) : de.wrappedRequest(e2, this.adapter.request));
-  }
-  requestLocal(e2) {
-    return new Promise((t2, n2) => {
-      this.adapter.request(Object.assign(e2, { complete(e3) {
-        if (e3 || (e3 = {}), !e3.statusCode || e3.statusCode >= 400) {
-          const t3 = e3.data && e3.data.code || "SYS_ERR", s2 = e3.data && e3.data.message || "request:fail";
-          return n2(new te({ code: t3, message: s2 }));
-        }
-        t2({ success: true, result: e3.data });
-      } }));
-    });
-  }
-  setupRequest(e2) {
-    const t2 = Object.assign({}, e2, { spaceId: this.config.spaceId, timestamp: Date.now() }), n2 = { "Content-Type": "application/json" };
-    n2["x-serverless-sign"] = de.sign(t2, this.config.clientSecret);
-    const s2 = he();
-    n2["x-client-info"] = encodeURIComponent(JSON.stringify(s2));
-    const { token: r2 } = re();
-    return n2["x-client-token"] = r2, { url: this.config.requestUrl, method: "POST", data: t2, dataType: "json", header: JSON.parse(JSON.stringify(n2)) };
-  }
-  async setupLocalRequest(e2) {
-    const t2 = he(), { token: n2 } = re(), s2 = Object.assign({}, e2, { spaceId: this.config.spaceId, timestamp: Date.now(), clientInfo: t2, token: n2 }), { address: r2, servePort: i2 } = this.__dev__ && this.__dev__.debugInfo || {}, { address: o2 } = await At(r2, i2);
-    return { url: `http://${o2}:${i2}/${Ct[e2.method]}`, method: "POST", data: s2, dataType: "json", header: JSON.parse(JSON.stringify({ "Content-Type": "application/json" })) };
-  }
-  callFunction(e2) {
-    const t2 = { method: "serverless.function.runtime.invoke", params: JSON.stringify({ functionTarget: e2.name, functionArgs: e2.data || {} }) };
-    return this.request(t2, false);
-  }
-  getUploadFileOptions(e2) {
-    const t2 = { method: "serverless.file.resource.generateProximalSign", params: JSON.stringify(e2) };
-    return this.request(t2);
-  }
-  reportUploadFile(e2) {
-    const t2 = { method: "serverless.file.resource.report", params: JSON.stringify(e2) };
-    return this.request(t2);
-  }
-  uploadFile({ filePath: e2, cloudPath: t2, fileType: n2 = "image", onUploadProgress: s2 }) {
-    if (!t2)
-      throw new te({ code: "CLOUDPATH_REQUIRED", message: "cloudPath不可为空" });
-    let r2;
-    return this.getUploadFileOptions({ cloudPath: t2 }).then((t3) => {
-      const { url: i2, formData: o2, name: a2 } = t3.result;
-      return r2 = t3.result.fileUrl, new Promise((t4, r3) => {
-        const c2 = this.adapter.uploadFile({ url: i2, formData: o2, name: a2, filePath: e2, fileType: n2, success(e3) {
-          e3 && e3.statusCode < 400 ? t4(e3) : r3(new te({ code: "UPLOAD_FAILED", message: "文件上传失败" }));
-        }, fail(e3) {
-          r3(new te({ code: e3.code || "UPLOAD_FAILED", message: e3.message || e3.errMsg || "文件上传失败" }));
-        } });
-        "function" == typeof s2 && c2 && "function" == typeof c2.onProgressUpdate && c2.onProgressUpdate((e3) => {
-          s2({ loaded: e3.totalBytesSent, total: e3.totalBytesExpectedToSend });
-        });
-      });
-    }).then(() => this.reportUploadFile({ cloudPath: t2 })).then((t3) => new Promise((n3, s3) => {
-      t3.success ? n3({ success: true, filePath: e2, fileID: r2 }) : s3(new te({ code: "UPLOAD_FAILED", message: "文件上传失败" }));
-    }));
-  }
-  deleteFile({ fileList: e2 }) {
-    const t2 = { method: "serverless.file.resource.delete", params: JSON.stringify({ fileList: e2 }) };
-    return this.request(t2).then((e3) => {
-      if (e3.success)
-        return e3.result;
-      throw new te({ code: "DELETE_FILE_FAILED", message: "删除文件失败" });
-    });
-  }
-  getTempFileURL({ fileList: e2, maxAge: t2 } = {}) {
-    if (!Array.isArray(e2) || 0 === e2.length)
-      throw new te({ code: "INVALID_PARAM", message: "fileList的元素必须是非空的字符串" });
-    const n2 = { method: "serverless.file.resource.getTempFileURL", params: JSON.stringify({ fileList: e2, maxAge: t2 }) };
-    return this.request(n2).then((e3) => {
-      if (e3.success)
-        return { fileList: e3.result.fileList.map((e4) => ({ fileID: e4.fileID, tempFileURL: e4.tempFileURL })) };
-      throw new te({ code: "GET_TEMP_FILE_URL_FAILED", message: "获取临时文件链接失败" });
-    });
-  }
-};
-var Tt = { init(e2) {
-  const t2 = new Pt(e2), n2 = { signInAnonymously: function() {
-    return Promise.resolve();
-  }, getLoginState: function() {
-    return Promise.resolve(false);
-  } };
-  return t2.auth = function() {
-    return n2;
-  }, t2.customAuth = t2.auth, t2;
-} }, xt = n(function(e2, t2) {
-  e2.exports = r.enc.Hex;
-});
-function Ot() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(e2) {
-    var t2 = 16 * Math.random() | 0;
-    return ("x" === e2 ? t2 : 3 & t2 | 8).toString(16);
-  });
-}
-function Et(e2 = "", t2 = {}) {
-  const { data: n2, functionName: s2, method: r2, headers: i2, signHeaderKeys: o2 = [], config: a2 } = t2, c2 = Date.now(), u2 = Ot(), l2 = Object.assign({}, i2, { "x-from-app-id": a2.spaceAppId, "x-from-env-id": a2.spaceId, "x-to-env-id": a2.spaceId, "x-from-instance-id": c2, "x-from-function-name": s2, "x-client-timestamp": c2, "x-alipay-source": "client", "x-request-id": u2, "x-alipay-callid": u2, "x-trace-id": u2 }), h2 = ["x-from-app-id", "x-from-env-id", "x-to-env-id", "x-from-instance-id", "x-from-function-name", "x-client-timestamp"].concat(o2), [d2 = "", p2 = ""] = e2.split("?") || [], f2 = function(e3) {
-    const t3 = e3.signedHeaders.join(";"), n3 = e3.signedHeaders.map((t4) => `${t4.toLowerCase()}:${e3.headers[t4]}
-`).join(""), s3 = we(e3.body).toString(xt), r3 = `${e3.method.toUpperCase()}
-${e3.path}
-${e3.query}
-${n3}
-${t3}
-${s3}
-`, i3 = we(r3).toString(xt), o3 = `HMAC-SHA256
-${e3.timestamp}
-${i3}
-`, a3 = ve(o3, e3.secretKey).toString(xt);
-    return `HMAC-SHA256 Credential=${e3.secretId}, SignedHeaders=${t3}, Signature=${a3}`;
-  }({ path: d2, query: p2, method: r2, headers: l2, timestamp: c2, body: JSON.stringify(n2), secretId: a2.accessKey, secretKey: a2.secretKey, signedHeaders: h2.sort() });
-  return { url: `${a2.endpoint}${e2}`, headers: Object.assign({}, l2, { Authorization: f2 }) };
-}
-function Lt({ url: e2, data: t2, method: n2 = "POST", headers: s2 = {}, timeout: r2 }) {
-  return new Promise((i2, o2) => {
-    ne.request({ url: e2, method: n2, data: "object" == typeof t2 ? JSON.stringify(t2) : t2, header: s2, dataType: "json", timeout: r2, complete: (e3 = {}) => {
-      const t3 = s2["x-trace-id"] || "";
-      if (!e3.statusCode || e3.statusCode >= 400) {
-        const { message: n3, errMsg: s3, trace_id: r3 } = e3.data || {};
-        return o2(new te({ code: "SYS_ERR", message: n3 || s3 || "request:fail", requestId: r3 || t3 }));
-      }
-      i2({ status: e3.statusCode, data: e3.data, headers: e3.header, requestId: t3 });
-    } });
-  });
-}
-function Rt(e2, t2) {
-  const { path: n2, data: s2, method: r2 = "GET" } = e2, { url: i2, headers: o2 } = Et(n2, { functionName: "", data: s2, method: r2, headers: { "x-alipay-cloud-mode": "oss", "x-data-api-type": "oss", "x-expire-timestamp": Date.now() + 6e4 }, signHeaderKeys: ["x-data-api-type", "x-expire-timestamp"], config: t2 });
-  return Lt({ url: i2, data: s2, method: r2, headers: o2 }).then((e3) => {
-    const t3 = e3.data || {};
-    if (!t3.success)
-      throw new te({ code: e3.errCode, message: e3.errMsg, requestId: e3.requestId });
-    return t3.data || {};
-  }).catch((e3) => {
-    throw new te({ code: e3.errCode, message: e3.errMsg, requestId: e3.requestId });
-  });
-}
-function Ut(e2 = "") {
-  const t2 = e2.trim().replace(/^cloud:\/\//, ""), n2 = t2.indexOf("/");
-  if (n2 <= 0)
-    throw new te({ code: "INVALID_PARAM", message: "fileID不合法" });
-  const s2 = t2.substring(0, n2), r2 = t2.substring(n2 + 1);
-  return s2 !== this.config.spaceId && console.warn("file ".concat(e2, " does not belong to env ").concat(this.config.spaceId)), r2;
-}
-function Nt(e2 = "") {
-  return "cloud://".concat(this.config.spaceId, "/").concat(e2.replace(/^\/+/, ""));
-}
-class Dt {
-  constructor(e2) {
-    this.config = e2;
-  }
-  signedURL(e2, t2 = {}) {
-    const n2 = `/ws/function/${e2}`, s2 = this.config.wsEndpoint.replace(/^ws(s)?:\/\//, ""), r2 = Object.assign({}, t2, { accessKeyId: this.config.accessKey, signatureNonce: Ot(), timestamp: "" + Date.now() }), i2 = [n2, ["accessKeyId", "authorization", "signatureNonce", "timestamp"].sort().map(function(e3) {
-      return r2[e3] ? "".concat(e3, "=").concat(r2[e3]) : null;
-    }).filter(Boolean).join("&"), `host:${s2}`].join("\n"), o2 = ["HMAC-SHA256", we(i2).toString(xt)].join("\n"), a2 = ve(o2, this.config.secretKey).toString(xt), c2 = Object.keys(r2).map((e3) => `${e3}=${encodeURIComponent(r2[e3])}`).join("&");
-    return `${this.config.wsEndpoint}${n2}?${c2}&signature=${a2}`;
-  }
-}
-var Mt = class {
-  constructor(e2) {
-    if (["spaceId", "spaceAppId", "accessKey", "secretKey"].forEach((t2) => {
-      if (!Object.prototype.hasOwnProperty.call(e2, t2))
-        throw new Error(`${t2} required`);
-    }), e2.endpoint) {
-      if ("string" != typeof e2.endpoint)
-        throw new Error("endpoint must be string");
-      if (!/^https:\/\//.test(e2.endpoint))
-        throw new Error("endpoint must start with https://");
-      e2.endpoint = e2.endpoint.replace(/\/$/, "");
-    }
-    this.config = Object.assign({}, e2, { endpoint: e2.endpoint || `https://${e2.spaceId}.api-hz.cloudbasefunction.cn`, wsEndpoint: e2.wsEndpoint || `wss://${e2.spaceId}.api-hz.cloudbasefunction.cn` }), this._websocket = new Dt(this.config);
-  }
-  callFunction(e2) {
-    return function(e3, t2) {
-      const { name: n2, data: s2, async: r2 = false, timeout: i2 } = e3, o2 = "POST", a2 = { "x-to-function-name": n2 };
-      r2 && (a2["x-function-invoke-type"] = "async");
-      const { url: c2, headers: u2 } = Et("/functions/invokeFunction", { functionName: n2, data: s2, method: o2, headers: a2, signHeaderKeys: ["x-to-function-name"], config: t2 });
-      return Lt({ url: c2, data: s2, method: o2, headers: u2, timeout: i2 }).then((e4) => {
-        let t3 = 0;
-        if (r2) {
-          const n3 = e4.data || {};
-          t3 = "200" === n3.errCode ? 0 : n3.errCode, e4.data = n3.data || {}, e4.errMsg = n3.errMsg;
-        }
-        if (0 !== t3)
-          throw new te({ code: t3, message: e4.errMsg, requestId: e4.requestId });
-        return { errCode: t3, success: 0 === t3, requestId: e4.requestId, result: e4.data };
-      }).catch((e4) => {
-        throw new te({ code: e4.errCode, message: e4.errMsg, requestId: e4.requestId });
-      });
-    }(e2, this.config);
-  }
-  uploadFileToOSS({ url: e2, filePath: t2, fileType: n2, formData: s2, onUploadProgress: r2 }) {
-    return new Promise((i2, o2) => {
-      const a2 = ne.uploadFile({ url: e2, filePath: t2, fileType: n2, formData: s2, name: "file", success(e3) {
-        e3 && e3.statusCode < 400 ? i2(e3) : o2(new te({ code: "UPLOAD_FAILED", message: "文件上传失败" }));
-      }, fail(e3) {
-        o2(new te({ code: e3.code || "UPLOAD_FAILED", message: e3.message || e3.errMsg || "文件上传失败" }));
-      } });
-      "function" == typeof r2 && a2 && "function" == typeof a2.onProgressUpdate && a2.onProgressUpdate((e3) => {
-        r2({ loaded: e3.totalBytesSent, total: e3.totalBytesExpectedToSend });
-      });
-    });
-  }
-  async uploadFile({ filePath: e2, cloudPath: t2 = "", fileType: n2 = "image", onUploadProgress: s2 }) {
-    if ("string" !== f(t2))
-      throw new te({ code: "INVALID_PARAM", message: "cloudPath必须为字符串类型" });
-    if (!(t2 = t2.trim()))
-      throw new te({ code: "INVALID_PARAM", message: "cloudPath不可为空" });
-    if (/:\/\//.test(t2))
-      throw new te({ code: "INVALID_PARAM", message: "cloudPath不合法" });
-    const r2 = await Rt({ path: "/".concat(t2.replace(/^\//, ""), "?post_url") }, this.config), { file_id: i2, upload_url: o2, form_data: a2 } = r2, c2 = a2 && a2.reduce((e3, t3) => (e3[t3.key] = t3.value, e3), {});
-    return this.uploadFileToOSS({ url: o2, filePath: e2, fileType: n2, formData: c2, onUploadProgress: s2 }).then(() => ({ fileID: i2 }));
-  }
-  async getTempFileURL({ fileList: e2 }) {
-    return new Promise((t2, n2) => {
-      (!e2 || e2.length < 0) && n2(new te({ errCode: "INVALID_PARAM", errMsg: "fileList不能为空数组" })), e2.length > 50 && n2(new te({ errCode: "INVALID_PARAM", errMsg: "fileList数组长度不能超过50" }));
-      const s2 = [];
-      for (const t3 of e2) {
-        "string" !== f(t3) && n2(new te({ errCode: "INVALID_PARAM", errMsg: "fileList的元素必须是非空的字符串" }));
-        const e3 = Ut.call(this, t3);
-        s2.push({ file_id: e3, expire: 600 });
-      }
-      Rt({ path: "/?download_url", data: { file_list: s2 }, method: "POST" }, this.config).then((e3) => {
-        const { file_list: n3 = [] } = e3;
-        t2({ fileList: n3.map((e4) => ({ fileID: Nt.call(this, e4.file_id), tempFileURL: e4.download_url })) });
-      }).catch((e3) => n2(e3));
-    });
-  }
-  async connectWebSocket(e2) {
-    const { name: t2, query: n2 } = e2;
-    return ne.connectSocket({ url: this._websocket.signedURL(t2, n2), complete: () => {
-    } });
-  }
-};
-var qt = { init: (e2) => {
-  e2.provider = "alipay";
-  const t2 = new Mt(e2);
-  return t2.auth = function() {
-    return { signInAnonymously: function() {
-      return Promise.resolve();
-    }, getLoginState: function() {
-      return Promise.resolve(true);
-    } };
-  }, t2;
-} };
-function Ft({ data: e2 }) {
-  let t2;
-  t2 = he();
-  const n2 = JSON.parse(JSON.stringify(e2 || {}));
-  if (Object.assign(n2, { clientInfo: t2 }), !n2.uniIdToken) {
-    const { token: e3 } = re();
-    e3 && (n2.uniIdToken = e3);
-  }
-  return n2;
-}
-async function Kt(e2 = {}) {
-  await this.__dev__.initLocalNetwork();
-  const { localAddress: t2, localPort: n2 } = this.__dev__, s2 = { aliyun: "aliyun", tencent: "tcb", alipay: "alipay", dcloud: "dcloud" }[this.config.provider], r2 = this.config.spaceId, i2 = `http://${t2}:${n2}/system/check-function`, o2 = `http://${t2}:${n2}/cloudfunctions/${e2.name}`;
-  return new Promise((t3, n3) => {
-    ne.request({ method: "POST", url: i2, data: { name: e2.name, platform: C, provider: s2, spaceId: r2 }, timeout: 3e3, success(e3) {
-      t3(e3);
-    }, fail() {
-      t3({ data: { code: "NETWORK_ERROR", message: "连接本地调试服务失败，请检查客户端是否和主机在同一局域网下，自动切换为已部署的云函数。" } });
-    } });
-  }).then(({ data: e3 } = {}) => {
-    const { code: t3, message: n3 } = e3 || {};
-    return { code: 0 === t3 ? 0 : t3 || "SYS_ERR", message: n3 || "SYS_ERR" };
-  }).then(({ code: t3, message: n3 }) => {
-    if (0 !== t3) {
-      switch (t3) {
-        case "MODULE_ENCRYPTED":
-          console.error(`此云函数（${e2.name}）依赖加密公共模块不可本地调试，自动切换为云端已部署的云函数`);
-          break;
-        case "FUNCTION_ENCRYPTED":
-          console.error(`此云函数（${e2.name}）已加密不可本地调试，自动切换为云端已部署的云函数`);
-          break;
-        case "ACTION_ENCRYPTED":
-          console.error(n3 || "需要访问加密的uni-clientDB-action，自动切换为云端环境");
-          break;
-        case "NETWORK_ERROR":
-          console.error(n3 || "连接本地调试服务失败，请检查客户端是否和主机在同一局域网下");
-          break;
-        case "SWITCH_TO_CLOUD":
-          break;
-        default: {
-          const e3 = `检测本地调试服务出现错误：${n3}，请检查网络环境或重启客户端再试`;
-          throw console.error(e3), new Error(e3);
-        }
-      }
-      return this._callCloudFunction(e2);
-    }
-    return new Promise((t4, n4) => {
-      const r3 = Ft.call(this, { data: e2.data });
-      ne.request({ method: "POST", url: o2, data: { provider: s2, platform: C, param: r3 }, timeout: e2.timeout, success: ({ statusCode: e3, data: s3 } = {}) => !e3 || e3 >= 400 ? n4(new te({ code: s3.code || "SYS_ERR", message: s3.message || "request:fail" })) : t4({ result: s3 }), fail(e3) {
-        n4(new te({ code: e3.code || e3.errCode || "SYS_ERR", message: e3.message || e3.errMsg || "request:fail" }));
-      } });
-    });
-  });
-}
-const jt = [{ rule: /fc_function_not_found|FUNCTION_NOT_FOUND/, content: "，云函数[{functionName}]在云端不存在，请检查此云函数名称是否正确以及该云函数是否已上传到服务空间", mode: "append" }];
-var $t = /[\\^$.*+?()[\]{}|]/g, Bt = RegExp($t.source);
-function Wt(e2, t2, n2) {
-  return e2.replace(new RegExp((s2 = t2) && Bt.test(s2) ? s2.replace($t, "\\$&") : s2, "g"), n2);
-  var s2;
-}
-const Jt = "request", zt = "response", Vt = "both";
-const En = { code: 2e4, message: "System error" }, Ln = { code: 20101, message: "Invalid client" };
-function Nn(e2) {
-  const { errSubject: t2, subject: n2, errCode: s2, errMsg: r2, code: i2, message: o2, cause: a2 } = e2 || {};
-  return new te({ subject: t2 || n2 || "uni-secure-network", code: s2 || i2 || En.code, message: r2 || o2, cause: a2 });
-}
-let Mn;
-function $n({ secretType: e2 } = {}) {
-  return e2 === Jt || e2 === zt || e2 === Vt;
-}
-function Bn({ name: e2, data: t2 = {} } = {}) {
-  return "app" === C;
-}
-function Wn({ provider: e2, spaceId: t2, functionName: n2 } = {}) {
-  const { appId: s2, uniPlatform: r2, osName: i2 } = ce();
-  let o2 = r2;
-  "app" === r2 && (o2 = i2);
-  const a2 = function({ provider: e3, spaceId: t3 } = {}) {
-    const n3 = A;
-    if (!n3)
-      return {};
-    e3 = /* @__PURE__ */ function(e4) {
-      return "tencent" === e4 ? "tcb" : e4;
-    }(e3);
-    const s3 = n3.find((n4) => n4.provider === e3 && n4.spaceId === t3);
-    return s3 && s3.config;
-  }({ provider: e2, spaceId: t2 });
-  if (!a2 || !a2.accessControl || !a2.accessControl.enable)
-    return false;
-  const c2 = a2.accessControl.function || {}, u2 = Object.keys(c2);
-  if (0 === u2.length)
-    return true;
-  const l2 = function(e3, t3) {
-    let n3, s3, r3;
-    for (let i3 = 0; i3 < e3.length; i3++) {
-      const o3 = e3[i3];
-      o3 !== t3 ? "*" !== o3 ? o3.split(",").map((e4) => e4.trim()).indexOf(t3) > -1 && (s3 = o3) : r3 = o3 : n3 = o3;
-    }
-    return n3 || s3 || r3;
-  }(u2, n2);
-  if (!l2)
-    return false;
-  if ((c2[l2] || []).find((e3 = {}) => e3.appId === s2 && (e3.platform || "").toLowerCase() === o2.toLowerCase()))
-    return true;
-  throw console.error(`此应用[appId: ${s2}, platform: ${o2}]不在云端配置的允许访问的应用列表内，参考：https://uniapp.dcloud.net.cn/uniCloud/secure-network.html#verify-client`), Nn(Ln);
-}
-function Hn({ functionName: e2, result: t2, logPvd: n2 }) {
-  if (this.__dev__.debugLog && t2 && t2.requestId) {
-    const s2 = JSON.stringify({ spaceId: this.config.spaceId, functionName: e2, requestId: t2.requestId });
-    console.log(`[${n2}-request]${s2}[/${n2}-request]`);
-  }
-}
-function Jn(e2) {
-  const t2 = e2.callFunction, n2 = function(n3) {
-    const s2 = n3.name;
-    n3.data = Ft.call(e2, { data: n3.data });
-    const r2 = { aliyun: "aliyun", tencent: "tcb", tcb: "tcb", alipay: "alipay", dcloud: "dcloud" }[this.config.provider], i2 = $n(n3), o2 = Bn(n3), a2 = i2 || o2;
-    return t2.call(this, n3).then((e3) => (e3.errCode = 0, !a2 && Hn.call(this, { functionName: s2, result: e3, logPvd: r2 }), Promise.resolve(e3)), (e3) => (!a2 && Hn.call(this, { functionName: s2, result: e3, logPvd: r2 }), e3 && e3.message && (e3.message = function({ message: e4 = "", extraInfo: t3 = {}, formatter: n4 = [] } = {}) {
-      for (let s3 = 0; s3 < n4.length; s3++) {
-        const { rule: r3, content: i3, mode: o3 } = n4[s3], a3 = e4.match(r3);
-        if (!a3)
-          continue;
-        let c2 = i3;
-        for (let e5 = 1; e5 < a3.length; e5++)
-          c2 = Wt(c2, `{$${e5}}`, a3[e5]);
-        for (const e5 in t3)
-          c2 = Wt(c2, `{${e5}}`, t3[e5]);
-        return "replace" === o3 ? c2 : e4 + c2;
-      }
-      return e4;
-    }({ message: `[${n3.name}]: ${e3.message}`, formatter: jt, extraInfo: { functionName: s2 } })), Promise.reject(e3)));
-  };
-  e2.callFunction = function(t3) {
-    const { provider: s2, spaceId: r2 } = e2.config, i2 = t3.name;
-    let o2, a2;
-    if (t3.data = t3.data || {}, e2.__dev__.debugInfo && !e2.__dev__.debugInfo.forceRemote && T ? (e2._callCloudFunction || (e2._callCloudFunction = n2, e2._callLocalFunction = Kt), o2 = Kt) : o2 = n2, o2 = o2.bind(e2), Bn(t3))
-      ;
-    else if (function({ name: e3, data: t4 = {} }) {
-      return "uni-id-co" === e3 && "secureNetworkHandshakeByWeixin" === t4.method;
-    }(t3))
-      a2 = o2.call(e2, t3);
-    else if ($n(t3)) {
-      a2 = new Mn({ secretType: t3.secretType, uniCloudIns: e2 }).wrapEncryptDataCallFunction(n2.bind(e2))(t3);
-    } else if (Wn({ provider: s2, spaceId: r2, functionName: i2 })) {
-      a2 = new Mn({ secretType: t3.secretType, uniCloudIns: e2 }).wrapVerifyClientCallFunction(n2.bind(e2))(t3);
-    } else
-      a2 = o2(t3);
-    return Object.defineProperty(a2, "result", { get: () => (console.warn("当前返回结果为Promise类型，不可直接访问其result属性，详情请参考：https://uniapp.dcloud.net.cn/uniCloud/faq?id=promise"), {}) }), a2.then((e3) => ("undefined" != typeof UTSJSONObject && (e3.result = new UTSJSONObject(e3.result)), e3));
-  };
-}
-Mn = class {
-  constructor() {
-    throw Nn({ message: `Platform ${C} is not enabled, please check whether secure network module is enabled in your manifest.json` });
-  }
-};
-const zn = Symbol("CLIENT_DB_INTERNAL");
-function Vn(e2, t2) {
-  return e2.then = "DoNotReturnProxyWithAFunctionNamedThen", e2._internalType = zn, e2.inspect = null, e2.__v_raw = void 0, new Proxy(e2, { get(e3, n2, s2) {
-    if ("_uniClient" === n2)
-      return null;
-    if ("symbol" == typeof n2)
-      return e3[n2];
-    if (n2 in e3 || "string" != typeof n2) {
-      const t3 = e3[n2];
-      return "function" == typeof t3 ? t3.bind(e3) : t3;
-    }
-    return t2.get(e3, n2, s2);
-  } });
-}
-function Gn(e2) {
-  return { on: (t2, n2) => {
-    e2[t2] = e2[t2] || [], e2[t2].indexOf(n2) > -1 || e2[t2].push(n2);
-  }, off: (t2, n2) => {
-    e2[t2] = e2[t2] || [];
-    const s2 = e2[t2].indexOf(n2);
-    -1 !== s2 && e2[t2].splice(s2, 1);
-  } };
-}
-const Yn = ["db.Geo", "db.command", "command.aggregate"];
-function Qn(e2, t2) {
-  return Yn.indexOf(`${e2}.${t2}`) > -1;
-}
-function Xn(e2) {
-  switch (f(e2 = se(e2))) {
-    case "array":
-      return e2.map((e3) => Xn(e3));
-    case "object":
-      return e2._internalType === zn || Object.keys(e2).forEach((t2) => {
-        e2[t2] = Xn(e2[t2]);
-      }), e2;
-    case "regexp":
-      return { $regexp: { source: e2.source, flags: e2.flags } };
-    case "date":
-      return { $date: e2.toISOString() };
-    default:
-      return e2;
-  }
-}
-function Zn(e2) {
-  return e2 && e2.content && e2.content.$method;
-}
-class es {
-  constructor(e2, t2, n2) {
-    this.content = e2, this.prevStage = t2 || null, this.udb = null, this._database = n2;
-  }
-  toJSON() {
-    let e2 = this;
-    const t2 = [e2.content];
-    for (; e2.prevStage; )
-      e2 = e2.prevStage, t2.push(e2.content);
-    return { $db: t2.reverse().map((e3) => ({ $method: e3.$method, $param: Xn(e3.$param) })) };
-  }
-  toString() {
-    return JSON.stringify(this.toJSON());
-  }
-  getAction() {
-    const e2 = this.toJSON().$db.find((e3) => "action" === e3.$method);
-    return e2 && e2.$param && e2.$param[0];
-  }
-  getCommand() {
-    return { $db: this.toJSON().$db.filter((e2) => "action" !== e2.$method) };
-  }
-  get isAggregate() {
-    let e2 = this;
-    for (; e2; ) {
-      const t2 = Zn(e2), n2 = Zn(e2.prevStage);
-      if ("aggregate" === t2 && "collection" === n2 || "pipeline" === t2)
-        return true;
-      e2 = e2.prevStage;
-    }
-    return false;
-  }
-  get isCommand() {
-    let e2 = this;
-    for (; e2; ) {
-      if ("command" === Zn(e2))
-        return true;
-      e2 = e2.prevStage;
-    }
-    return false;
-  }
-  get isAggregateCommand() {
-    let e2 = this;
-    for (; e2; ) {
-      const t2 = Zn(e2), n2 = Zn(e2.prevStage);
-      if ("aggregate" === t2 && "command" === n2)
-        return true;
-      e2 = e2.prevStage;
-    }
-    return false;
-  }
-  getNextStageFn(e2) {
-    const t2 = this;
-    return function() {
-      return ts({ $method: e2, $param: Xn(Array.from(arguments)) }, t2, t2._database);
-    };
-  }
-  get count() {
-    return this.isAggregate ? this.getNextStageFn("count") : function() {
-      return this._send("count", Array.from(arguments));
-    };
-  }
-  get remove() {
-    return this.isCommand ? this.getNextStageFn("remove") : function() {
-      return this._send("remove", Array.from(arguments));
-    };
-  }
-  get() {
-    return this._send("get", Array.from(arguments));
-  }
-  get add() {
-    return this.isCommand ? this.getNextStageFn("add") : function() {
-      return this._send("add", Array.from(arguments));
-    };
-  }
-  update() {
-    return this._send("update", Array.from(arguments));
-  }
-  end() {
-    return this._send("end", Array.from(arguments));
-  }
-  get set() {
-    return this.isCommand ? this.getNextStageFn("set") : function() {
-      throw new Error("JQL禁止使用set方法");
-    };
-  }
-  _send(e2, t2) {
-    const n2 = this.getAction(), s2 = this.getCommand();
-    if (s2.$db.push({ $method: e2, $param: Xn(t2) }), S) {
-      const e3 = s2.$db.find((e4) => "collection" === e4.$method), t3 = e3 && e3.$param;
-      t3 && 1 === t3.length && "string" == typeof e3.$param[0] && e3.$param[0].indexOf(",") > -1 && console.warn("检测到使用JQL语法联表查询时，未使用getTemp先过滤主表数据，在主表数据量大的情况下可能会查询缓慢。\n- 如何优化请参考此文档：https://uniapp.dcloud.net.cn/uniCloud/jql?id=lookup-with-temp \n- 如果主表数据量很小请忽略此信息，项目发行时不会出现此提示。");
-    }
-    return this._database._callCloudFunction({ action: n2, command: s2 });
-  }
-}
-function ts(e2, t2, n2) {
-  return Vn(new es(e2, t2, n2), { get(e3, t3) {
-    let s2 = "db";
-    return e3 && e3.content && (s2 = e3.content.$method), Qn(s2, t3) ? ts({ $method: t3 }, e3, n2) : function() {
-      return ts({ $method: t3, $param: Xn(Array.from(arguments)) }, e3, n2);
-    };
-  } });
-}
-function ns({ path: e2, method: t2 }) {
-  return class {
-    constructor() {
-      this.param = Array.from(arguments);
-    }
-    toJSON() {
-      return { $newDb: [...e2.map((e3) => ({ $method: e3 })), { $method: t2, $param: this.param }] };
-    }
-    toString() {
-      return JSON.stringify(this.toJSON());
-    }
-  };
-}
-function ss(e2, t2 = {}) {
-  return Vn(new e2(t2), { get: (e3, t3) => Qn("db", t3) ? ts({ $method: t3 }, null, e3) : function() {
-    return ts({ $method: t3, $param: Xn(Array.from(arguments)) }, null, e3);
-  } });
-}
-class rs extends class {
-  constructor({ uniClient: e2 = {}, isJQL: t2 = false } = {}) {
-    this._uniClient = e2, this._authCallBacks = {}, this._dbCallBacks = {}, e2._isDefault && (this._dbCallBacks = L("_globalUniCloudDatabaseCallback")), t2 || (this.auth = Gn(this._authCallBacks)), this._isJQL = t2, Object.assign(this, Gn(this._dbCallBacks)), this.env = Vn({}, { get: (e3, t3) => ({ $env: t3 }) }), this.Geo = Vn({}, { get: (e3, t3) => ns({ path: ["Geo"], method: t3 }) }), this.serverDate = ns({ path: [], method: "serverDate" }), this.RegExp = ns({ path: [], method: "RegExp" });
-  }
-  getCloudEnv(e2) {
-    if ("string" != typeof e2 || !e2.trim())
-      throw new Error("getCloudEnv参数错误");
-    return { $env: e2.replace("$cloudEnv_", "") };
-  }
-  _callback(e2, t2) {
-    const n2 = this._dbCallBacks;
-    n2[e2] && n2[e2].forEach((e3) => {
-      e3(...t2);
-    });
-  }
-  _callbackAuth(e2, t2) {
-    const n2 = this._authCallBacks;
-    n2[e2] && n2[e2].forEach((e3) => {
-      e3(...t2);
-    });
-  }
-  multiSend() {
-    const e2 = Array.from(arguments), t2 = e2.map((e3) => {
-      const t3 = e3.getAction(), n2 = e3.getCommand();
-      if ("getTemp" !== n2.$db[n2.$db.length - 1].$method)
-        throw new Error("multiSend只支持子命令内使用getTemp");
-      return { action: t3, command: n2 };
-    });
-    return this._callCloudFunction({ multiCommand: t2, queryList: e2 });
-  }
-} {
-  _parseResult(e2) {
-    return this._isJQL ? e2.result : e2;
-  }
-  _callCloudFunction({ action: e2, command: t2, multiCommand: n2, queryList: s2 }) {
-    function r2(e3, t3) {
-      if (n2 && s2)
-        for (let n3 = 0; n3 < s2.length; n3++) {
-          const r3 = s2[n3];
-          r3.udb && "function" == typeof r3.udb.setResult && (t3 ? r3.udb.setResult(t3) : r3.udb.setResult(e3.result.dataList[n3]));
-        }
-    }
-    const i2 = this, o2 = this._isJQL ? "databaseForJQL" : "database";
-    function a2(e3) {
-      return i2._callback("error", [e3]), M(q(o2, "fail"), e3).then(() => M(q(o2, "complete"), e3)).then(() => (r2(null, e3), Y(j, { type: W, content: e3 }), Promise.reject(e3)));
-    }
-    const c2 = M(q(o2, "invoke")), u2 = this._uniClient;
-    return c2.then(() => u2.callFunction({ name: "DCloud-clientDB", type: l, data: { action: e2, command: t2, multiCommand: n2 } })).then((e3) => {
-      const { code: t3, message: n3, token: s3, tokenExpired: c3, systemInfo: u3 = [] } = e3.result;
-      if (u3)
-        for (let e4 = 0; e4 < u3.length; e4++) {
-          const { level: t4, message: n4, detail: s4 } = u3[e4], r3 = console[t4] || console.log;
-          let i3 = "[System Info]" + n4;
-          s4 && (i3 = `${i3}
-详细信息：${s4}`), r3(i3);
-        }
-      if (t3) {
-        return a2(new te({ code: t3, message: n3, requestId: e3.requestId }));
-      }
-      e3.result.errCode = e3.result.errCode || e3.result.code, e3.result.errMsg = e3.result.errMsg || e3.result.message, s3 && c3 && (ie({ token: s3, tokenExpired: c3 }), this._callbackAuth("refreshToken", [{ token: s3, tokenExpired: c3 }]), this._callback("refreshToken", [{ token: s3, tokenExpired: c3 }]), Y(B, { token: s3, tokenExpired: c3 }));
-      const l2 = [{ prop: "affectedDocs", tips: "affectedDocs不再推荐使用，请使用inserted/deleted/updated/data.length替代" }, { prop: "code", tips: "code不再推荐使用，请使用errCode替代" }, { prop: "message", tips: "message不再推荐使用，请使用errMsg替代" }];
-      for (let t4 = 0; t4 < l2.length; t4++) {
-        const { prop: n4, tips: s4 } = l2[t4];
-        if (n4 in e3.result) {
-          const t5 = e3.result[n4];
-          Object.defineProperty(e3.result, n4, { get: () => (console.warn(s4), t5) });
-        }
-      }
-      return function(e4) {
-        return M(q(o2, "success"), e4).then(() => M(q(o2, "complete"), e4)).then(() => {
-          r2(e4, null);
-          const t4 = i2._parseResult(e4);
-          return Y(j, { type: W, content: t4 }), Promise.resolve(t4);
-        });
-      }(e3);
-    }, (e3) => {
-      /fc_function_not_found|FUNCTION_NOT_FOUND/g.test(e3.message) && console.warn("clientDB未初始化，请在web控制台保存一次schema以开启clientDB");
-      return a2(new te({ code: e3.code || "SYSTEM_ERROR", message: e3.message, requestId: e3.requestId }));
-    });
-  }
-}
-const is = "token无效，跳转登录页面", os = "token过期，跳转登录页面", as = { TOKEN_INVALID_TOKEN_EXPIRED: os, TOKEN_INVALID_INVALID_CLIENTID: is, TOKEN_INVALID: is, TOKEN_INVALID_WRONG_TOKEN: is, TOKEN_INVALID_ANONYMOUS_USER: is }, cs = { "uni-id-token-expired": os, "uni-id-check-token-failed": is, "uni-id-token-not-exist": is, "uni-id-check-device-feature-failed": is };
-function us(e2, t2) {
-  let n2 = "";
-  return n2 = e2 ? `${e2}/${t2}` : t2, n2.replace(/^\//, "");
-}
-function ls(e2 = [], t2 = "") {
-  const n2 = [], s2 = [];
-  return e2.forEach((e3) => {
-    true === e3.needLogin ? n2.push(us(t2, e3.path)) : false === e3.needLogin && s2.push(us(t2, e3.path));
-  }), { needLoginPage: n2, notNeedLoginPage: s2 };
-}
-function hs(e2) {
-  return e2.split("?")[0].replace(/^\//, "");
-}
-function ds() {
-  return function(e2) {
-    let t2 = e2 && e2.$page && e2.$page.fullPath || "";
-    return t2 ? ("/" !== t2.charAt(0) && (t2 = "/" + t2), t2) : t2;
-  }(function() {
-    const e2 = getCurrentPages();
-    return e2[e2.length - 1];
-  }());
-}
-function ps() {
-  return hs(ds());
-}
-function fs(e2 = "", t2 = {}) {
-  if (!e2)
-    return false;
-  if (!(t2 && t2.list && t2.list.length))
-    return false;
-  const n2 = t2.list, s2 = hs(e2);
-  return n2.some((e3) => e3.pagePath === s2);
-}
-const gs = !!e$1.uniIdRouter;
-const { loginPage: ms, routerNeedLogin: ys, resToLogin: _s, needLoginPage: ws, notNeedLoginPage: vs, loginPageInTabBar: Is } = function({ pages: t2 = [], subPackages: n2 = [], uniIdRouter: s2 = {}, tabBar: r2 = {} } = e$1) {
-  const { loginPage: i2, needLogin: o2 = [], resToLogin: a2 = true } = s2, { needLoginPage: c2, notNeedLoginPage: u2 } = ls(t2), { needLoginPage: l2, notNeedLoginPage: h2 } = function(e2 = []) {
-    const t3 = [], n3 = [];
-    return e2.forEach((e3) => {
-      const { root: s3, pages: r3 = [] } = e3, { needLoginPage: i3, notNeedLoginPage: o3 } = ls(r3, s3);
-      t3.push(...i3), n3.push(...o3);
-    }), { needLoginPage: t3, notNeedLoginPage: n3 };
-  }(n2);
-  return { loginPage: i2, routerNeedLogin: o2, resToLogin: a2, needLoginPage: [...c2, ...l2], notNeedLoginPage: [...u2, ...h2], loginPageInTabBar: fs(i2, r2) };
-}();
-if (ws.indexOf(ms) > -1)
-  throw new Error(`Login page [${ms}] should not be "needLogin", please check your pages.json`);
-function Ss(e2) {
-  const t2 = ps();
-  if ("/" === e2.charAt(0))
-    return e2;
-  const [n2, s2] = e2.split("?"), r2 = n2.replace(/^\//, "").split("/"), i2 = t2.split("/");
-  i2.pop();
-  for (let e3 = 0; e3 < r2.length; e3++) {
-    const t3 = r2[e3];
-    ".." === t3 ? i2.pop() : "." !== t3 && i2.push(t3);
-  }
-  return "" === i2[0] && i2.shift(), "/" + i2.join("/") + (s2 ? "?" + s2 : "");
-}
-function bs(e2) {
-  const t2 = hs(Ss(e2));
-  return !(vs.indexOf(t2) > -1) && (ws.indexOf(t2) > -1 || ys.some((t3) => function(e3, t4) {
-    return new RegExp(t4).test(e3);
-  }(e2, t3)));
-}
-function ks({ redirect: e2 }) {
-  const t2 = hs(e2), n2 = hs(ms);
-  return ps() !== n2 && t2 !== n2;
-}
-function As({ api: e2, redirect: t2 } = {}) {
-  if (!t2 || !ks({ redirect: t2 }))
-    return;
-  const n2 = function(e3, t3) {
-    return "/" !== e3.charAt(0) && (e3 = "/" + e3), t3 ? e3.indexOf("?") > -1 ? e3 + `&uniIdRedirectUrl=${encodeURIComponent(t3)}` : e3 + `?uniIdRedirectUrl=${encodeURIComponent(t3)}` : e3;
-  }(ms, t2);
-  Is ? "navigateTo" !== e2 && "redirectTo" !== e2 || (e2 = "switchTab") : "switchTab" === e2 && (e2 = "navigateTo");
-  const s2 = { navigateTo: index.navigateTo, redirectTo: index.redirectTo, switchTab: index.switchTab, reLaunch: index.reLaunch };
-  setTimeout(() => {
-    s2[e2]({ url: n2 });
-  }, 0);
-}
-function Cs({ url: e2 } = {}) {
-  const t2 = { abortLoginPageJump: false, autoToLoginPage: false }, n2 = function() {
-    const { token: e3, tokenExpired: t3 } = re();
-    let n3;
-    if (e3) {
-      if (t3 < Date.now()) {
-        const e4 = "uni-id-token-expired";
-        n3 = { errCode: e4, errMsg: cs[e4] };
-      }
-    } else {
-      const e4 = "uni-id-check-token-failed";
-      n3 = { errCode: e4, errMsg: cs[e4] };
-    }
-    return n3;
-  }();
-  if (bs(e2) && n2) {
-    n2.uniIdRedirectUrl = e2;
-    if (z($).length > 0)
-      return setTimeout(() => {
-        Y($, n2);
-      }, 0), t2.abortLoginPageJump = true, t2;
-    t2.autoToLoginPage = true;
-  }
-  return t2;
-}
-function Ps() {
-  !function() {
-    const e3 = ds(), { abortLoginPageJump: t2, autoToLoginPage: n2 } = Cs({ url: e3 });
-    t2 || n2 && As({ api: "redirectTo", redirect: e3 });
-  }();
-  const e2 = ["navigateTo", "redirectTo", "reLaunch", "switchTab"];
-  for (let t2 = 0; t2 < e2.length; t2++) {
-    const n2 = e2[t2];
-    index.addInterceptor(n2, { invoke(e3) {
-      const { abortLoginPageJump: t3, autoToLoginPage: s2 } = Cs({ url: e3.url });
-      return t3 ? e3 : s2 ? (As({ api: n2, redirect: Ss(e3.url) }), false) : e3;
-    } });
-  }
-}
-function Ts() {
-  this.onResponse((e2) => {
-    const { type: t2, content: n2 } = e2;
-    let s2 = false;
-    switch (t2) {
-      case "cloudobject":
-        s2 = function(e3) {
-          if ("object" != typeof e3)
-            return false;
-          const { errCode: t3 } = e3 || {};
-          return t3 in cs;
-        }(n2);
-        break;
-      case "clientdb":
-        s2 = function(e3) {
-          if ("object" != typeof e3)
-            return false;
-          const { errCode: t3 } = e3 || {};
-          return t3 in as;
-        }(n2);
-    }
-    s2 && function(e3 = {}) {
-      const t3 = z($);
-      Z().then(() => {
-        const n3 = ds();
-        if (n3 && ks({ redirect: n3 }))
-          return t3.length > 0 ? Y($, Object.assign({ uniIdRedirectUrl: n3 }, e3)) : void (ms && As({ api: "navigateTo", redirect: n3 }));
-      });
-    }(n2);
-  });
-}
-function xs(e2) {
-  !function(e3) {
-    e3.onResponse = function(e4) {
-      V(j, e4);
-    }, e3.offResponse = function(e4) {
-      G(j, e4);
-    };
-  }(e2), function(e3) {
-    e3.onNeedLogin = function(e4) {
-      V($, e4);
-    }, e3.offNeedLogin = function(e4) {
-      G($, e4);
-    }, gs && (L("_globalUniCloudStatus").needLoginInit || (L("_globalUniCloudStatus").needLoginInit = true, Z().then(() => {
-      Ps.call(e3);
-    }), _s && Ts.call(e3)));
-  }(e2), function(e3) {
-    e3.onRefreshToken = function(e4) {
-      V(B, e4);
-    }, e3.offRefreshToken = function(e4) {
-      G(B, e4);
-    };
-  }(e2);
-}
-let Os;
-const Es = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", Ls = /^(?:[A-Za-z\d+/]{4})*?(?:[A-Za-z\d+/]{2}(?:==)?|[A-Za-z\d+/]{3}=?)?$/;
-function Rs() {
-  const e2 = re().token || "", t2 = e2.split(".");
-  if (!e2 || 3 !== t2.length)
-    return { uid: null, role: [], permission: [], tokenExpired: 0 };
-  let n2;
-  try {
-    n2 = JSON.parse((s2 = t2[1], decodeURIComponent(Os(s2).split("").map(function(e3) {
-      return "%" + ("00" + e3.charCodeAt(0).toString(16)).slice(-2);
-    }).join(""))));
-  } catch (e3) {
-    throw new Error("获取当前用户信息出错，详细错误信息为：" + e3.message);
-  }
-  var s2;
-  return n2.tokenExpired = 1e3 * n2.exp, delete n2.exp, delete n2.iat, n2;
-}
-Os = "function" != typeof atob ? function(e2) {
-  if (e2 = String(e2).replace(/[\t\n\f\r ]+/g, ""), !Ls.test(e2))
-    throw new Error("Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded.");
-  var t2;
-  e2 += "==".slice(2 - (3 & e2.length));
-  for (var n2, s2, r2 = "", i2 = 0; i2 < e2.length; )
-    t2 = Es.indexOf(e2.charAt(i2++)) << 18 | Es.indexOf(e2.charAt(i2++)) << 12 | (n2 = Es.indexOf(e2.charAt(i2++))) << 6 | (s2 = Es.indexOf(e2.charAt(i2++))), r2 += 64 === n2 ? String.fromCharCode(t2 >> 16 & 255) : 64 === s2 ? String.fromCharCode(t2 >> 16 & 255, t2 >> 8 & 255) : String.fromCharCode(t2 >> 16 & 255, t2 >> 8 & 255, 255 & t2);
-  return r2;
-} : atob;
-var Us = n(function(e2, t2) {
-  Object.defineProperty(t2, "__esModule", { value: true });
-  const n2 = "chooseAndUploadFile:ok", s2 = "chooseAndUploadFile:fail";
-  function r2(e3, t3) {
-    return e3.tempFiles.forEach((e4, n3) => {
-      e4.name || (e4.name = e4.path.substring(e4.path.lastIndexOf("/") + 1)), t3 && (e4.fileType = t3), e4.cloudPath = Date.now() + "_" + n3 + e4.name.substring(e4.name.lastIndexOf("."));
-    }), e3.tempFilePaths || (e3.tempFilePaths = e3.tempFiles.map((e4) => e4.path)), e3;
-  }
-  function i2(e3, t3, { onChooseFile: s3, onUploadProgress: r3 }) {
-    return t3.then((e4) => {
-      if (s3) {
-        const t4 = s3(e4);
-        if (void 0 !== t4)
-          return Promise.resolve(t4).then((t5) => void 0 === t5 ? e4 : t5);
-      }
-      return e4;
-    }).then((t4) => false === t4 ? { errMsg: n2, tempFilePaths: [], tempFiles: [] } : function(e4, t5, s4 = 5, r4) {
-      (t5 = Object.assign({}, t5)).errMsg = n2;
-      const i3 = t5.tempFiles, o2 = i3.length;
-      let a2 = 0;
-      return new Promise((n3) => {
-        for (; a2 < s4; )
-          c2();
-        function c2() {
-          const s5 = a2++;
-          if (s5 >= o2)
-            return void (!i3.find((e5) => !e5.url && !e5.errMsg) && n3(t5));
-          const u2 = i3[s5];
-          e4.uploadFile({ provider: u2.provider, filePath: u2.path, cloudPath: u2.cloudPath, fileType: u2.fileType, cloudPathAsRealPath: u2.cloudPathAsRealPath, onUploadProgress(e5) {
-            e5.index = s5, e5.tempFile = u2, e5.tempFilePath = u2.path, r4 && r4(e5);
-          } }).then((e5) => {
-            u2.url = e5.fileID, s5 < o2 && c2();
-          }).catch((e5) => {
-            u2.errMsg = e5.errMsg || e5.message, s5 < o2 && c2();
-          });
-        }
-      });
-    }(e3, t4, 5, r3));
-  }
-  t2.initChooseAndUploadFile = function(e3) {
-    return function(t3 = { type: "all" }) {
-      return "image" === t3.type ? i2(e3, function(e4) {
-        const { count: t4, sizeType: n3, sourceType: i3 = ["album", "camera"], extension: o2 } = e4;
-        return new Promise((e5, a2) => {
-          index.chooseImage({ count: t4, sizeType: n3, sourceType: i3, extension: o2, success(t5) {
-            e5(r2(t5, "image"));
-          }, fail(e6) {
-            a2({ errMsg: e6.errMsg.replace("chooseImage:fail", s2) });
-          } });
-        });
-      }(t3), t3) : "video" === t3.type ? i2(e3, function(e4) {
-        const { camera: t4, compressed: n3, maxDuration: i3, sourceType: o2 = ["album", "camera"], extension: a2 } = e4;
-        return new Promise((e5, c2) => {
-          index.chooseVideo({ camera: t4, compressed: n3, maxDuration: i3, sourceType: o2, extension: a2, success(t5) {
-            const { tempFilePath: n4, duration: s3, size: i4, height: o3, width: a3 } = t5;
-            e5(r2({ errMsg: "chooseVideo:ok", tempFilePaths: [n4], tempFiles: [{ name: t5.tempFile && t5.tempFile.name || "", path: n4, size: i4, type: t5.tempFile && t5.tempFile.type || "", width: a3, height: o3, duration: s3, fileType: "video", cloudPath: "" }] }, "video"));
-          }, fail(e6) {
-            c2({ errMsg: e6.errMsg.replace("chooseVideo:fail", s2) });
-          } });
-        });
-      }(t3), t3) : i2(e3, function(e4) {
-        const { count: t4, extension: n3 } = e4;
-        return new Promise((e5, i3) => {
-          let o2 = index.chooseFile;
-          if ("undefined" != typeof wx$1 && "function" == typeof wx$1.chooseMessageFile && (o2 = wx$1.chooseMessageFile), "function" != typeof o2)
-            return i3({ errMsg: s2 + " 请指定 type 类型，该平台仅支持选择 image 或 video。" });
-          o2({ type: "all", count: t4, extension: n3, success(t5) {
-            e5(r2(t5));
-          }, fail(e6) {
-            i3({ errMsg: e6.errMsg.replace("chooseFile:fail", s2) });
-          } });
-        });
-      }(t3), t3);
-    };
-  };
-}), Ns = t(Us);
-const Ds = "manual";
-function Ms(e2) {
-  return { props: { localdata: { type: Array, default: () => [] }, options: { type: [Object, Array], default: () => ({}) }, spaceInfo: { type: Object, default: () => ({}) }, collection: { type: [String, Array], default: "" }, action: { type: String, default: "" }, field: { type: String, default: "" }, orderby: { type: String, default: "" }, where: { type: [String, Object], default: "" }, pageData: { type: String, default: "add" }, pageCurrent: { type: Number, default: 1 }, pageSize: { type: Number, default: 20 }, getcount: { type: [Boolean, String], default: false }, gettree: { type: [Boolean, String], default: false }, gettreepath: { type: [Boolean, String], default: false }, startwith: { type: String, default: "" }, limitlevel: { type: Number, default: 10 }, groupby: { type: String, default: "" }, groupField: { type: String, default: "" }, distinct: { type: [Boolean, String], default: false }, foreignKey: { type: String, default: "" }, loadtime: { type: String, default: "auto" }, manual: { type: Boolean, default: false } }, data: () => ({ mixinDatacomLoading: false, mixinDatacomHasMore: false, mixinDatacomResData: [], mixinDatacomErrorMessage: "", mixinDatacomPage: {}, mixinDatacomError: null }), created() {
-    this.mixinDatacomPage = { current: this.pageCurrent, size: this.pageSize, count: 0 }, this.$watch(() => {
-      var e3 = [];
-      return ["pageCurrent", "pageSize", "localdata", "collection", "action", "field", "orderby", "where", "getont", "getcount", "gettree", "groupby", "groupField", "distinct"].forEach((t2) => {
-        e3.push(this[t2]);
-      }), e3;
-    }, (e3, t2) => {
-      if (this.loadtime === Ds)
-        return;
-      let n2 = false;
-      const s2 = [];
-      for (let r2 = 2; r2 < e3.length; r2++)
-        e3[r2] !== t2[r2] && (s2.push(e3[r2]), n2 = true);
-      e3[0] !== t2[0] && (this.mixinDatacomPage.current = this.pageCurrent), this.mixinDatacomPage.size = this.pageSize, this.onMixinDatacomPropsChange(n2, s2);
-    });
-  }, methods: { onMixinDatacomPropsChange(e3, t2) {
-  }, mixinDatacomEasyGet({ getone: e3 = false, success: t2, fail: n2 } = {}) {
-    this.mixinDatacomLoading || (this.mixinDatacomLoading = true, this.mixinDatacomErrorMessage = "", this.mixinDatacomError = null, this.mixinDatacomGet().then((n3) => {
-      this.mixinDatacomLoading = false;
-      const { data: s2, count: r2 } = n3.result;
-      this.getcount && (this.mixinDatacomPage.count = r2), this.mixinDatacomHasMore = s2.length < this.pageSize;
-      const i2 = e3 ? s2.length ? s2[0] : void 0 : s2;
-      this.mixinDatacomResData = i2, t2 && t2(i2);
-    }).catch((e4) => {
-      this.mixinDatacomLoading = false, this.mixinDatacomErrorMessage = e4, this.mixinDatacomError = e4, n2 && n2(e4);
-    }));
-  }, mixinDatacomGet(t2 = {}) {
-    let n2;
-    t2 = t2 || {}, n2 = "undefined" != typeof __uniX && __uniX ? e2.databaseForJQL(this.spaceInfo) : e2.database(this.spaceInfo);
-    const s2 = t2.action || this.action;
-    s2 && (n2 = n2.action(s2));
-    const r2 = t2.collection || this.collection;
-    n2 = Array.isArray(r2) ? n2.collection(...r2) : n2.collection(r2);
-    const i2 = t2.where || this.where;
-    i2 && Object.keys(i2).length && (n2 = n2.where(i2));
-    const o2 = t2.field || this.field;
-    o2 && (n2 = n2.field(o2));
-    const a2 = t2.foreignKey || this.foreignKey;
-    a2 && (n2 = n2.foreignKey(a2));
-    const c2 = t2.groupby || this.groupby;
-    c2 && (n2 = n2.groupBy(c2));
-    const u2 = t2.groupField || this.groupField;
-    u2 && (n2 = n2.groupField(u2));
-    true === (void 0 !== t2.distinct ? t2.distinct : this.distinct) && (n2 = n2.distinct());
-    const l2 = t2.orderby || this.orderby;
-    l2 && (n2 = n2.orderBy(l2));
-    const h2 = void 0 !== t2.pageCurrent ? t2.pageCurrent : this.mixinDatacomPage.current, d2 = void 0 !== t2.pageSize ? t2.pageSize : this.mixinDatacomPage.size, p2 = void 0 !== t2.getcount ? t2.getcount : this.getcount, f2 = void 0 !== t2.gettree ? t2.gettree : this.gettree, g2 = void 0 !== t2.gettreepath ? t2.gettreepath : this.gettreepath, m2 = { getCount: p2 }, y2 = { limitLevel: void 0 !== t2.limitlevel ? t2.limitlevel : this.limitlevel, startWith: void 0 !== t2.startwith ? t2.startwith : this.startwith };
-    return f2 && (m2.getTree = y2), g2 && (m2.getTreePath = y2), n2 = n2.skip(d2 * (h2 - 1)).limit(d2).get(m2), n2;
-  } } };
-}
-function qs(e2) {
-  return function(t2, n2 = {}) {
-    n2 = function(e3, t3 = {}) {
-      return e3.customUI = t3.customUI || e3.customUI, e3.parseSystemError = t3.parseSystemError || e3.parseSystemError, Object.assign(e3.loadingOptions, t3.loadingOptions), Object.assign(e3.errorOptions, t3.errorOptions), "object" == typeof t3.secretMethods && (e3.secretMethods = t3.secretMethods), e3;
-    }({ customUI: false, loadingOptions: { title: "加载中...", mask: true }, errorOptions: { type: "modal", retry: false } }, n2);
-    const { customUI: s2, loadingOptions: r2, errorOptions: i2, parseSystemError: o2 } = n2, a2 = !s2;
-    return new Proxy({}, { get(s3, c2) {
-      switch (c2) {
-        case "toString":
-          return "[object UniCloudObject]";
-        case "toJSON":
-          return {};
-      }
-      return function({ fn: e3, interceptorName: t3, getCallbackArgs: n3 } = {}) {
-        return async function(...s4) {
-          const r3 = n3 ? n3({ params: s4 }) : {};
-          let i3, o3;
-          try {
-            return await M(q(t3, "invoke"), { ...r3 }), i3 = await e3(...s4), await M(q(t3, "success"), { ...r3, result: i3 }), i3;
-          } catch (e4) {
-            throw o3 = e4, await M(q(t3, "fail"), { ...r3, error: o3 }), o3;
-          } finally {
-            await M(q(t3, "complete"), o3 ? { ...r3, error: o3 } : { ...r3, result: i3 });
-          }
-        };
-      }({ fn: async function s4(...l2) {
-        let h2;
-        a2 && index.showLoading({ title: r2.title, mask: r2.mask });
-        const d2 = { name: t2, type: u, data: { method: c2, params: l2 } };
-        "object" == typeof n2.secretMethods && function(e3, t3) {
-          const n3 = t3.data.method, s5 = e3.secretMethods || {}, r3 = s5[n3] || s5["*"];
-          r3 && (t3.secretType = r3);
-        }(n2, d2);
-        let p2 = false;
-        try {
-          h2 = await e2.callFunction(d2);
-        } catch (e3) {
-          p2 = true, h2 = { result: new te(e3) };
-        }
-        const { errSubject: f2, errCode: g2, errMsg: m2, newToken: y2 } = h2.result || {};
-        if (a2 && index.hideLoading(), y2 && y2.token && y2.tokenExpired && (ie(y2), Y(B, { ...y2 })), g2) {
-          let e3 = m2;
-          if (p2 && o2) {
-            e3 = (await o2({ objectName: t2, methodName: c2, params: l2, errSubject: f2, errCode: g2, errMsg: m2 })).errMsg || m2;
-          }
-          if (a2)
-            if ("toast" === i2.type)
-              index.showToast({ title: e3, icon: "none" });
-            else {
-              if ("modal" !== i2.type)
-                throw new Error(`Invalid errorOptions.type: ${i2.type}`);
-              {
-                const { confirm: t3 } = await async function({ title: e4, content: t4, showCancel: n4, cancelText: s5, confirmText: r3 } = {}) {
-                  return new Promise((i3, o3) => {
-                    index.showModal({ title: e4, content: t4, showCancel: n4, cancelText: s5, confirmText: r3, success(e5) {
-                      i3(e5);
-                    }, fail() {
-                      i3({ confirm: false, cancel: true });
-                    } });
-                  });
-                }({ title: "提示", content: e3, showCancel: i2.retry, cancelText: "取消", confirmText: i2.retry ? "重试" : "确定" });
-                if (i2.retry && t3)
-                  return s4(...l2);
-              }
-            }
-          const n3 = new te({ subject: f2, code: g2, message: m2, requestId: h2.requestId });
-          throw n3.detail = h2.result, Y(j, { type: J, content: n3 }), n3;
-        }
-        return Y(j, { type: J, content: h2.result }), h2.result;
-      }, interceptorName: "callObject", getCallbackArgs: function({ params: e3 } = {}) {
-        return { objectName: t2, methodName: c2, params: e3 };
-      } });
-    } });
-  };
-}
-function Fs(e2) {
-  return L("_globalUniCloudSecureNetworkCache__{spaceId}".replace("{spaceId}", e2.config.spaceId));
-}
-async function Ks({ openid: e2, callLoginByWeixin: t2 = false } = {}) {
-  const n2 = Fs(this);
-  if (e2 && t2)
-    throw new Error("[SecureNetwork] openid and callLoginByWeixin cannot be passed at the same time");
-  if (e2)
-    return n2.mpWeixinOpenid = e2, {};
-  const s2 = await new Promise((e3, t3) => {
-    index.login({ success(t4) {
-      e3(t4.code);
-    }, fail(e4) {
-      t3(new Error(e4.errMsg));
-    } });
-  }), r2 = this.importObject("uni-id-co", { customUI: true });
-  return await r2.secureNetworkHandshakeByWeixin({ code: s2, callLoginByWeixin: t2 }), n2.mpWeixinCode = s2, { code: s2 };
-}
-async function js(e2) {
-  const t2 = Fs(this);
-  return t2.initPromise || (t2.initPromise = Ks.call(this, e2).then((e3) => e3).catch((e3) => {
-    throw delete t2.initPromise, e3;
-  })), t2.initPromise;
-}
-function $s(e2) {
-  return function({ openid: t2, callLoginByWeixin: n2 = false } = {}) {
-    return js.call(e2, { openid: t2, callLoginByWeixin: n2 });
-  };
-}
-function Bs(e2) {
-  !function(e3) {
-    le = e3;
-  }(e2);
-}
-function Ws(e2) {
-  const t2 = { getSystemInfo: index.getSystemInfo, getPushClientId: index.getPushClientId };
-  return function(n2) {
-    return new Promise((s2, r2) => {
-      t2[e2]({ ...n2, success(e3) {
-        s2(e3);
-      }, fail(e3) {
-        r2(e3);
-      } });
-    });
-  };
-}
-class Hs extends class {
-  constructor() {
-    this._callback = {};
-  }
-  addListener(e2, t2) {
-    this._callback[e2] || (this._callback[e2] = []), this._callback[e2].push(t2);
-  }
-  on(e2, t2) {
-    return this.addListener(e2, t2);
-  }
-  removeListener(e2, t2) {
-    if (!t2)
-      throw new Error('The "listener" argument must be of type function. Received undefined');
-    const n2 = this._callback[e2];
-    if (!n2)
-      return;
-    const s2 = function(e3, t3) {
-      for (let n3 = e3.length - 1; n3 >= 0; n3--)
-        if (e3[n3] === t3)
-          return n3;
-      return -1;
-    }(n2, t2);
-    n2.splice(s2, 1);
-  }
-  off(e2, t2) {
-    return this.removeListener(e2, t2);
-  }
-  removeAllListener(e2) {
-    delete this._callback[e2];
-  }
-  emit(e2, ...t2) {
-    const n2 = this._callback[e2];
-    if (n2)
-      for (let e3 = 0; e3 < n2.length; e3++)
-        n2[e3](...t2);
-  }
-} {
-  constructor() {
-    super(), this._uniPushMessageCallback = this._receivePushMessage.bind(this), this._currentMessageId = -1, this._payloadQueue = [];
-  }
-  init() {
-    return Promise.all([Ws("getSystemInfo")(), Ws("getPushClientId")()]).then(([{ appId: e2 } = {}, { cid: t2 } = {}] = []) => {
-      if (!e2)
-        throw new Error("Invalid appId, please check the manifest.json file");
-      if (!t2)
-        throw new Error("Invalid push client id");
-      this._appId = e2, this._pushClientId = t2, this._seqId = Date.now() + "-" + Math.floor(9e5 * Math.random() + 1e5), this.emit("open"), this._initMessageListener();
-    }, (e2) => {
-      throw this.emit("error", e2), this.close(), e2;
-    });
-  }
-  async open() {
-    return this.init();
-  }
-  _isUniCloudSSE(e2) {
-    if ("receive" !== e2.type)
-      return false;
-    const t2 = e2 && e2.data && e2.data.payload;
-    return !(!t2 || "UNI_CLOUD_SSE" !== t2.channel || t2.seqId !== this._seqId);
-  }
-  _receivePushMessage(e2) {
-    if (!this._isUniCloudSSE(e2))
-      return;
-    const t2 = e2 && e2.data && e2.data.payload, { action: n2, messageId: s2, message: r2 } = t2;
-    this._payloadQueue.push({ action: n2, messageId: s2, message: r2 }), this._consumMessage();
-  }
-  _consumMessage() {
-    for (; ; ) {
-      const e2 = this._payloadQueue.find((e3) => e3.messageId === this._currentMessageId + 1);
-      if (!e2)
-        break;
-      this._currentMessageId++, this._parseMessagePayload(e2);
-    }
-  }
-  _parseMessagePayload(e2) {
-    const { action: t2, messageId: n2, message: s2 } = e2;
-    "end" === t2 ? this._end({ messageId: n2, message: s2 }) : "message" === t2 && this._appendMessage({ messageId: n2, message: s2 });
-  }
-  _appendMessage({ messageId: e2, message: t2 } = {}) {
-    this.emit("message", t2);
-  }
-  _end({ messageId: e2, message: t2 } = {}) {
-    this.emit("end", t2), this.close();
-  }
-  _initMessageListener() {
-    index.onPushMessage(this._uniPushMessageCallback);
-  }
-  _destroy() {
-    index.offPushMessage(this._uniPushMessageCallback);
-  }
-  toJSON() {
-    return { appId: this._appId, pushClientId: this._pushClientId, seqId: this._seqId };
-  }
-  close() {
-    this._destroy(), this.emit("close");
-  }
-}
-async function Js(e2) {
-  const t2 = e2.__dev__;
-  if (!t2.debugInfo)
-    return;
-  const { address: n2, servePort: s2 } = t2.debugInfo, { address: r2 } = await At(n2, s2);
-  if (r2)
-    return t2.localAddress = r2, void (t2.localPort = s2);
-  const i2 = console["warn"];
-  let o2 = "";
-  if ("remote" === t2.debugInfo.initialLaunchType ? (t2.debugInfo.forceRemote = true, o2 = "当前客户端和HBuilderX不在同一局域网下（或其他网络原因无法连接HBuilderX），uniCloud本地调试服务不对当前客户端生效。\n- 如果不使用uniCloud本地调试服务，请直接忽略此信息。\n- 如需使用uniCloud本地调试服务，请将客户端与主机连接到同一局域网下并重新运行到客户端。") : o2 = "无法连接uniCloud本地调试服务，请检查当前客户端是否与主机在同一局域网下。\n- 如需使用uniCloud本地调试服务，请将客户端与主机连接到同一局域网下并重新运行到客户端。", o2 += "\n- 如果在HBuilderX开启的状态下切换过网络环境，请重启HBuilderX后再试\n- 检查系统防火墙是否拦截了HBuilderX自带的nodejs\n- 检查是否错误的使用拦截器修改uni.request方法的参数", 0 === C.indexOf("mp-") && (o2 += "\n- 小程序中如何使用uniCloud，请参考：https://uniapp.dcloud.net.cn/uniCloud/publish.html#useinmp"), !t2.debugInfo.forceRemote)
-    throw new Error(o2);
-  i2(o2);
-}
-function zs(e2) {
-  e2._initPromiseHub || (e2._initPromiseHub = new v({ createPromise: function() {
-    let t2 = Promise.resolve();
-    var n2;
-    n2 = 1, t2 = new Promise((e3) => {
-      setTimeout(() => {
-        e3();
-      }, n2);
-    });
-    const s2 = e2.auth();
-    return t2.then(() => s2.getLoginState()).then((e3) => e3 ? Promise.resolve() : s2.signInAnonymously());
-  } }));
-}
-const Vs = { tcb: bt, tencent: bt, aliyun: fe, private: Tt, dcloud: Tt, alipay: qt };
-let Gs = new class {
-  init(e2) {
-    let t2 = {};
-    const n2 = Vs[e2.provider];
-    if (!n2)
-      throw new Error("未提供正确的provider参数");
-    t2 = n2.init(e2), function(e3) {
-      const t3 = {};
-      e3.__dev__ = t3, t3.debugLog = "app" === C;
-      const n3 = P;
-      n3 && !n3.code && (t3.debugInfo = n3);
-      const s2 = new v({ createPromise: function() {
-        return Js(e3);
-      } });
-      t3.initLocalNetwork = function() {
-        return s2.exec();
-      };
-    }(t2), zs(t2), Jn(t2), function(e3) {
-      const t3 = e3.uploadFile;
-      e3.uploadFile = function(e4) {
-        return t3.call(this, e4);
-      };
-    }(t2), function(e3) {
-      e3.database = function(t3) {
-        if (t3 && Object.keys(t3).length > 0)
-          return e3.init(t3).database();
-        if (this._database)
-          return this._database;
-        const n3 = ss(rs, { uniClient: e3 });
-        return this._database = n3, n3;
-      }, e3.databaseForJQL = function(t3) {
-        if (t3 && Object.keys(t3).length > 0)
-          return e3.init(t3).databaseForJQL();
-        if (this._databaseForJQL)
-          return this._databaseForJQL;
-        const n3 = ss(rs, { uniClient: e3, isJQL: true });
-        return this._databaseForJQL = n3, n3;
-      };
-    }(t2), function(e3) {
-      e3.getCurrentUserInfo = Rs, e3.chooseAndUploadFile = Ns.initChooseAndUploadFile(e3), Object.assign(e3, { get mixinDatacom() {
-        return Ms(e3);
-      } }), e3.SSEChannel = Hs, e3.initSecureNetworkByWeixin = $s(e3), e3.setCustomClientInfo = Bs, e3.importObject = qs(e3);
-    }(t2);
-    return ["callFunction", "uploadFile", "deleteFile", "getTempFileURL", "downloadFile", "chooseAndUploadFile"].forEach((e3) => {
-      if (!t2[e3])
-        return;
-      const n3 = t2[e3];
-      t2[e3] = function() {
-        return n3.apply(t2, Array.from(arguments));
-      }, t2[e3] = (/* @__PURE__ */ function(e4, t3) {
-        return function(n4) {
-          let s2 = false;
-          if ("callFunction" === t3) {
-            const e5 = n4 && n4.type || c;
-            s2 = e5 !== c;
-          }
-          const r2 = "callFunction" === t3 && !s2, i2 = this._initPromiseHub.exec();
-          n4 = n4 || {};
-          const { success: o2, fail: a2, complete: u2 } = ee(n4), l2 = i2.then(() => s2 ? Promise.resolve() : M(q(t3, "invoke"), n4)).then(() => e4.call(this, n4)).then((e5) => s2 ? Promise.resolve(e5) : M(q(t3, "success"), e5).then(() => M(q(t3, "complete"), e5)).then(() => (r2 && Y(j, { type: H, content: e5 }), Promise.resolve(e5))), (e5) => s2 ? Promise.reject(e5) : M(q(t3, "fail"), e5).then(() => M(q(t3, "complete"), e5)).then(() => (Y(j, { type: H, content: e5 }), Promise.reject(e5))));
-          if (!(o2 || a2 || u2))
-            return l2;
-          l2.then((e5) => {
-            o2 && o2(e5), u2 && u2(e5), r2 && Y(j, { type: H, content: e5 });
-          }, (e5) => {
-            a2 && a2(e5), u2 && u2(e5), r2 && Y(j, { type: H, content: e5 });
-          });
-        };
-      }(t2[e3], e3)).bind(t2);
-    }), t2.init = this.init, t2;
-  }
-}();
-(() => {
-  const e2 = T;
-  let t2 = {};
-  if (e2 && 1 === e2.length)
-    t2 = e2[0], Gs = Gs.init(t2), Gs._isDefault = true;
-  else {
-    const t3 = ["auth", "callFunction", "uploadFile", "deleteFile", "getTempFileURL", "downloadFile", "database", "getCurrentUSerInfo", "importObject"];
-    let n2;
-    n2 = e2 && e2.length > 0 ? "应用有多个服务空间，请通过uniCloud.init方法指定要使用的服务空间" : "应用未关联服务空间，请在uniCloud目录右键关联服务空间", t3.forEach((e3) => {
-      Gs[e3] = function() {
-        return console.error(n2), Promise.reject(new te({ code: "SYS_ERR", message: n2 }));
-      };
-    });
-  }
-  Object.assign(Gs, { get mixinDatacom() {
-    return Ms(Gs);
-  } }), xs(Gs), Gs.addInterceptor = N, Gs.removeInterceptor = D, Gs.interceptObject = F;
-})();
-var Ys = Gs;
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
 
@@ -10446,24 +7620,24 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
-var extendStatics = function(d2, b2) {
-  extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d3, b3) {
-    d3.__proto__ = b3;
-  } || function(d3, b3) {
-    for (var p2 in b3)
-      if (Object.prototype.hasOwnProperty.call(b3, p2))
-        d3[p2] = b3[p2];
+var extendStatics = function(d, b) {
+  extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+    d2.__proto__ = b2;
+  } || function(d2, b2) {
+    for (var p2 in b2)
+      if (Object.prototype.hasOwnProperty.call(b2, p2))
+        d2[p2] = b2[p2];
   };
-  return extendStatics(d2, b2);
+  return extendStatics(d, b);
 };
-function __extends(d2, b2) {
-  if (typeof b2 !== "function" && b2 !== null)
-    throw new TypeError("Class extends value " + String(b2) + " is not a constructor or null");
-  extendStatics(d2, b2);
+function __extends(d, b) {
+  if (typeof b !== "function" && b !== null)
+    throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+  extendStatics(d, b);
   function __() {
-    this.constructor = d2;
+    this.constructor = d;
   }
-  d2.prototype = b2 === null ? Object.create(b2) : (__.prototype = b2.prototype, new __());
+  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
 var Browser = /* @__PURE__ */ function() {
   function Browser2() {
@@ -10506,16 +7680,16 @@ if (typeof wx$1 === "object" && typeof wx$1.getSystemInfoSync === "function") {
 function detect(ua, env2) {
   var browser = env2.browser;
   var firefox = ua.match(/Firefox\/([\d.]+)/);
-  var ie2 = ua.match(/MSIE\s([\d.]+)/) || ua.match(/Trident\/.+?rv:(([\d.]+))/);
+  var ie = ua.match(/MSIE\s([\d.]+)/) || ua.match(/Trident\/.+?rv:(([\d.]+))/);
   var edge = ua.match(/Edge?\/([\d.]+)/);
   var weChat = /micromessenger/i.test(ua);
   if (firefox) {
     browser.firefox = true;
     browser.version = firefox[1];
   }
-  if (ie2) {
+  if (ie) {
     browser.ie = true;
-    browser.version = ie2[1];
+    browser.version = ie[1];
   }
   if (edge) {
     browser.edge = true;
@@ -10741,10 +7915,10 @@ function indexOf(array, value) {
 }
 function inherits(clazz, baseClazz) {
   var clazzPrototype = clazz.prototype;
-  function F2() {
+  function F() {
   }
-  F2.prototype = baseClazz.prototype;
-  clazz.prototype = new F2();
+  F.prototype = baseClazz.prototype;
+  clazz.prototype = new F();
   for (var prop in clazzPrototype) {
     if (clazzPrototype.hasOwnProperty(prop)) {
       clazz.prototype[prop] = clazzPrototype[prop];
@@ -11061,14 +8235,14 @@ var HashMap = function() {
 function createHashMap(obj) {
   return new HashMap(obj);
 }
-function concatArray(a2, b2) {
-  var newArray = new a2.constructor(a2.length + b2.length);
-  for (var i = 0; i < a2.length; i++) {
-    newArray[i] = a2[i];
+function concatArray(a, b) {
+  var newArray = new a.constructor(a.length + b.length);
+  for (var i = 0; i < a.length; i++) {
+    newArray[i] = a[i];
   }
-  var offset = a2.length;
-  for (var i = 0; i < b2.length; i++) {
-    newArray[i + offset] = b2[i];
+  var offset = a.length;
+  for (var i = 0; i < b.length; i++) {
+    newArray[i + offset] = b[i];
   }
   return newArray;
 }
@@ -11100,26 +8274,26 @@ function hasOwn(own, prop) {
 function noop() {
 }
 var RADIAN_TO_DEGREE = 180 / Math.PI;
-function create$2(x, y2) {
+function create$2(x, y) {
   if (x == null) {
     x = 0;
   }
-  if (y2 == null) {
-    y2 = 0;
+  if (y == null) {
+    y = 0;
   }
-  return [x, y2];
+  return [x, y];
 }
-function copy$1(out2, v4) {
-  out2[0] = v4[0];
-  out2[1] = v4[1];
+function copy$1(out2, v) {
+  out2[0] = v[0];
+  out2[1] = v[1];
   return out2;
 }
-function clone$3(v4) {
-  return [v4[0], v4[1]];
+function clone$3(v) {
+  return [v[0], v[1]];
 }
-function set$1(out2, a2, b2) {
-  out2[0] = a2;
-  out2[1] = b2;
+function set$1(out2, a, b) {
+  out2[0] = a;
+  out2[1] = b;
   return out2;
 }
 function add(out2, v12, v22) {
@@ -11127,9 +8301,9 @@ function add(out2, v12, v22) {
   out2[1] = v12[1] + v22[1];
   return out2;
 }
-function scaleAndAdd$1(out2, v12, v22, a2) {
-  out2[0] = v12[0] + v22[0] * a2;
-  out2[1] = v12[1] + v22[1] * a2;
+function scaleAndAdd$1(out2, v12, v22, a) {
+  out2[0] = v12[0] + v22[0] * a;
+  out2[1] = v12[1] + v22[1] * a;
   return out2;
 }
 function sub(out2, v12, v22) {
@@ -11137,25 +8311,25 @@ function sub(out2, v12, v22) {
   out2[1] = v12[1] - v22[1];
   return out2;
 }
-function len(v4) {
-  return Math.sqrt(lenSquare(v4));
+function len(v) {
+  return Math.sqrt(lenSquare(v));
 }
-function lenSquare(v4) {
-  return v4[0] * v4[0] + v4[1] * v4[1];
+function lenSquare(v) {
+  return v[0] * v[0] + v[1] * v[1];
 }
-function scale$2(out2, v4, s2) {
-  out2[0] = v4[0] * s2;
-  out2[1] = v4[1] * s2;
+function scale$2(out2, v, s) {
+  out2[0] = v[0] * s;
+  out2[1] = v[1] * s;
   return out2;
 }
-function normalize$3(out2, v4) {
-  var d2 = len(v4);
-  if (d2 === 0) {
+function normalize$3(out2, v) {
+  var d = len(v);
+  if (d === 0) {
     out2[0] = 0;
     out2[1] = 0;
   } else {
-    out2[0] = v4[0] / d2;
-    out2[1] = v4[1] / d2;
+    out2[0] = v[0] / d;
+    out2[1] = v[1] / d;
   }
   return out2;
 }
@@ -11172,11 +8346,11 @@ function lerp$1(out2, v12, v22, t2) {
   out2[1] = v12[1] + t2 * (v22[1] - v12[1]);
   return out2;
 }
-function applyTransform$1(out2, v4, m2) {
-  var x = v4[0];
-  var y2 = v4[1];
-  out2[0] = m2[0] * x + m2[2] * y2 + m2[4];
-  out2[1] = m2[1] * x + m2[3] * y2 + m2[5];
+function applyTransform$1(out2, v, m2) {
+  var x = v[0];
+  var y = v[1];
+  out2[0] = m2[0] * x + m2[2] * y + m2[4];
+  out2[1] = m2[1] * x + m2[3] * y + m2[5];
   return out2;
 }
 function min$1(out2, v12, v22) {
@@ -11220,14 +8394,14 @@ var Draggable = function() {
     var draggingTarget = this._draggingTarget;
     if (draggingTarget) {
       var x = e2.offsetX;
-      var y2 = e2.offsetY;
+      var y = e2.offsetY;
       var dx = x - this._x;
-      var dy = y2 - this._y;
+      var dy = y - this._y;
       this._x = x;
-      this._y = y2;
+      this._y = y;
       draggingTarget.drift(dx, dy, e2);
       this.handler.dispatchToElement(new Param(draggingTarget, e2), "drag", e2.event);
-      var dropTarget = this.handler.findHover(x, y2, draggingTarget).target;
+      var dropTarget = this.handler.findHover(x, y, draggingTarget).target;
       var lastDropTarget = this._dropTarget;
       this._dropTarget = dropTarget;
       if (draggingTarget !== dropTarget) {
@@ -11312,7 +8486,7 @@ var Eventful = function() {
     if (handler) {
       if (_h[eventType]) {
         var newList = [];
-        for (var i = 0, l2 = _h[eventType].length; i < l2; i++) {
+        for (var i = 0, l = _h[eventType].length; i < l; i++) {
           if (_h[eventType][i].h !== handler) {
             newList.push(_h[eventType][i]);
           }
@@ -11422,10 +8596,10 @@ function determinant(rows, rank, rowStart, rowMask, colMask, detCache) {
     subRowStart++;
   }
   var sum2 = 0;
-  for (var j2 = 0, colLocalIdx = 0; j2 < fullRank; j2++) {
-    var colTag = 1 << j2;
+  for (var j = 0, colLocalIdx = 0; j < fullRank; j++) {
+    var colTag = 1 << j;
     if (!(colTag & colMask)) {
-      sum2 += (colLocalIdx % 2 ? -1 : 1) * rows[rowStart][j2] * determinant(rows, rank - 1, subRowStart, subRowMask, colMask | colTag, detCache);
+      sum2 += (colLocalIdx % 2 ? -1 : 1) * rows[rowStart][j] * determinant(rows, rank - 1, subRowStart, subRowMask, colMask | colTag, detCache);
       colLocalIdx++;
     }
   }
@@ -11450,9 +8624,9 @@ function buildTransformer(src, dest) {
   }
   var vh = [];
   for (var i = 0; i < 8; i++) {
-    for (var j2 = 0; j2 < 8; j2++) {
-      vh[j2] == null && (vh[j2] = 0);
-      vh[j2] += ((i + j2) % 2 ? -1 : 1) * determinant(mA, 7, i === 0 ? 1 : 0, 1 << i, 1 << j2, detCache) / det * dest[i];
+    for (var j = 0; j < 8; j++) {
+      vh[j] == null && (vh[j] = 0);
+      vh[j] += ((i + j) % 2 ? -1 : 1) * determinant(mA, 7, i === 0 ? 1 : 0, 1 << i, 1 << j, detCache) / det * dest[i];
     }
   }
   return function(out2, srcPointX, srcPointY) {
@@ -11522,9 +8696,9 @@ function preparePointerTransformer(markers, saved, inverse) {
     var rect = markers[i].getBoundingClientRect();
     var ii = 2 * i;
     var x = rect.left;
-    var y2 = rect.top;
-    srcCoords.push(x, y2);
-    oldCoordTheSame = oldCoordTheSame && oldSrcCoords && x === oldSrcCoords[ii] && y2 === oldSrcCoords[ii + 1];
+    var y = rect.top;
+    srcCoords.push(x, y);
+    oldCoordTheSame = oldCoordTheSame && oldSrcCoords && x === oldSrcCoords[ii] && y === oldSrcCoords[ii + 1];
     destCoords.push(markers[i].offsetLeft, markers[i].offsetTop);
   }
   return oldCoordTheSame && transformer ? transformer : (saved.srcCoords = srcCoords, saved[transformerName] = inverse ? buildTransformer(destCoords, srcCoords) : buildTransformer(srcCoords, destCoords));
@@ -11541,8 +8715,8 @@ var replaceMap = {
   "'": "&#39;"
 };
 function encodeHTML(source) {
-  return source == null ? "" : (source + "").replace(replaceReg, function(str, c2) {
-    return replaceMap[c2];
+  return source == null ? "" : (source + "").replace(replaceReg, function(str, c) {
+    return replaceMap[c];
   });
 }
 var MOUSE_EVENT_REG = /^(?:mouse|pointer|contextmenu|drag|drop)|click/;
@@ -11747,53 +8921,53 @@ function mul(out2, m1, m2) {
   out2[5] = out5;
   return out2;
 }
-function translate(out2, a2, v4) {
-  out2[0] = a2[0];
-  out2[1] = a2[1];
-  out2[2] = a2[2];
-  out2[3] = a2[3];
-  out2[4] = a2[4] + v4[0];
-  out2[5] = a2[5] + v4[1];
+function translate(out2, a, v) {
+  out2[0] = a[0];
+  out2[1] = a[1];
+  out2[2] = a[2];
+  out2[3] = a[3];
+  out2[4] = a[4] + v[0];
+  out2[5] = a[5] + v[1];
   return out2;
 }
-function rotate(out2, a2, rad, pivot) {
+function rotate(out2, a, rad, pivot) {
   if (pivot === void 0) {
     pivot = [0, 0];
   }
-  var aa = a2[0];
-  var ac = a2[2];
-  var atx = a2[4];
-  var ab = a2[1];
-  var ad = a2[3];
-  var aty = a2[5];
-  var st2 = Math.sin(rad);
-  var ct2 = Math.cos(rad);
-  out2[0] = aa * ct2 + ab * st2;
-  out2[1] = -aa * st2 + ab * ct2;
-  out2[2] = ac * ct2 + ad * st2;
-  out2[3] = -ac * st2 + ct2 * ad;
-  out2[4] = ct2 * (atx - pivot[0]) + st2 * (aty - pivot[1]) + pivot[0];
-  out2[5] = ct2 * (aty - pivot[1]) - st2 * (atx - pivot[0]) + pivot[1];
+  var aa = a[0];
+  var ac = a[2];
+  var atx = a[4];
+  var ab = a[1];
+  var ad = a[3];
+  var aty = a[5];
+  var st = Math.sin(rad);
+  var ct = Math.cos(rad);
+  out2[0] = aa * ct + ab * st;
+  out2[1] = -aa * st + ab * ct;
+  out2[2] = ac * ct + ad * st;
+  out2[3] = -ac * st + ct * ad;
+  out2[4] = ct * (atx - pivot[0]) + st * (aty - pivot[1]) + pivot[0];
+  out2[5] = ct * (aty - pivot[1]) - st * (atx - pivot[0]) + pivot[1];
   return out2;
 }
-function scale$1(out2, a2, v4) {
-  var vx = v4[0];
-  var vy = v4[1];
-  out2[0] = a2[0] * vx;
-  out2[1] = a2[1] * vy;
-  out2[2] = a2[2] * vx;
-  out2[3] = a2[3] * vy;
-  out2[4] = a2[4] * vx;
-  out2[5] = a2[5] * vy;
+function scale$1(out2, a, v) {
+  var vx = v[0];
+  var vy = v[1];
+  out2[0] = a[0] * vx;
+  out2[1] = a[1] * vy;
+  out2[2] = a[2] * vx;
+  out2[3] = a[3] * vy;
+  out2[4] = a[4] * vx;
+  out2[5] = a[5] * vy;
   return out2;
 }
-function invert(out2, a2) {
-  var aa = a2[0];
-  var ac = a2[2];
-  var atx = a2[4];
-  var ab = a2[1];
-  var ad = a2[3];
-  var aty = a2[5];
+function invert(out2, a) {
+  var aa = a[0];
+  var ac = a[2];
+  var atx = a[4];
+  var ab = a[1];
+  var ad = a[3];
+  var aty = a[5];
   var det = aa * ad - ab * ac;
   if (!det) {
     return null;
@@ -11807,15 +8981,15 @@ function invert(out2, a2) {
   out2[5] = (ab * atx - aa * aty) * det;
   return out2;
 }
-function clone$2(a2) {
-  var b2 = create$1();
-  copy(b2, a2);
-  return b2;
+function clone$2(a) {
+  var b = create$1();
+  copy(b, a);
+  return b;
 }
 var Point = function() {
-  function Point2(x, y2) {
+  function Point2(x, y) {
     this.x = x || 0;
-    this.y = y2 || 0;
+    this.y = y || 0;
   }
   Point2.prototype.copy = function(other) {
     this.x = other.x;
@@ -11825,9 +8999,9 @@ var Point = function() {
   Point2.prototype.clone = function() {
     return new Point2(this.x, this.y);
   };
-  Point2.prototype.set = function(x, y2) {
+  Point2.prototype.set = function(x, y) {
     this.x = x;
-    this.y = y2;
+    this.y = y;
     return this;
   };
   Point2.prototype.equal = function(other) {
@@ -11886,9 +9060,9 @@ var Point = function() {
       return;
     }
     var x = this.x;
-    var y2 = this.y;
-    this.x = m2[0] * x + m2[2] * y2 + m2[4];
-    this.y = m2[1] * x + m2[3] * y2 + m2[5];
+    var y = this.y;
+    this.x = m2[0] * x + m2[2] * y + m2[4];
+    this.y = m2[1] * x + m2[3] * y + m2[5];
     return this;
   };
   Point2.prototype.toArray = function(out2) {
@@ -11900,9 +9074,9 @@ var Point = function() {
     this.x = input[0];
     this.y = input[1];
   };
-  Point2.set = function(p2, x, y2) {
+  Point2.set = function(p2, x, y) {
     p2.x = x;
-    p2.y = y2;
+    p2.y = y;
   };
   Point2.copy = function(p2, p22) {
     p2.x = p22.x;
@@ -11945,69 +9119,69 @@ var mathMax$a = Math.max;
 var lt = new Point();
 var rb = new Point();
 var lb = new Point();
-var rt2 = new Point();
+var rt = new Point();
 var minTv$1 = new Point();
 var maxTv$1 = new Point();
 var BoundingRect = function() {
-  function BoundingRect2(x, y2, width, height) {
+  function BoundingRect2(x, y, width, height) {
     if (width < 0) {
       x = x + width;
       width = -width;
     }
     if (height < 0) {
-      y2 = y2 + height;
+      y = y + height;
       height = -height;
     }
     this.x = x;
-    this.y = y2;
+    this.y = y;
     this.width = width;
     this.height = height;
   }
   BoundingRect2.prototype.union = function(other) {
     var x = mathMin$a(other.x, this.x);
-    var y2 = mathMin$a(other.y, this.y);
+    var y = mathMin$a(other.y, this.y);
     if (isFinite(this.x) && isFinite(this.width)) {
       this.width = mathMax$a(other.x + other.width, this.x + this.width) - x;
     } else {
       this.width = other.width;
     }
     if (isFinite(this.y) && isFinite(this.height)) {
-      this.height = mathMax$a(other.y + other.height, this.y + this.height) - y2;
+      this.height = mathMax$a(other.y + other.height, this.y + this.height) - y;
     } else {
       this.height = other.height;
     }
     this.x = x;
-    this.y = y2;
+    this.y = y;
   };
   BoundingRect2.prototype.applyTransform = function(m2) {
     BoundingRect2.applyTransform(this, this, m2);
   };
-  BoundingRect2.prototype.calculateTransform = function(b2) {
-    var a2 = this;
-    var sx = b2.width / a2.width;
-    var sy = b2.height / a2.height;
+  BoundingRect2.prototype.calculateTransform = function(b) {
+    var a = this;
+    var sx = b.width / a.width;
+    var sy = b.height / a.height;
     var m2 = create$1();
-    translate(m2, m2, [-a2.x, -a2.y]);
+    translate(m2, m2, [-a.x, -a.y]);
     scale$1(m2, m2, [sx, sy]);
-    translate(m2, m2, [b2.x, b2.y]);
+    translate(m2, m2, [b.x, b.y]);
     return m2;
   };
-  BoundingRect2.prototype.intersect = function(b2, mtv) {
-    if (!b2) {
+  BoundingRect2.prototype.intersect = function(b, mtv) {
+    if (!b) {
       return false;
     }
-    if (!(b2 instanceof BoundingRect2)) {
-      b2 = BoundingRect2.create(b2);
+    if (!(b instanceof BoundingRect2)) {
+      b = BoundingRect2.create(b);
     }
-    var a2 = this;
-    var ax0 = a2.x;
-    var ax1 = a2.x + a2.width;
-    var ay0 = a2.y;
-    var ay1 = a2.y + a2.height;
-    var bx0 = b2.x;
-    var bx1 = b2.x + b2.width;
-    var by0 = b2.y;
-    var by1 = b2.y + b2.height;
+    var a = this;
+    var ax0 = a.x;
+    var ax1 = a.x + a.width;
+    var ay0 = a.y;
+    var ay1 = a.y + a.height;
+    var bx0 = b.x;
+    var bx1 = b.x + b.width;
+    var by0 = b.y;
+    var by1 = b.y + b.height;
     var overlap = !(ax1 < bx0 || bx1 < ax0 || ay1 < by0 || by1 < ay0);
     if (mtv) {
       var dMin = Infinity;
@@ -12062,9 +9236,9 @@ var BoundingRect = function() {
     }
     return overlap;
   };
-  BoundingRect2.prototype.contain = function(x, y2) {
+  BoundingRect2.prototype.contain = function(x, y) {
     var rect = this;
-    return x >= rect.x && x <= rect.x + rect.width && y2 >= rect.y && y2 <= rect.y + rect.height;
+    return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height;
   };
   BoundingRect2.prototype.clone = function() {
     return new BoundingRect2(this.x, this.y, this.width, this.height);
@@ -12122,17 +9296,17 @@ var BoundingRect = function() {
       return;
     }
     lt.x = lb.x = source.x;
-    lt.y = rt2.y = source.y;
-    rb.x = rt2.x = source.x + source.width;
+    lt.y = rt.y = source.y;
+    rb.x = rt.x = source.x + source.width;
     rb.y = lb.y = source.y + source.height;
     lt.transform(m2);
-    rt2.transform(m2);
+    rt.transform(m2);
     rb.transform(m2);
     lb.transform(m2);
-    target.x = mathMin$a(lt.x, rb.x, lb.x, rt2.x);
-    target.y = mathMin$a(lt.y, rb.y, lb.y, rt2.y);
-    var maxX = mathMax$a(lt.x, rb.x, lb.x, rt2.x);
-    var maxY = mathMax$a(lt.y, rb.y, lb.y, rt2.y);
+    target.x = mathMin$a(lt.x, rb.x, lb.x, rt.x);
+    target.y = mathMin$a(lt.y, rb.y, lb.y, rt.y);
+    var maxX = mathMax$a(lt.x, rb.x, lb.x, rt.x);
+    var maxY = mathMax$a(lt.y, rb.y, lb.y, rt.y);
     target.width = maxX - target.x;
     target.height = maxY - target.y;
   };
@@ -12176,9 +9350,9 @@ var EmptyProxy = function(_super) {
   return EmptyProxy2;
 }(Eventful$1);
 var HoveredResult = /* @__PURE__ */ function() {
-  function HoveredResult2(x, y2) {
+  function HoveredResult2(x, y) {
     this.x = x;
-    this.y = y2;
+    this.y = y;
   }
   return HoveredResult2;
 }();
@@ -12222,15 +9396,15 @@ var Handler = function(_super) {
   };
   Handler2.prototype.mousemove = function(event) {
     var x = event.zrX;
-    var y2 = event.zrY;
-    var isOutside = isOutsideBoundary(this, x, y2);
+    var y = event.zrY;
+    var isOutside = isOutsideBoundary(this, x, y);
     var lastHovered = this._hovered;
     var lastHoveredTarget = lastHovered.target;
     if (lastHoveredTarget && !lastHoveredTarget.__zr) {
       lastHovered = this.findHover(lastHovered.x, lastHovered.y);
       lastHoveredTarget = lastHovered.target;
     }
-    var hovered = this._hovered = isOutside ? new HoveredResult(x, y2) : this.findHover(x, y2);
+    var hovered = this._hovered = isOutside ? new HoveredResult(x, y) : this.findHover(x, y);
     var hoveredTarget = hovered.target;
     var proxy = this.proxy;
     proxy.setCursor && proxy.setCursor(hoveredTarget ? hoveredTarget.cursor : "default");
@@ -12298,15 +9472,15 @@ var Handler = function(_super) {
       }
     }
   };
-  Handler2.prototype.findHover = function(x, y2, exclude) {
+  Handler2.prototype.findHover = function(x, y, exclude) {
     var list = this.storage.getDisplayList();
-    var out2 = new HoveredResult(x, y2);
-    setHoverTarget(list, out2, x, y2, exclude);
+    var out2 = new HoveredResult(x, y);
+    setHoverTarget(list, out2, x, y, exclude);
     if (this._pointerSize && !out2.target) {
       var candidates = [];
       var pointerSize = this._pointerSize;
       var targetSizeHalf = pointerSize / 2;
-      var pointerRect = new BoundingRect$1(x - targetSizeHalf, y2 - targetSizeHalf, pointerSize, pointerSize);
+      var pointerRect = new BoundingRect$1(x - targetSizeHalf, y - targetSizeHalf, pointerSize, pointerSize);
       for (var i = list.length - 1; i >= 0; i--) {
         var el = list[i];
         if (el !== exclude && !el.ignore && !el.ignoreCoarsePointer && (!el.parent || !el.parent.ignoreCoarsePointer)) {
@@ -12323,10 +9497,10 @@ var Handler = function(_super) {
         var rStep = 4;
         var thetaStep = Math.PI / 12;
         var PI22 = Math.PI * 2;
-        for (var r2 = 0; r2 < targetSizeHalf; r2 += rStep) {
+        for (var r = 0; r < targetSizeHalf; r += rStep) {
           for (var theta = 0; theta < PI22; theta += thetaStep) {
-            var x1 = x + r2 * Math.cos(theta);
-            var y1 = y2 + r2 * Math.sin(theta);
+            var x1 = x + r * Math.cos(theta);
+            var y1 = y + r * Math.sin(theta);
             setHoverTarget(candidates, out2, x1, y1, exclude);
             if (out2.target) {
               return out2;
@@ -12358,12 +9532,12 @@ var Handler = function(_super) {
 each$f(["click", "mousedown", "mouseup", "mousewheel", "dblclick", "contextmenu"], function(name) {
   Handler.prototype[name] = function(event) {
     var x = event.zrX;
-    var y2 = event.zrY;
-    var isOutside = isOutsideBoundary(this, x, y2);
+    var y = event.zrY;
+    var isOutside = isOutsideBoundary(this, x, y);
     var hovered;
     var hoveredTarget;
     if (name !== "mouseup" || !isOutside) {
-      hovered = this.findHover(x, y2);
+      hovered = this.findHover(x, y);
       hoveredTarget = hovered.target;
     }
     if (name === "mousedown") {
@@ -12381,8 +9555,8 @@ each$f(["click", "mousedown", "mouseup", "mousewheel", "dblclick", "contextmenu"
     this.dispatchToElement(hovered, name, event);
   };
 });
-function isHover(displayable, x, y2) {
-  if (displayable[displayable.rectHover ? "rectContain" : "contain"](x, y2)) {
+function isHover(displayable, x, y) {
+  if (displayable[displayable.rectHover ? "rectContain" : "contain"](x, y)) {
     var el = displayable;
     var isSilent = void 0;
     var ignoreClip = false;
@@ -12392,7 +9566,7 @@ function isHover(displayable, x, y2) {
       }
       if (!ignoreClip) {
         var clipPath = el.getClipPath();
-        if (clipPath && !clipPath.contain(x, y2)) {
+        if (clipPath && !clipPath.contain(x, y)) {
           return false;
         }
       }
@@ -12406,11 +9580,11 @@ function isHover(displayable, x, y2) {
   }
   return false;
 }
-function setHoverTarget(list, out2, x, y2, exclude) {
+function setHoverTarget(list, out2, x, y, exclude) {
   for (var i = list.length - 1; i >= 0; i--) {
     var el = list[i];
     var hoverCheckResult = void 0;
-    if (el !== exclude && !el.ignore && (hoverCheckResult = isHover(el, x, y2))) {
+    if (el !== exclude && !el.ignore && (hoverCheckResult = isHover(el, x, y))) {
       !out2.topTarget && (out2.topTarget = el);
       if (hoverCheckResult !== SILENT) {
         out2.target = el;
@@ -12419,20 +9593,20 @@ function setHoverTarget(list, out2, x, y2, exclude) {
     }
   }
 }
-function isOutsideBoundary(handlerInstance, x, y2) {
+function isOutsideBoundary(handlerInstance, x, y) {
   var painter = handlerInstance.painter;
-  return x < 0 || x > painter.getWidth() || y2 < 0 || y2 > painter.getHeight();
+  return x < 0 || x > painter.getWidth() || y < 0 || y > painter.getHeight();
 }
 const Handler$1 = Handler;
 var DEFAULT_MIN_MERGE = 32;
 var DEFAULT_MIN_GALLOPING = 7;
 function minRunLength(n2) {
-  var r2 = 0;
+  var r = 0;
   while (n2 >= DEFAULT_MIN_MERGE) {
-    r2 |= n2 & 1;
+    r |= n2 & 1;
     n2 >>= 1;
   }
-  return n2 + r2;
+  return n2 + r;
 }
 function makeAscendingRun(array, lo, hi, compare2) {
   var runHi = lo + 1;
@@ -12912,7 +10086,7 @@ function sort$2(array, compare2, lo, hi) {
     binaryInsertionSort(array, lo, hi, lo + runLength, compare2);
     return;
   }
-  var ts2 = TimSort(array, compare2);
+  var ts = TimSort(array, compare2);
   var minRun = minRunLength(remaining);
   do {
     runLength = makeAscendingRun(array, lo, hi, compare2);
@@ -12924,12 +10098,12 @@ function sort$2(array, compare2, lo, hi) {
       binaryInsertionSort(array, lo, lo + force, lo + runLength, compare2);
       runLength = force;
     }
-    ts2.pushRun(lo, runLength);
-    ts2.mergeRuns();
+    ts.pushRun(lo, runLength);
+    ts.mergeRuns();
     remaining -= runLength;
     lo += runLength;
   } while (remaining !== 0);
-  ts2.forceMergeRuns();
+  ts.forceMergeRuns();
 }
 var REDRAW_BIT = 1;
 var STYLE_CHANGED_BIT = 2;
@@ -12942,14 +10116,14 @@ function logInvalidZError() {
   invalidZErrorLogged = true;
   console.warn("z / z2 / zlevel of displayable is invalid, which may cause unexpected errors");
 }
-function shapeCompareFunc(a2, b2) {
-  if (a2.zlevel === b2.zlevel) {
-    if (a2.z === b2.z) {
-      return a2.z2 - b2.z2;
+function shapeCompareFunc(a, b) {
+  if (a.zlevel === b.zlevel) {
+    if (a.z === b.z) {
+      return a.z2 - b.z2;
     }
-    return a2.z - b2.z;
+    return a.z - b.z;
   }
-  return a2.zlevel - b2.zlevel;
+  return a.zlevel - b.zlevel;
 }
 var Storage = function() {
   function Storage2() {
@@ -13059,7 +10233,7 @@ var Storage = function() {
   };
   Storage2.prototype.delRoot = function(el) {
     if (el instanceof Array) {
-      for (var i = 0, l2 = el.length; i < l2; i++) {
+      for (var i = 0, l = el.length; i < l; i++) {
         this.delRoot(el[i]);
       }
       return;
@@ -13181,8 +10355,8 @@ var easingFuncs = {
     return 0.5 * (Math.sqrt(1 - (k -= 2) * k) + 1);
   },
   elasticIn: function(k) {
-    var s2;
-    var a2 = 0.1;
+    var s;
+    var a = 0.1;
     var p2 = 0.4;
     if (k === 0) {
       return 0;
@@ -13190,17 +10364,17 @@ var easingFuncs = {
     if (k === 1) {
       return 1;
     }
-    if (!a2 || a2 < 1) {
-      a2 = 1;
-      s2 = p2 / 4;
+    if (!a || a < 1) {
+      a = 1;
+      s = p2 / 4;
     } else {
-      s2 = p2 * Math.asin(1 / a2) / (2 * Math.PI);
+      s = p2 * Math.asin(1 / a) / (2 * Math.PI);
     }
-    return -(a2 * Math.pow(2, 10 * (k -= 1)) * Math.sin((k - s2) * (2 * Math.PI) / p2));
+    return -(a * Math.pow(2, 10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p2));
   },
   elasticOut: function(k) {
-    var s2;
-    var a2 = 0.1;
+    var s;
+    var a = 0.1;
     var p2 = 0.4;
     if (k === 0) {
       return 0;
@@ -13208,17 +10382,17 @@ var easingFuncs = {
     if (k === 1) {
       return 1;
     }
-    if (!a2 || a2 < 1) {
-      a2 = 1;
-      s2 = p2 / 4;
+    if (!a || a < 1) {
+      a = 1;
+      s = p2 / 4;
     } else {
-      s2 = p2 * Math.asin(1 / a2) / (2 * Math.PI);
+      s = p2 * Math.asin(1 / a) / (2 * Math.PI);
     }
-    return a2 * Math.pow(2, -10 * k) * Math.sin((k - s2) * (2 * Math.PI) / p2) + 1;
+    return a * Math.pow(2, -10 * k) * Math.sin((k - s) * (2 * Math.PI) / p2) + 1;
   },
   elasticInOut: function(k) {
-    var s2;
-    var a2 = 0.1;
+    var s;
+    var a = 0.1;
     var p2 = 0.4;
     if (k === 0) {
       return 0;
@@ -13226,31 +10400,31 @@ var easingFuncs = {
     if (k === 1) {
       return 1;
     }
-    if (!a2 || a2 < 1) {
-      a2 = 1;
-      s2 = p2 / 4;
+    if (!a || a < 1) {
+      a = 1;
+      s = p2 / 4;
     } else {
-      s2 = p2 * Math.asin(1 / a2) / (2 * Math.PI);
+      s = p2 * Math.asin(1 / a) / (2 * Math.PI);
     }
     if ((k *= 2) < 1) {
-      return -0.5 * (a2 * Math.pow(2, 10 * (k -= 1)) * Math.sin((k - s2) * (2 * Math.PI) / p2));
+      return -0.5 * (a * Math.pow(2, 10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p2));
     }
-    return a2 * Math.pow(2, -10 * (k -= 1)) * Math.sin((k - s2) * (2 * Math.PI) / p2) * 0.5 + 1;
+    return a * Math.pow(2, -10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p2) * 0.5 + 1;
   },
   backIn: function(k) {
-    var s2 = 1.70158;
-    return k * k * ((s2 + 1) * k - s2);
+    var s = 1.70158;
+    return k * k * ((s + 1) * k - s);
   },
   backOut: function(k) {
-    var s2 = 1.70158;
-    return --k * k * ((s2 + 1) * k + s2) + 1;
+    var s = 1.70158;
+    return --k * k * ((s + 1) * k + s) + 1;
   },
   backInOut: function(k) {
-    var s2 = 1.70158 * 1.525;
+    var s = 1.70158 * 1.525;
     if ((k *= 2) < 1) {
-      return 0.5 * (k * k * ((s2 + 1) * k - s2));
+      return 0.5 * (k * k * ((s + 1) * k - s));
     }
-    return 0.5 * ((k -= 2) * k * ((s2 + 1) * k + s2) + 2);
+    return 0.5 * ((k -= 2) * k * ((s + 1) * k + s) + 2);
   },
   bounceIn: function(k) {
     return 1 - easingFuncs.bounceOut(1 - k);
@@ -13297,29 +10471,29 @@ function cubicDerivativeAt(p0, p1, p2, p3, t2) {
   return 3 * (((p1 - p0) * onet + 2 * (p2 - p1) * t2) * onet + (p3 - p2) * t2 * t2);
 }
 function cubicRootAt(p0, p1, p2, p3, val, roots2) {
-  var a2 = p3 + 3 * (p1 - p2) - p0;
-  var b2 = 3 * (p2 - p1 * 2 + p0);
-  var c2 = 3 * (p1 - p0);
-  var d2 = p0 - val;
-  var A2 = b2 * b2 - 3 * a2 * c2;
-  var B2 = b2 * c2 - 9 * a2 * d2;
-  var C2 = c2 * c2 - 3 * b2 * d2;
+  var a = p3 + 3 * (p1 - p2) - p0;
+  var b = 3 * (p2 - p1 * 2 + p0);
+  var c = 3 * (p1 - p0);
+  var d = p0 - val;
+  var A = b * b - 3 * a * c;
+  var B = b * c - 9 * a * d;
+  var C = c * c - 3 * b * d;
   var n2 = 0;
-  if (isAroundZero$1(A2) && isAroundZero$1(B2)) {
-    if (isAroundZero$1(b2)) {
+  if (isAroundZero$1(A) && isAroundZero$1(B)) {
+    if (isAroundZero$1(b)) {
       roots2[0] = 0;
     } else {
-      var t1 = -c2 / b2;
+      var t1 = -c / b;
       if (t1 >= 0 && t1 <= 1) {
         roots2[n2++] = t1;
       }
     }
   } else {
-    var disc = B2 * B2 - 4 * A2 * C2;
+    var disc = B * B - 4 * A * C;
     if (isAroundZero$1(disc)) {
-      var K2 = B2 / A2;
-      var t1 = -b2 / a2 + K2;
-      var t2 = -K2 / 2;
+      var K = B / A;
+      var t1 = -b / a + K;
+      var t2 = -K / 2;
       if (t1 >= 0 && t1 <= 1) {
         roots2[n2++] = t1;
       }
@@ -13328,8 +10502,8 @@ function cubicRootAt(p0, p1, p2, p3, val, roots2) {
       }
     } else if (disc > 0) {
       var discSqrt = mathSqrt$3(disc);
-      var Y1 = A2 * b2 + 1.5 * a2 * (-B2 + discSqrt);
-      var Y2 = A2 * b2 + 1.5 * a2 * (-B2 - discSqrt);
+      var Y1 = A * b + 1.5 * a * (-B + discSqrt);
+      var Y2 = A * b + 1.5 * a * (-B - discSqrt);
       if (Y1 < 0) {
         Y1 = -mathPow$2(-Y1, ONE_THIRD);
       } else {
@@ -13340,18 +10514,18 @@ function cubicRootAt(p0, p1, p2, p3, val, roots2) {
       } else {
         Y2 = mathPow$2(Y2, ONE_THIRD);
       }
-      var t1 = (-b2 - (Y1 + Y2)) / (3 * a2);
+      var t1 = (-b - (Y1 + Y2)) / (3 * a);
       if (t1 >= 0 && t1 <= 1) {
         roots2[n2++] = t1;
       }
     } else {
-      var T2 = (2 * A2 * b2 - 3 * a2 * B2) / (2 * mathSqrt$3(A2 * A2 * A2));
-      var theta = Math.acos(T2) / 3;
-      var ASqrt = mathSqrt$3(A2);
+      var T = (2 * A * b - 3 * a * B) / (2 * mathSqrt$3(A * A * A));
+      var theta = Math.acos(T) / 3;
+      var ASqrt = mathSqrt$3(A);
       var tmp = Math.cos(theta);
-      var t1 = (-b2 - 2 * ASqrt * tmp) / (3 * a2);
-      var t2 = (-b2 + ASqrt * (tmp + THREE_SQRT * Math.sin(theta))) / (3 * a2);
-      var t3 = (-b2 + ASqrt * (tmp - THREE_SQRT * Math.sin(theta))) / (3 * a2);
+      var t1 = (-b - 2 * ASqrt * tmp) / (3 * a);
+      var t2 = (-b + ASqrt * (tmp + THREE_SQRT * Math.sin(theta))) / (3 * a);
+      var t3 = (-b + ASqrt * (tmp - THREE_SQRT * Math.sin(theta))) / (3 * a);
       if (t1 >= 0 && t1 <= 1) {
         roots2[n2++] = t1;
       }
@@ -13366,25 +10540,25 @@ function cubicRootAt(p0, p1, p2, p3, val, roots2) {
   return n2;
 }
 function cubicExtrema(p0, p1, p2, p3, extrema2) {
-  var b2 = 6 * p2 - 12 * p1 + 6 * p0;
-  var a2 = 9 * p1 + 3 * p3 - 3 * p0 - 9 * p2;
-  var c2 = 3 * p1 - 3 * p0;
+  var b = 6 * p2 - 12 * p1 + 6 * p0;
+  var a = 9 * p1 + 3 * p3 - 3 * p0 - 9 * p2;
+  var c = 3 * p1 - 3 * p0;
   var n2 = 0;
-  if (isAroundZero$1(a2)) {
-    if (isNotAroundZero$1(b2)) {
-      var t1 = -c2 / b2;
+  if (isAroundZero$1(a)) {
+    if (isNotAroundZero$1(b)) {
+      var t1 = -c / b;
       if (t1 >= 0 && t1 <= 1) {
         extrema2[n2++] = t1;
       }
     }
   } else {
-    var disc = b2 * b2 - 4 * a2 * c2;
+    var disc = b * b - 4 * a * c;
     if (isAroundZero$1(disc)) {
-      extrema2[0] = -b2 / (2 * a2);
+      extrema2[0] = -b / (2 * a);
     } else if (disc > 0) {
       var discSqrt = mathSqrt$3(disc);
-      var t1 = (-b2 + discSqrt) / (2 * a2);
-      var t2 = (-b2 - discSqrt) / (2 * a2);
+      var t1 = (-b + discSqrt) / (2 * a);
+      var t2 = (-b - discSqrt) / (2 * a);
       if (t1 >= 0 && t1 <= 1) {
         extrema2[n2++] = t1;
       }
@@ -13411,26 +10585,26 @@ function cubicSubdivide(p0, p1, p2, p3, t2, out2) {
   out2[6] = p23;
   out2[7] = p3;
 }
-function cubicProjectPoint(x0, y0, x1, y1, x2, y2, x3, y3, x, y4, out2) {
+function cubicProjectPoint(x0, y0, x1, y1, x2, y2, x3, y3, x, y, out2) {
   var t2;
   var interval = 5e-3;
-  var d2 = Infinity;
+  var d = Infinity;
   var prev;
   var next;
   var d1;
-  var d22;
+  var d2;
   _v0[0] = x;
-  _v0[1] = y4;
-  for (var _t2 = 0; _t2 < 1; _t2 += 0.05) {
-    _v1[0] = cubicAt(x0, x1, x2, x3, _t2);
-    _v1[1] = cubicAt(y0, y1, y2, y3, _t2);
+  _v0[1] = y;
+  for (var _t = 0; _t < 1; _t += 0.05) {
+    _v1[0] = cubicAt(x0, x1, x2, x3, _t);
+    _v1[1] = cubicAt(y0, y1, y2, y3, _t);
     d1 = distSquare(_v0, _v1);
-    if (d1 < d2) {
-      t2 = _t2;
-      d2 = d1;
+    if (d1 < d) {
+      t2 = _t;
+      d = d1;
     }
   }
-  d2 = Infinity;
+  d = Infinity;
   for (var i = 0; i < 32; i++) {
     if (interval < EPSILON_NUMERIC) {
       break;
@@ -13440,16 +10614,16 @@ function cubicProjectPoint(x0, y0, x1, y1, x2, y2, x3, y3, x, y4, out2) {
     _v1[0] = cubicAt(x0, x1, x2, x3, prev);
     _v1[1] = cubicAt(y0, y1, y2, y3, prev);
     d1 = distSquare(_v1, _v0);
-    if (prev >= 0 && d1 < d2) {
+    if (prev >= 0 && d1 < d) {
       t2 = prev;
-      d2 = d1;
+      d = d1;
     } else {
       _v2[0] = cubicAt(x0, x1, x2, x3, next);
       _v2[1] = cubicAt(y0, y1, y2, y3, next);
-      d22 = distSquare(_v2, _v0);
-      if (next <= 1 && d22 < d2) {
+      d2 = distSquare(_v2, _v0);
+      if (next <= 1 && d2 < d) {
         t2 = next;
-        d2 = d22;
+        d = d2;
       } else {
         interval *= 0.5;
       }
@@ -13459,24 +10633,24 @@ function cubicProjectPoint(x0, y0, x1, y1, x2, y2, x3, y3, x, y4, out2) {
     out2[0] = cubicAt(x0, x1, x2, x3, t2);
     out2[1] = cubicAt(y0, y1, y2, y3, t2);
   }
-  return mathSqrt$3(d2);
+  return mathSqrt$3(d);
 }
 function cubicLength(x0, y0, x1, y1, x2, y2, x3, y3, iteration) {
   var px = x0;
   var py = y0;
-  var d2 = 0;
+  var d = 0;
   var step = 1 / iteration;
   for (var i = 1; i <= iteration; i++) {
     var t2 = i * step;
     var x = cubicAt(x0, x1, x2, x3, t2);
-    var y4 = cubicAt(y0, y1, y2, y3, t2);
+    var y = cubicAt(y0, y1, y2, y3, t2);
     var dx = x - px;
-    var dy = y4 - py;
-    d2 += Math.sqrt(dx * dx + dy * dy);
+    var dy = y - py;
+    d += Math.sqrt(dx * dx + dy * dy);
     px = x;
-    py = y4;
+    py = y;
   }
-  return d2;
+  return d;
 }
 function quadraticAt$1(p0, p1, p2, t2) {
   var onet = 1 - t2;
@@ -13486,28 +10660,28 @@ function quadraticDerivativeAt(p0, p1, p2, t2) {
   return 2 * ((1 - t2) * (p1 - p0) + t2 * (p2 - p1));
 }
 function quadraticRootAt(p0, p1, p2, val, roots2) {
-  var a2 = p0 - 2 * p1 + p2;
-  var b2 = 2 * (p1 - p0);
-  var c2 = p0 - val;
+  var a = p0 - 2 * p1 + p2;
+  var b = 2 * (p1 - p0);
+  var c = p0 - val;
   var n2 = 0;
-  if (isAroundZero$1(a2)) {
-    if (isNotAroundZero$1(b2)) {
-      var t1 = -c2 / b2;
+  if (isAroundZero$1(a)) {
+    if (isNotAroundZero$1(b)) {
+      var t1 = -c / b;
       if (t1 >= 0 && t1 <= 1) {
         roots2[n2++] = t1;
       }
     }
   } else {
-    var disc = b2 * b2 - 4 * a2 * c2;
+    var disc = b * b - 4 * a * c;
     if (isAroundZero$1(disc)) {
-      var t1 = -b2 / (2 * a2);
+      var t1 = -b / (2 * a);
       if (t1 >= 0 && t1 <= 1) {
         roots2[n2++] = t1;
       }
     } else if (disc > 0) {
       var discSqrt = mathSqrt$3(disc);
-      var t1 = (-b2 + discSqrt) / (2 * a2);
-      var t2 = (-b2 - discSqrt) / (2 * a2);
+      var t1 = (-b + discSqrt) / (2 * a);
+      var t2 = (-b - discSqrt) / (2 * a);
       if (t1 >= 0 && t1 <= 1) {
         roots2[n2++] = t1;
       }
@@ -13537,22 +10711,22 @@ function quadraticSubdivide(p0, p1, p2, t2, out2) {
   out2[4] = p12;
   out2[5] = p2;
 }
-function quadraticProjectPoint(x0, y0, x1, y1, x2, y2, x, y3, out2) {
+function quadraticProjectPoint(x0, y0, x1, y1, x2, y2, x, y, out2) {
   var t2;
   var interval = 5e-3;
-  var d2 = Infinity;
+  var d = Infinity;
   _v0[0] = x;
-  _v0[1] = y3;
-  for (var _t2 = 0; _t2 < 1; _t2 += 0.05) {
-    _v1[0] = quadraticAt$1(x0, x1, x2, _t2);
-    _v1[1] = quadraticAt$1(y0, y1, y2, _t2);
+  _v0[1] = y;
+  for (var _t = 0; _t < 1; _t += 0.05) {
+    _v1[0] = quadraticAt$1(x0, x1, x2, _t);
+    _v1[1] = quadraticAt$1(y0, y1, y2, _t);
     var d1 = distSquare(_v0, _v1);
-    if (d1 < d2) {
-      t2 = _t2;
-      d2 = d1;
+    if (d1 < d) {
+      t2 = _t;
+      d = d1;
     }
   }
-  d2 = Infinity;
+  d = Infinity;
   for (var i = 0; i < 32; i++) {
     if (interval < EPSILON_NUMERIC) {
       break;
@@ -13562,16 +10736,16 @@ function quadraticProjectPoint(x0, y0, x1, y1, x2, y2, x, y3, out2) {
     _v1[0] = quadraticAt$1(x0, x1, x2, prev);
     _v1[1] = quadraticAt$1(y0, y1, y2, prev);
     var d1 = distSquare(_v1, _v0);
-    if (prev >= 0 && d1 < d2) {
+    if (prev >= 0 && d1 < d) {
       t2 = prev;
-      d2 = d1;
+      d = d1;
     } else {
       _v2[0] = quadraticAt$1(x0, x1, x2, next);
       _v2[1] = quadraticAt$1(y0, y1, y2, next);
-      var d22 = distSquare(_v2, _v0);
-      if (next <= 1 && d22 < d2) {
+      var d2 = distSquare(_v2, _v0);
+      if (next <= 1 && d2 < d) {
         t2 = next;
-        d2 = d22;
+        d = d2;
       } else {
         interval *= 0.5;
       }
@@ -13581,24 +10755,24 @@ function quadraticProjectPoint(x0, y0, x1, y1, x2, y2, x, y3, out2) {
     out2[0] = quadraticAt$1(x0, x1, x2, t2);
     out2[1] = quadraticAt$1(y0, y1, y2, t2);
   }
-  return mathSqrt$3(d2);
+  return mathSqrt$3(d);
 }
 function quadraticLength(x0, y0, x1, y1, x2, y2, iteration) {
   var px = x0;
   var py = y0;
-  var d2 = 0;
+  var d = 0;
   var step = 1 / iteration;
   for (var i = 1; i <= iteration; i++) {
     var t2 = i * step;
     var x = quadraticAt$1(x0, x1, x2, t2);
-    var y3 = quadraticAt$1(y0, y1, y2, t2);
+    var y = quadraticAt$1(y0, y1, y2, t2);
     var dx = x - px;
-    var dy = y3 - py;
-    d2 += Math.sqrt(dx * dx + dy * dy);
+    var dy = y - py;
+    d += Math.sqrt(dx * dx + dy * dy);
     px = x;
-    py = y3;
+    py = y;
   }
-  return d2;
+  return d;
 }
 var regexp = /cubic-bezier\(([0-9,\.e ]+)\)/;
 function createCubicEasingFunc(cubicEasingStr) {
@@ -13954,38 +11128,38 @@ function parseCssFloat(val) {
   }
   return clampCssFloat(parseFloat(str));
 }
-function cssHueToRgb(m1, m2, h2) {
-  if (h2 < 0) {
-    h2 += 1;
-  } else if (h2 > 1) {
-    h2 -= 1;
+function cssHueToRgb(m1, m2, h) {
+  if (h < 0) {
+    h += 1;
+  } else if (h > 1) {
+    h -= 1;
   }
-  if (h2 * 6 < 1) {
-    return m1 + (m2 - m1) * h2 * 6;
+  if (h * 6 < 1) {
+    return m1 + (m2 - m1) * h * 6;
   }
-  if (h2 * 2 < 1) {
+  if (h * 2 < 1) {
     return m2;
   }
-  if (h2 * 3 < 2) {
-    return m1 + (m2 - m1) * (2 / 3 - h2) * 6;
+  if (h * 3 < 2) {
+    return m1 + (m2 - m1) * (2 / 3 - h) * 6;
   }
   return m1;
 }
-function lerpNumber(a2, b2, p2) {
-  return a2 + (b2 - a2) * p2;
+function lerpNumber(a, b, p2) {
+  return a + (b - a) * p2;
 }
-function setRgba(out2, r2, g2, b2, a2) {
-  out2[0] = r2;
-  out2[1] = g2;
-  out2[2] = b2;
-  out2[3] = a2;
+function setRgba(out2, r, g, b, a) {
+  out2[0] = r;
+  out2[1] = g;
+  out2[2] = b;
+  out2[3] = a;
   return out2;
 }
-function copyRgba(out2, a2) {
-  out2[0] = a2[0];
-  out2[1] = a2[1];
-  out2[2] = a2[2];
-  out2[3] = a2[3];
+function copyRgba(out2, a) {
+  out2[0] = a[0];
+  out2[1] = a[1];
+  out2[2] = a[2];
+  out2[3] = a[3];
   return out2;
 }
 var colorCache = new LRU(20);
@@ -14081,13 +11255,13 @@ function parse(colorStr, rgbaArr) {
   return;
 }
 function hsla2rgba(hsla, rgba) {
-  var h2 = (parseFloat(hsla[0]) % 360 + 360) % 360 / 360;
-  var s2 = parseCssFloat(hsla[1]);
-  var l2 = parseCssFloat(hsla[2]);
-  var m2 = l2 <= 0.5 ? l2 * (s2 + 1) : l2 + s2 - l2 * s2;
-  var m1 = l2 * 2 - m2;
+  var h = (parseFloat(hsla[0]) % 360 + 360) % 360 / 360;
+  var s = parseCssFloat(hsla[1]);
+  var l = parseCssFloat(hsla[2]);
+  var m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
+  var m1 = l * 2 - m2;
   rgba = rgba || [];
-  setRgba(rgba, clampCssByte(cssHueToRgb(m1, m2, h2 + 1 / 3) * 255), clampCssByte(cssHueToRgb(m1, m2, h2) * 255), clampCssByte(cssHueToRgb(m1, m2, h2 - 1 / 3) * 255), 1);
+  setRgba(rgba, clampCssByte(cssHueToRgb(m1, m2, h + 1 / 3) * 255), clampCssByte(cssHueToRgb(m1, m2, h) * 255), clampCssByte(cssHueToRgb(m1, m2, h - 1 / 3) * 255), 1);
   if (hsla.length === 4) {
     rgba[3] = hsla[3];
   }
@@ -14097,42 +11271,42 @@ function rgba2hsla(rgba) {
   if (!rgba) {
     return;
   }
-  var R2 = rgba[0] / 255;
-  var G2 = rgba[1] / 255;
-  var B2 = rgba[2] / 255;
-  var vMin = Math.min(R2, G2, B2);
-  var vMax = Math.max(R2, G2, B2);
+  var R = rgba[0] / 255;
+  var G = rgba[1] / 255;
+  var B = rgba[2] / 255;
+  var vMin = Math.min(R, G, B);
+  var vMax = Math.max(R, G, B);
   var delta = vMax - vMin;
-  var L2 = (vMax + vMin) / 2;
-  var H2;
-  var S2;
+  var L = (vMax + vMin) / 2;
+  var H;
+  var S;
   if (delta === 0) {
-    H2 = 0;
-    S2 = 0;
+    H = 0;
+    S = 0;
   } else {
-    if (L2 < 0.5) {
-      S2 = delta / (vMax + vMin);
+    if (L < 0.5) {
+      S = delta / (vMax + vMin);
     } else {
-      S2 = delta / (2 - vMax - vMin);
+      S = delta / (2 - vMax - vMin);
     }
-    var deltaR = ((vMax - R2) / 6 + delta / 2) / delta;
-    var deltaG = ((vMax - G2) / 6 + delta / 2) / delta;
-    var deltaB = ((vMax - B2) / 6 + delta / 2) / delta;
-    if (R2 === vMax) {
-      H2 = deltaB - deltaG;
-    } else if (G2 === vMax) {
-      H2 = 1 / 3 + deltaR - deltaB;
-    } else if (B2 === vMax) {
-      H2 = 2 / 3 + deltaG - deltaR;
+    var deltaR = ((vMax - R) / 6 + delta / 2) / delta;
+    var deltaG = ((vMax - G) / 6 + delta / 2) / delta;
+    var deltaB = ((vMax - B) / 6 + delta / 2) / delta;
+    if (R === vMax) {
+      H = deltaB - deltaG;
+    } else if (G === vMax) {
+      H = 1 / 3 + deltaR - deltaB;
+    } else if (B === vMax) {
+      H = 2 / 3 + deltaG - deltaR;
     }
-    if (H2 < 0) {
-      H2 += 1;
+    if (H < 0) {
+      H += 1;
     }
-    if (H2 > 1) {
-      H2 -= 1;
+    if (H > 1) {
+      H -= 1;
     }
   }
-  var hsla = [H2 * 360, S2, L2];
+  var hsla = [H * 360, S, L];
   if (rgba[3] != null) {
     hsla.push(rgba[3]);
   }
@@ -14196,13 +11370,13 @@ function lerp(normalizedValue, colors, fullOutput) {
     value
   } : color;
 }
-function modifyHSL(color, h2, s2, l2) {
+function modifyHSL(color, h, s, l) {
   var colorArr = parse(color);
   if (color) {
     colorArr = rgba2hsla(colorArr);
-    h2 != null && (colorArr[0] = clampCssAngle(h2));
-    s2 != null && (colorArr[1] = parseCssFloat(s2));
-    l2 != null && (colorArr[2] = parseCssFloat(l2));
+    h != null && (colorArr[0] = clampCssAngle(h));
+    s != null && (colorArr[1] = parseCssFloat(s));
+    l != null && (colorArr[2] = parseCssFloat(l));
     return stringify(hsla2rgba(colorArr), "rgba");
   }
 }
@@ -14284,13 +11458,13 @@ var TEXT_ALIGN_TO_ANCHOR = {
   center: "middle",
   middle: "middle"
 };
-function adjustTextY$1(y2, lineHeight, textBaseline) {
+function adjustTextY$1(y, lineHeight, textBaseline) {
   if (textBaseline === "top") {
-    y2 += lineHeight / 2;
+    y += lineHeight / 2;
   } else if (textBaseline === "bottom") {
-    y2 -= lineHeight / 2;
+    y -= lineHeight / 2;
   }
-  return y2;
+  return y;
 }
 function hasShadow(style) {
   return style && (style.shadowBlur || style.shadowOffsetX || style.shadowOffsetY);
@@ -14335,15 +11509,15 @@ function getPathPrecision(el) {
 }
 function getSRTTransformString(transform2) {
   var x = transform2.x || 0;
-  var y2 = transform2.y || 0;
+  var y = transform2.y || 0;
   var rotation = (transform2.rotation || 0) * RADIAN_TO_DEGREE;
   var scaleX = retrieve2(transform2.scaleX, 1);
   var scaleY = retrieve2(transform2.scaleY, 1);
   var skewX = transform2.skewX || 0;
   var skewY = transform2.skewY || 0;
   var res = [];
-  if (x || y2) {
-    res.push("translate(" + x + "px," + y2 + "px)");
+  if (x || y) {
+    res.push("translate(" + x + "px," + y + "px)");
   }
   if (rotation) {
     res.push("rotate(" + rotation + ")");
@@ -14392,8 +11566,8 @@ function interpolate2DArray(out2, p0, p1, percent) {
     if (!out2[i]) {
       out2[i] = [];
     }
-    for (var j2 = 0; j2 < len22; j2++) {
-      out2[i][j2] = interpolateNumber$1(p0[i][j2], p1[i][j2], percent);
+    for (var j = 0; j < len22; j++) {
+      out2[i][j] = interpolateNumber$1(p0[i][j], p1[i][j], percent);
     }
   }
   return out2;
@@ -14412,8 +11586,8 @@ function add2DArray(out2, p0, p1, sign) {
     if (!out2[i]) {
       out2[i] = [];
     }
-    for (var j2 = 0; j2 < len22; j2++) {
-      out2[i][j2] = p0[i][j2] + p1[i][j2] * sign;
+    for (var j = 0; j < len22; j++) {
+      out2[i][j] = p0[i][j] + p1[i][j] * sign;
     }
   }
   return out2;
@@ -14456,9 +11630,9 @@ function fillArray(val0, val1, arrDim) {
         arr0[i] = arr1[i];
       }
     } else {
-      for (var j2 = 0; j2 < len2; j2++) {
-        if (isNaN(arr0[i][j2])) {
-          arr0[i][j2] = arr1[i][j2];
+      for (var j = 0; j < len2; j++) {
+        if (isNaN(arr0[i][j])) {
+          arr0[i][j] = arr1[i][j];
         }
       }
     }
@@ -14591,8 +11765,8 @@ var Track = function() {
   Track2.prototype.prepare = function(maxTime, additiveTrack) {
     var kfs = this.keyframes;
     if (this._needsSort) {
-      kfs.sort(function(a2, b2) {
-        return a2.time - b2.time;
+      kfs.sort(function(a, b) {
+        return a.time - b.time;
       });
     }
     var valType = this.valType;
@@ -14677,48 +11851,48 @@ var Track = function() {
     this._lastFr = frameIdx;
     this._lastFrP = percent;
     var interval = nextFrame.percent - frame.percent;
-    var w2 = interval === 0 ? 1 : mathMin2((percent - frame.percent) / interval, 1);
+    var w = interval === 0 ? 1 : mathMin2((percent - frame.percent) / interval, 1);
     if (nextFrame.easingFunc) {
-      w2 = nextFrame.easingFunc(w2);
+      w = nextFrame.easingFunc(w);
     }
     var targetArr = isAdditive ? this._additiveValue : isValueColor ? tmpRgba : target[propName];
     if ((isArrayValueType(valType) || isValueColor) && !targetArr) {
       targetArr = this._additiveValue = [];
     }
     if (this.discrete) {
-      target[propName] = w2 < 1 ? frame.rawValue : nextFrame.rawValue;
+      target[propName] = w < 1 ? frame.rawValue : nextFrame.rawValue;
     } else if (isArrayValueType(valType)) {
-      valType === VALUE_TYPE_1D_ARRAY ? interpolate1DArray(targetArr, frame[valueKey], nextFrame[valueKey], w2) : interpolate2DArray(targetArr, frame[valueKey], nextFrame[valueKey], w2);
+      valType === VALUE_TYPE_1D_ARRAY ? interpolate1DArray(targetArr, frame[valueKey], nextFrame[valueKey], w) : interpolate2DArray(targetArr, frame[valueKey], nextFrame[valueKey], w);
     } else if (isGradientValueType(valType)) {
       var val = frame[valueKey];
       var nextVal_1 = nextFrame[valueKey];
       var isLinearGradient_1 = valType === VALUE_TYPE_LINEAR_GRADIENT;
       target[propName] = {
         type: isLinearGradient_1 ? "linear" : "radial",
-        x: interpolateNumber$1(val.x, nextVal_1.x, w2),
-        y: interpolateNumber$1(val.y, nextVal_1.y, w2),
+        x: interpolateNumber$1(val.x, nextVal_1.x, w),
+        y: interpolateNumber$1(val.y, nextVal_1.y, w),
         colorStops: map$1(val.colorStops, function(colorStop, idx) {
           var nextColorStop = nextVal_1.colorStops[idx];
           return {
-            offset: interpolateNumber$1(colorStop.offset, nextColorStop.offset, w2),
-            color: rgba2String(interpolate1DArray([], colorStop.color, nextColorStop.color, w2))
+            offset: interpolateNumber$1(colorStop.offset, nextColorStop.offset, w),
+            color: rgba2String(interpolate1DArray([], colorStop.color, nextColorStop.color, w))
           };
         }),
         global: nextVal_1.global
       };
       if (isLinearGradient_1) {
-        target[propName].x2 = interpolateNumber$1(val.x2, nextVal_1.x2, w2);
-        target[propName].y2 = interpolateNumber$1(val.y2, nextVal_1.y2, w2);
+        target[propName].x2 = interpolateNumber$1(val.x2, nextVal_1.x2, w);
+        target[propName].y2 = interpolateNumber$1(val.y2, nextVal_1.y2, w);
       } else {
-        target[propName].r = interpolateNumber$1(val.r, nextVal_1.r, w2);
+        target[propName].r = interpolateNumber$1(val.r, nextVal_1.r, w);
       }
     } else if (isValueColor) {
-      interpolate1DArray(targetArr, frame[valueKey], nextFrame[valueKey], w2);
+      interpolate1DArray(targetArr, frame[valueKey], nextFrame[valueKey], w);
       if (!isAdditive) {
         target[propName] = rgba2String(targetArr);
       }
     } else {
-      var value = interpolateNumber$1(frame[valueKey], nextFrame[valueKey], w2);
+      var value = interpolateNumber$1(frame[valueKey], nextFrame[valueKey], w);
       if (isAdditive) {
         this._additiveValue = value;
       } else {
@@ -15655,16 +12829,16 @@ var Transformable = function() {
     }
     return out2;
   };
-  Transformable2.prototype.transformCoordToLocal = function(x, y2) {
-    var v22 = [x, y2];
+  Transformable2.prototype.transformCoordToLocal = function(x, y) {
+    var v22 = [x, y];
     var invTransform = this.invTransform;
     if (invTransform) {
       applyTransform$1(v22, v22, invTransform);
     }
     return v22;
   };
-  Transformable2.prototype.transformCoordToGlobal = function(x, y2) {
-    var v22 = [x, y2];
+  Transformable2.prototype.transformCoordToGlobal = function(x, y) {
+    var v22 = [x, y];
     var transform2 = this.transform;
     if (transform2) {
       applyTransform$1(v22, v22, transform2);
@@ -15688,7 +12862,7 @@ var Transformable = function() {
     var ay = target.anchorY;
     var rotation = target.rotation || 0;
     var x = target.x;
-    var y2 = target.y;
+    var y = target.y;
     var skewX = target.skewX ? Math.tan(target.skewX) : 0;
     var skewY = target.skewY ? Math.tan(-target.skewY) : 0;
     if (ox || oy || ax || ay) {
@@ -15705,7 +12879,7 @@ var Transformable = function() {
     m2[2] = skewX * sy;
     rotation && rotate(m2, m2, rotation);
     m2[4] += ox + x;
-    m2[5] += oy + y2;
+    m2[5] += oy + y;
     return m2;
   };
   Transformable2.initDefaultProps = function() {
@@ -15752,8 +12926,8 @@ function innerGetBoundingRect(text, font, textAlign, textBaseline) {
   var width = getWidth(text, font);
   var height = getLineHeight(font);
   var x = adjustTextX(0, width, textAlign);
-  var y2 = adjustTextY(0, height, textBaseline);
-  var rect = new BoundingRect$1(x, y2, width, height);
+  var y = adjustTextY(0, height, textBaseline);
+  var rect = new BoundingRect$1(x, y, width, height);
   return rect;
 }
 function getBoundingRect(text, font, textAlign, textBaseline) {
@@ -15778,13 +12952,13 @@ function adjustTextX(x, width, textAlign) {
   }
   return x;
 }
-function adjustTextY(y2, height, verticalAlign) {
+function adjustTextY(y, height, verticalAlign) {
   if (verticalAlign === "middle") {
-    y2 -= height / 2;
+    y -= height / 2;
   } else if (verticalAlign === "bottom") {
-    y2 -= height;
+    y -= height;
   }
-  return y2;
+  return y;
 }
 function getLineHeight(font) {
   return getWidth("国", font);
@@ -15805,83 +12979,83 @@ function calculateTextPosition(out2, opts, rect) {
   var width = rect.width;
   var halfHeight = height / 2;
   var x = rect.x;
-  var y2 = rect.y;
+  var y = rect.y;
   var textAlign = "left";
   var textVerticalAlign = "top";
   if (textPosition instanceof Array) {
     x += parsePercent$1(textPosition[0], rect.width);
-    y2 += parsePercent$1(textPosition[1], rect.height);
+    y += parsePercent$1(textPosition[1], rect.height);
     textAlign = null;
     textVerticalAlign = null;
   } else {
     switch (textPosition) {
       case "left":
         x -= distance2;
-        y2 += halfHeight;
+        y += halfHeight;
         textAlign = "right";
         textVerticalAlign = "middle";
         break;
       case "right":
         x += distance2 + width;
-        y2 += halfHeight;
+        y += halfHeight;
         textVerticalAlign = "middle";
         break;
       case "top":
         x += width / 2;
-        y2 -= distance2;
+        y -= distance2;
         textAlign = "center";
         textVerticalAlign = "bottom";
         break;
       case "bottom":
         x += width / 2;
-        y2 += height + distance2;
+        y += height + distance2;
         textAlign = "center";
         break;
       case "inside":
         x += width / 2;
-        y2 += halfHeight;
+        y += halfHeight;
         textAlign = "center";
         textVerticalAlign = "middle";
         break;
       case "insideLeft":
         x += distance2;
-        y2 += halfHeight;
+        y += halfHeight;
         textVerticalAlign = "middle";
         break;
       case "insideRight":
         x += width - distance2;
-        y2 += halfHeight;
+        y += halfHeight;
         textAlign = "right";
         textVerticalAlign = "middle";
         break;
       case "insideTop":
         x += width / 2;
-        y2 += distance2;
+        y += distance2;
         textAlign = "center";
         break;
       case "insideBottom":
         x += width / 2;
-        y2 += height - distance2;
+        y += height - distance2;
         textAlign = "center";
         textVerticalAlign = "bottom";
         break;
       case "insideTopLeft":
         x += distance2;
-        y2 += distance2;
+        y += distance2;
         break;
       case "insideTopRight":
         x += width - distance2;
-        y2 += distance2;
+        y += distance2;
         textAlign = "right";
         break;
       case "insideBottomLeft":
         x += distance2;
-        y2 += height - distance2;
+        y += height - distance2;
         textVerticalAlign = "bottom";
         break;
       case "insideBottomRight":
         x += width - distance2;
-        y2 += height - distance2;
+        y += height - distance2;
         textAlign = "right";
         textVerticalAlign = "bottom";
         break;
@@ -15889,7 +13063,7 @@ function calculateTextPosition(out2, opts, rect) {
   }
   out2 = out2 || {};
   out2.x = x;
-  out2.y = y2;
+  out2.y = y;
   out2.align = textAlign;
   out2.verticalAlign = textVerticalAlign;
   return out2;
@@ -17281,11 +14455,11 @@ var ZRender = function() {
     }
     this.handler.setCursorStyle(cursorStyle);
   };
-  ZRender2.prototype.findHover = function(x, y2) {
+  ZRender2.prototype.findHover = function(x, y) {
     if (this._disposed) {
       return;
     }
-    return this.handler.findHover(x, y2);
+    return this.handler.findHover(x, y);
   };
   ZRender2.prototype.on = function(eventName, eventHandler, context) {
     if (!this._disposed) {
@@ -17421,8 +14595,8 @@ function round$3(x, precision, returnStr) {
   return returnStr ? x : +x;
 }
 function asc$2(arr) {
-  arr.sort(function(a2, b2) {
-    return a2 - b2;
+  arr.sort(function(a, b) {
+    return a - b;
   });
   return arr;
 }
@@ -17579,15 +14753,15 @@ function nice(val, round2) {
   return exponent >= -20 ? +val.toFixed(exponent < 0 ? -exponent : 0) : val;
 }
 function quantile(ascArr, p2) {
-  var H2 = (ascArr.length - 1) * p2 + 1;
-  var h2 = Math.floor(H2);
-  var v4 = +ascArr[h2 - 1];
-  var e2 = H2 - h2;
-  return e2 ? v4 + e2 * (ascArr[h2] - v4) : v4;
+  var H = (ascArr.length - 1) * p2 + 1;
+  var h = Math.floor(H);
+  var v = +ascArr[h - 1];
+  var e2 = H - h;
+  return e2 ? v + e2 * (ascArr[h] - v) : v;
 }
 function reformIntervals(list) {
-  list.sort(function(a2, b2) {
-    return littleThan2(a2, b2, 0) ? -1 : 1;
+  list.sort(function(a, b) {
+    return littleThan2(a, b, 0) ? -1 : 1;
   });
   var curr = -Infinity;
   var currClose = 1;
@@ -17609,8 +14783,8 @@ function reformIntervals(list) {
     }
   }
   return list;
-  function littleThan2(a2, b2, lg2) {
-    return a2.interval[lg2] < b2.interval[lg2] || a2.interval[lg2] === b2.interval[lg2] && (a2.close[lg2] - b2.close[lg2] === (!lg2 ? 1 : -1) || !lg2 && littleThan2(a2, b2, 1));
+  function littleThan2(a, b, lg2) {
+    return a.interval[lg2] < b.interval[lg2] || a.interval[lg2] === b.interval[lg2] && (a.close[lg2] - b.close[lg2] === (!lg2 ? 1 : -1) || !lg2 && littleThan2(a, b, 1));
   }
 }
 function numericToNumber(val) {
@@ -17623,20 +14797,20 @@ function isNumeric(val) {
 function getRandomIdBase() {
   return Math.round(Math.random() * 9);
 }
-function getGreatestCommonDividor(a2, b2) {
-  if (b2 === 0) {
-    return a2;
+function getGreatestCommonDividor(a, b) {
+  if (b === 0) {
+    return a;
   }
-  return getGreatestCommonDividor(b2, a2 % b2);
+  return getGreatestCommonDividor(b, a % b);
 }
-function getLeastCommonMultiple(a2, b2) {
-  if (a2 == null) {
-    return b2;
+function getLeastCommonMultiple(a, b) {
+  if (a == null) {
+    return b;
   }
-  if (b2 == null) {
-    return a2;
+  if (b == null) {
+    return a;
   }
-  return a2 * b2 / getGreatestCommonDividor(a2, b2);
+  return a * b / getGreatestCommonDividor(a, b);
 }
 var ECHARTS_PREFIX = "[ECharts] ";
 var storedLogs = {};
@@ -17957,8 +15131,8 @@ function compressBatches(batchA, batchB) {
       }
       var dataIndices = normalizeToArray(sourceBatch[i].dataIndex);
       var otherDataIndices = otherMap && otherMap[seriesId];
-      for (var j2 = 0, lenj = dataIndices.length; j2 < lenj; j2++) {
-        var dataIndex = dataIndices[j2];
+      for (var j = 0, lenj = dataIndices.length; j < lenj; j++) {
+        var dataIndex = dataIndices[j];
         if (otherDataIndices && otherDataIndices[dataIndex]) {
           otherDataIndices[dataIndex] = null;
         } else {
@@ -18457,12 +15631,12 @@ function truncateSingleLine(out2, textLine, options) {
     out2.isTruncated = false;
     return;
   }
-  for (var j2 = 0; ; j2++) {
-    if (lineWidth <= contentWidth || j2 >= options.maxIterations) {
+  for (var j = 0; ; j++) {
+    if (lineWidth <= contentWidth || j >= options.maxIterations) {
       textLine += options.ellipsis;
       break;
     }
-    var subLength = j2 === 0 ? estimateLength(textLine, contentWidth, options.ascCharWidth, options.cnCharWidth) : lineWidth > 0 ? Math.floor(textLine.length * contentWidth / lineWidth) : 0;
+    var subLength = j === 0 ? estimateLength(textLine, contentWidth, options.ascCharWidth, options.cnCharWidth) : lineWidth > 0 ? Math.floor(textLine.length * contentWidth / lineWidth) : 0;
     textLine = textLine.substr(0, subLength);
     lineWidth = getWidth(textLine, font);
   }
@@ -18616,8 +15790,8 @@ function parseRichText(text, style) {
       var line = contentBlock.lines[i];
       var lineHeight = 0;
       var lineWidth = 0;
-      for (var j2 = 0; j2 < line.tokens.length; j2++) {
-        var token = line.tokens[j2];
+      for (var j = 0; j < line.tokens.length; j++) {
+        var token = line.tokens[j];
         var tokenStyle = token.styleName && style.rich[token.styleName] || {};
         var textPadding = token.textPadding = tokenStyle.padding;
         var paddingH = textPadding ? textPadding[1] + textPadding[3] : 0;
@@ -18632,8 +15806,8 @@ function parseRichText(text, style) {
         token.verticalAlign = tokenStyle && tokenStyle.verticalAlign || "middle";
         if (truncateLine && topHeight != null && calculatedHeight + token.lineHeight > topHeight) {
           var originalLength = contentBlock.lines.length;
-          if (j2 > 0) {
-            line.tokens = line.tokens.slice(0, j2);
+          if (j > 0) {
+            line.tokens = line.tokens.slice(0, j);
             finishLine(line, lineWidth, lineHeight);
             contentBlock.lines = contentBlock.lines.slice(0, i + 1);
           } else {
@@ -18929,14 +16103,14 @@ var Displayable = function(_super) {
     }
     return true;
   };
-  Displayable2.prototype.contain = function(x, y2) {
-    return this.rectContain(x, y2);
+  Displayable2.prototype.contain = function(x, y) {
+    return this.rectContain(x, y);
   };
   Displayable2.prototype.traverse = function(cb, context) {
     cb.call(context, this);
   };
-  Displayable2.prototype.rectContain = function(x, y2) {
-    var coord = this.transformCoordToLocal(x, y2);
+  Displayable2.prototype.rectContain = function(x, y) {
+    var coord = this.transformCoordToLocal(x, y);
     var rect = this.getBoundingRect();
     return rect.contain(coord[0], coord[1]);
   };
@@ -19214,9 +16388,9 @@ function fromCubic(x0, y0, x1, y1, x2, y2, x3, y3, min3, max3) {
   }
   n2 = cubicExtrema$1(y0, y1, y2, y3, yDim);
   for (var i = 0; i < n2; i++) {
-    var y4 = cubicAt$1(y0, y1, y2, y3, yDim[i]);
-    min3[1] = mathMin$9(y4, min3[1]);
-    max3[1] = mathMax$9(y4, max3[1]);
+    var y = cubicAt$1(y0, y1, y2, y3, yDim[i]);
+    min3[1] = mathMin$9(y, min3[1]);
+    max3[1] = mathMax$9(y, max3[1]);
   }
   min3[0] = mathMin$9(x0, min3[0]);
   max3[0] = mathMax$9(x0, max3[0]);
@@ -19233,27 +16407,27 @@ function fromQuadratic(x0, y0, x1, y1, x2, y2, min3, max3) {
   var tx = mathMax$9(mathMin$9(quadraticExtremum$1(x0, x1, x2), 1), 0);
   var ty = mathMax$9(mathMin$9(quadraticExtremum$1(y0, y1, y2), 1), 0);
   var x = quadraticAt2(x0, x1, x2, tx);
-  var y3 = quadraticAt2(y0, y1, y2, ty);
+  var y = quadraticAt2(y0, y1, y2, ty);
   min3[0] = mathMin$9(x0, x2, x);
-  min3[1] = mathMin$9(y0, y2, y3);
+  min3[1] = mathMin$9(y0, y2, y);
   max3[0] = mathMax$9(x0, x2, x);
-  max3[1] = mathMax$9(y0, y2, y3);
+  max3[1] = mathMax$9(y0, y2, y);
 }
-function fromArc(x, y2, rx, ry, startAngle, endAngle, anticlockwise, min3, max3) {
+function fromArc(x, y, rx, ry, startAngle, endAngle, anticlockwise, min3, max3) {
   var vec2Min = min$1;
   var vec2Max = max$1;
   var diff2 = Math.abs(startAngle - endAngle);
   if (diff2 % PI2$8 < 1e-4 && diff2 > 1e-4) {
     min3[0] = x - rx;
-    min3[1] = y2 - ry;
+    min3[1] = y - ry;
     max3[0] = x + rx;
-    max3[1] = y2 + ry;
+    max3[1] = y + ry;
     return;
   }
   start[0] = mathCos$4(startAngle) * rx + x;
-  start[1] = mathSin$4(startAngle) * ry + y2;
+  start[1] = mathSin$4(startAngle) * ry + y;
   end[0] = mathCos$4(endAngle) * rx + x;
-  end[1] = mathSin$4(endAngle) * ry + y2;
+  end[1] = mathSin$4(endAngle) * ry + y;
   vec2Min(min3, start, end);
   vec2Max(max3, start, end);
   startAngle = startAngle % PI2$8;
@@ -19277,7 +16451,7 @@ function fromArc(x, y2, rx, ry, startAngle, endAngle, anticlockwise, min3, max3)
   for (var angle = 0; angle < endAngle; angle += Math.PI / 2) {
     if (angle > startAngle) {
       extremity[0] = mathCos$4(angle) * rx + x;
-      extremity[1] = mathSin$4(angle) * ry + y2;
+      extremity[1] = mathSin$4(angle) * ry + y;
       vec2Min(min3, extremity, min3);
       vec2Max(max3, extremity, max3);
     }
@@ -19383,33 +16557,33 @@ var PathProxy = function() {
     }
     this._version++;
   };
-  PathProxy2.prototype.moveTo = function(x, y2) {
+  PathProxy2.prototype.moveTo = function(x, y) {
     this._drawPendingPt();
-    this.addData(CMD$4.M, x, y2);
-    this._ctx && this._ctx.moveTo(x, y2);
+    this.addData(CMD$4.M, x, y);
+    this._ctx && this._ctx.moveTo(x, y);
     this._x0 = x;
-    this._y0 = y2;
+    this._y0 = y;
     this._xi = x;
-    this._yi = y2;
+    this._yi = y;
     return this;
   };
-  PathProxy2.prototype.lineTo = function(x, y2) {
+  PathProxy2.prototype.lineTo = function(x, y) {
     var dx = mathAbs$2(x - this._xi);
-    var dy = mathAbs$2(y2 - this._yi);
+    var dy = mathAbs$2(y - this._yi);
     var exceedUnit = dx > this._ux || dy > this._uy;
-    this.addData(CMD$4.L, x, y2);
+    this.addData(CMD$4.L, x, y);
     if (this._ctx && exceedUnit) {
-      this._ctx.lineTo(x, y2);
+      this._ctx.lineTo(x, y);
     }
     if (exceedUnit) {
       this._xi = x;
-      this._yi = y2;
+      this._yi = y;
       this._pendingPtDist = 0;
     } else {
       var d2 = dx * dx + dy * dy;
       if (d2 > this._pendingPtDist) {
         this._pendingPtX = x;
-        this._pendingPtY = y2;
+        this._pendingPtY = y;
         this._pendingPtDist = d2;
       }
     }
@@ -19435,7 +16609,7 @@ var PathProxy = function() {
     this._yi = y2;
     return this;
   };
-  PathProxy2.prototype.arc = function(cx, cy, r2, startAngle, endAngle, anticlockwise) {
+  PathProxy2.prototype.arc = function(cx, cy, r, startAngle, endAngle, anticlockwise) {
     this._drawPendingPt();
     tmpAngles[0] = startAngle;
     tmpAngles[1] = endAngle;
@@ -19443,10 +16617,10 @@ var PathProxy = function() {
     startAngle = tmpAngles[0];
     endAngle = tmpAngles[1];
     var delta = endAngle - startAngle;
-    this.addData(CMD$4.A, cx, cy, r2, r2, startAngle, delta, 0, anticlockwise ? 0 : 1);
-    this._ctx && this._ctx.arc(cx, cy, r2, startAngle, endAngle, anticlockwise);
-    this._xi = mathCos$3(endAngle) * r2 + cx;
-    this._yi = mathSin$3(endAngle) * r2 + cy;
+    this.addData(CMD$4.A, cx, cy, r, r, startAngle, delta, 0, anticlockwise ? 0 : 1);
+    this._ctx && this._ctx.arc(cx, cy, r, startAngle, endAngle, anticlockwise);
+    this._xi = mathCos$3(endAngle) * r + cx;
+    this._yi = mathSin$3(endAngle) * r + cy;
     return this;
   };
   PathProxy2.prototype.arcTo = function(x1, y1, x2, y2, radius) {
@@ -19456,10 +16630,10 @@ var PathProxy = function() {
     }
     return this;
   };
-  PathProxy2.prototype.rect = function(x, y2, w2, h2) {
+  PathProxy2.prototype.rect = function(x, y, w, h) {
     this._drawPendingPt();
-    this._ctx && this._ctx.rect(x, y2, w2, h2);
-    this.addData(CMD$4.R, x, y2, w2, h2);
+    this._ctx && this._ctx.rect(x, y, w, h);
+    this.addData(CMD$4.R, x, y, w, h);
     return this;
   };
   PathProxy2.prototype.closePath = function() {
@@ -19517,7 +16691,7 @@ var PathProxy = function() {
     }
     this._len = offset;
   };
-  PathProxy2.prototype.addData = function(cmd, a2, b2, c2, d2, e2, f2, g2, h2) {
+  PathProxy2.prototype.addData = function(cmd, a, b, c, d, e2, f2, g, h) {
     if (!this._saveData) {
       return;
     }
@@ -19661,7 +16835,7 @@ var PathProxy = function() {
         x0 = xi;
         y0 = yi;
       }
-      var l2 = -1;
+      var l = -1;
       switch (cmd) {
         case CMD$4.M:
           xi = x0 = data[i++];
@@ -19673,7 +16847,7 @@ var PathProxy = function() {
           var dx = x2 - xi;
           var dy = y2 - yi;
           if (mathAbs$2(dx) > ux || mathAbs$2(dy) > uy || i === len2 - 1) {
-            l2 = Math.sqrt(dx * dx + dy * dy);
+            l = Math.sqrt(dx * dx + dy * dy);
             xi = x2;
             yi = y2;
           }
@@ -19686,7 +16860,7 @@ var PathProxy = function() {
           var y2 = data[i++];
           var x3 = data[i++];
           var y3 = data[i++];
-          l2 = cubicLength(xi, yi, x1, y1, x2, y2, x3, y3, 10);
+          l = cubicLength(xi, yi, x1, y1, x2, y2, x3, y3, 10);
           xi = x3;
           yi = y3;
           break;
@@ -19696,7 +16870,7 @@ var PathProxy = function() {
           var y1 = data[i++];
           var x2 = data[i++];
           var y2 = data[i++];
-          l2 = quadraticLength(xi, yi, x1, y1, x2, y2, 10);
+          l = quadraticLength(xi, yi, x1, y1, x2, y2, 10);
           xi = x2;
           yi = y2;
           break;
@@ -19714,7 +16888,7 @@ var PathProxy = function() {
             x0 = mathCos$3(startAngle) * rx + cx;
             y0 = mathSin$3(startAngle) * ry + cy;
           }
-          l2 = mathMax$8(rx, ry) * mathMin$8(PI2$7, Math.abs(delta));
+          l = mathMax$8(rx, ry) * mathMin$8(PI2$7, Math.abs(delta));
           xi = mathCos$3(endAngle) * rx + cx;
           yi = mathSin$3(endAngle) * ry + cy;
           break;
@@ -19723,28 +16897,28 @@ var PathProxy = function() {
           y0 = yi = data[i++];
           var width = data[i++];
           var height = data[i++];
-          l2 = width * 2 + height * 2;
+          l = width * 2 + height * 2;
           break;
         }
         case CMD$4.Z: {
           var dx = x0 - xi;
           var dy = y0 - yi;
-          l2 = Math.sqrt(dx * dx + dy * dy);
+          l = Math.sqrt(dx * dx + dy * dy);
           xi = x0;
           yi = y0;
           break;
         }
       }
-      if (l2 >= 0) {
-        pathSegLen[segCount++] = l2;
-        pathTotalLen += l2;
+      if (l >= 0) {
+        pathSegLen[segCount++] = l;
+        pathTotalLen += l;
       }
     }
     this._pathLen = pathTotalLen;
     return pathTotalLen;
   };
   PathProxy2.prototype.rebuildPath = function(ctx, percent) {
-    var d2 = this.data;
+    var d = this.data;
     var ux = this._ux;
     var uy = this._uy;
     var len2 = this._len;
@@ -19753,7 +16927,7 @@ var PathProxy = function() {
     var xi;
     var yi;
     var x;
-    var y2;
+    var y;
     var drawPart = percent < 1;
     var pathSegLen;
     var pathTotalLen;
@@ -19776,11 +16950,11 @@ var PathProxy = function() {
     }
     lo:
       for (var i = 0; i < len2; ) {
-        var cmd = d2[i++];
+        var cmd = d[i++];
         var isFirst = i === 1;
         if (isFirst) {
-          xi = d2[i];
-          yi = d2[i + 1];
+          xi = d[i];
+          yi = d[i + 1];
           x0 = xi;
           y0 = yi;
         }
@@ -19790,108 +16964,108 @@ var PathProxy = function() {
         }
         switch (cmd) {
           case CMD$4.M:
-            x0 = xi = d2[i++];
-            y0 = yi = d2[i++];
+            x0 = xi = d[i++];
+            y0 = yi = d[i++];
             ctx.moveTo(xi, yi);
             break;
           case CMD$4.L: {
-            x = d2[i++];
-            y2 = d2[i++];
+            x = d[i++];
+            y = d[i++];
             var dx = mathAbs$2(x - xi);
-            var dy = mathAbs$2(y2 - yi);
+            var dy = mathAbs$2(y - yi);
             if (dx > ux || dy > uy) {
               if (drawPart) {
-                var l2 = pathSegLen[segCount++];
-                if (accumLength + l2 > displayedLength) {
-                  var t2 = (displayedLength - accumLength) / l2;
-                  ctx.lineTo(xi * (1 - t2) + x * t2, yi * (1 - t2) + y2 * t2);
+                var l = pathSegLen[segCount++];
+                if (accumLength + l > displayedLength) {
+                  var t2 = (displayedLength - accumLength) / l;
+                  ctx.lineTo(xi * (1 - t2) + x * t2, yi * (1 - t2) + y * t2);
                   break lo;
                 }
-                accumLength += l2;
+                accumLength += l;
               }
-              ctx.lineTo(x, y2);
+              ctx.lineTo(x, y);
               xi = x;
-              yi = y2;
+              yi = y;
               pendingPtDist = 0;
             } else {
-              var d22 = dx * dx + dy * dy;
-              if (d22 > pendingPtDist) {
+              var d2 = dx * dx + dy * dy;
+              if (d2 > pendingPtDist) {
                 pendingPtX = x;
-                pendingPtY = y2;
-                pendingPtDist = d22;
+                pendingPtY = y;
+                pendingPtDist = d2;
               }
             }
             break;
           }
           case CMD$4.C: {
-            var x1 = d2[i++];
-            var y1 = d2[i++];
-            var x2 = d2[i++];
-            var y22 = d2[i++];
-            var x3 = d2[i++];
-            var y3 = d2[i++];
+            var x1 = d[i++];
+            var y1 = d[i++];
+            var x2 = d[i++];
+            var y2 = d[i++];
+            var x3 = d[i++];
+            var y3 = d[i++];
             if (drawPart) {
-              var l2 = pathSegLen[segCount++];
-              if (accumLength + l2 > displayedLength) {
-                var t2 = (displayedLength - accumLength) / l2;
+              var l = pathSegLen[segCount++];
+              if (accumLength + l > displayedLength) {
+                var t2 = (displayedLength - accumLength) / l;
                 cubicSubdivide(xi, x1, x2, x3, t2, tmpOutX);
-                cubicSubdivide(yi, y1, y22, y3, t2, tmpOutY);
+                cubicSubdivide(yi, y1, y2, y3, t2, tmpOutY);
                 ctx.bezierCurveTo(tmpOutX[1], tmpOutY[1], tmpOutX[2], tmpOutY[2], tmpOutX[3], tmpOutY[3]);
                 break lo;
               }
-              accumLength += l2;
+              accumLength += l;
             }
-            ctx.bezierCurveTo(x1, y1, x2, y22, x3, y3);
+            ctx.bezierCurveTo(x1, y1, x2, y2, x3, y3);
             xi = x3;
             yi = y3;
             break;
           }
           case CMD$4.Q: {
-            var x1 = d2[i++];
-            var y1 = d2[i++];
-            var x2 = d2[i++];
-            var y22 = d2[i++];
+            var x1 = d[i++];
+            var y1 = d[i++];
+            var x2 = d[i++];
+            var y2 = d[i++];
             if (drawPart) {
-              var l2 = pathSegLen[segCount++];
-              if (accumLength + l2 > displayedLength) {
-                var t2 = (displayedLength - accumLength) / l2;
+              var l = pathSegLen[segCount++];
+              if (accumLength + l > displayedLength) {
+                var t2 = (displayedLength - accumLength) / l;
                 quadraticSubdivide(xi, x1, x2, t2, tmpOutX);
-                quadraticSubdivide(yi, y1, y22, t2, tmpOutY);
+                quadraticSubdivide(yi, y1, y2, t2, tmpOutY);
                 ctx.quadraticCurveTo(tmpOutX[1], tmpOutY[1], tmpOutX[2], tmpOutY[2]);
                 break lo;
               }
-              accumLength += l2;
+              accumLength += l;
             }
-            ctx.quadraticCurveTo(x1, y1, x2, y22);
+            ctx.quadraticCurveTo(x1, y1, x2, y2);
             xi = x2;
-            yi = y22;
+            yi = y2;
             break;
           }
           case CMD$4.A:
-            var cx = d2[i++];
-            var cy = d2[i++];
-            var rx = d2[i++];
-            var ry = d2[i++];
-            var startAngle = d2[i++];
-            var delta = d2[i++];
-            var psi = d2[i++];
-            var anticlockwise = !d2[i++];
-            var r2 = rx > ry ? rx : ry;
+            var cx = d[i++];
+            var cy = d[i++];
+            var rx = d[i++];
+            var ry = d[i++];
+            var startAngle = d[i++];
+            var delta = d[i++];
+            var psi = d[i++];
+            var anticlockwise = !d[i++];
+            var r = rx > ry ? rx : ry;
             var isEllipse = mathAbs$2(rx - ry) > 1e-3;
             var endAngle = startAngle + delta;
             var breakBuild = false;
             if (drawPart) {
-              var l2 = pathSegLen[segCount++];
-              if (accumLength + l2 > displayedLength) {
-                endAngle = startAngle + delta * (displayedLength - accumLength) / l2;
+              var l = pathSegLen[segCount++];
+              if (accumLength + l > displayedLength) {
+                endAngle = startAngle + delta * (displayedLength - accumLength) / l;
                 breakBuild = true;
               }
-              accumLength += l2;
+              accumLength += l;
             }
             if (isEllipse && ctx.ellipse) {
               ctx.ellipse(cx, cy, rx, ry, psi, startAngle, endAngle, anticlockwise);
             } else {
-              ctx.arc(cx, cy, r2, startAngle, endAngle, anticlockwise);
+              ctx.arc(cx, cy, r, startAngle, endAngle, anticlockwise);
             }
             if (breakBuild) {
               break lo;
@@ -19904,45 +17078,45 @@ var PathProxy = function() {
             yi = mathSin$3(endAngle) * ry + cy;
             break;
           case CMD$4.R:
-            x0 = xi = d2[i];
-            y0 = yi = d2[i + 1];
-            x = d2[i++];
-            y2 = d2[i++];
-            var width = d2[i++];
-            var height = d2[i++];
+            x0 = xi = d[i];
+            y0 = yi = d[i + 1];
+            x = d[i++];
+            y = d[i++];
+            var width = d[i++];
+            var height = d[i++];
             if (drawPart) {
-              var l2 = pathSegLen[segCount++];
-              if (accumLength + l2 > displayedLength) {
+              var l = pathSegLen[segCount++];
+              if (accumLength + l > displayedLength) {
                 var d_1 = displayedLength - accumLength;
-                ctx.moveTo(x, y2);
-                ctx.lineTo(x + mathMin$8(d_1, width), y2);
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + mathMin$8(d_1, width), y);
                 d_1 -= width;
                 if (d_1 > 0) {
-                  ctx.lineTo(x + width, y2 + mathMin$8(d_1, height));
+                  ctx.lineTo(x + width, y + mathMin$8(d_1, height));
                 }
                 d_1 -= height;
                 if (d_1 > 0) {
-                  ctx.lineTo(x + mathMax$8(width - d_1, 0), y2 + height);
+                  ctx.lineTo(x + mathMax$8(width - d_1, 0), y + height);
                 }
                 d_1 -= width;
                 if (d_1 > 0) {
-                  ctx.lineTo(x, y2 + mathMax$8(height - d_1, 0));
+                  ctx.lineTo(x, y + mathMax$8(height - d_1, 0));
                 }
                 break lo;
               }
-              accumLength += l2;
+              accumLength += l;
             }
-            ctx.rect(x, y2, width, height);
+            ctx.rect(x, y, width, height);
             break;
           case CMD$4.Z:
             if (drawPart) {
-              var l2 = pathSegLen[segCount++];
-              if (accumLength + l2 > displayedLength) {
-                var t2 = (displayedLength - accumLength) / l2;
+              var l = pathSegLen[segCount++];
+              if (accumLength + l > displayedLength) {
+                var t2 = (displayedLength - accumLength) / l;
                 ctx.lineTo(xi * (1 - t2) + x0 * t2, yi * (1 - t2) + y0 * t2);
                 break lo;
               }
-              accumLength += l2;
+              accumLength += l;
             }
             ctx.closePath();
             xi = x0;
@@ -19968,14 +17142,14 @@ var PathProxy = function() {
   }();
   return PathProxy2;
 }();
-function containStroke$4(x0, y0, x1, y1, lineWidth, x, y2) {
+function containStroke$4(x0, y0, x1, y1, lineWidth, x, y) {
   if (lineWidth === 0) {
     return false;
   }
   var _l = lineWidth;
   var _a2 = 0;
   var _b2 = x0;
-  if (y2 > y0 + _l && y2 > y1 + _l || y2 < y0 - _l && y2 < y1 - _l || x > x0 + _l && x > x1 + _l || x < x0 - _l && x < x1 - _l) {
+  if (y > y0 + _l && y > y1 + _l || y < y0 - _l && y < y1 - _l || x > x0 + _l && x > x1 + _l || x < x0 - _l && x < x1 - _l) {
     return false;
   }
   if (x0 !== x1) {
@@ -19984,31 +17158,31 @@ function containStroke$4(x0, y0, x1, y1, lineWidth, x, y2) {
   } else {
     return Math.abs(x - x0) <= _l / 2;
   }
-  var tmp = _a2 * x - y2 + _b2;
-  var _s2 = tmp * tmp / (_a2 * _a2 + 1);
-  return _s2 <= _l / 2 * _l / 2;
+  var tmp = _a2 * x - y + _b2;
+  var _s = tmp * tmp / (_a2 * _a2 + 1);
+  return _s <= _l / 2 * _l / 2;
 }
-function containStroke$3(x0, y0, x1, y1, x2, y2, x3, y3, lineWidth, x, y4) {
+function containStroke$3(x0, y0, x1, y1, x2, y2, x3, y3, lineWidth, x, y) {
   if (lineWidth === 0) {
     return false;
   }
   var _l = lineWidth;
-  if (y4 > y0 + _l && y4 > y1 + _l && y4 > y2 + _l && y4 > y3 + _l || y4 < y0 - _l && y4 < y1 - _l && y4 < y2 - _l && y4 < y3 - _l || x > x0 + _l && x > x1 + _l && x > x2 + _l && x > x3 + _l || x < x0 - _l && x < x1 - _l && x < x2 - _l && x < x3 - _l) {
+  if (y > y0 + _l && y > y1 + _l && y > y2 + _l && y > y3 + _l || y < y0 - _l && y < y1 - _l && y < y2 - _l && y < y3 - _l || x > x0 + _l && x > x1 + _l && x > x2 + _l && x > x3 + _l || x < x0 - _l && x < x1 - _l && x < x2 - _l && x < x3 - _l) {
     return false;
   }
-  var d2 = cubicProjectPoint(x0, y0, x1, y1, x2, y2, x3, y3, x, y4, null);
-  return d2 <= _l / 2;
+  var d = cubicProjectPoint(x0, y0, x1, y1, x2, y2, x3, y3, x, y, null);
+  return d <= _l / 2;
 }
-function containStroke$2(x0, y0, x1, y1, x2, y2, lineWidth, x, y3) {
+function containStroke$2(x0, y0, x1, y1, x2, y2, lineWidth, x, y) {
   if (lineWidth === 0) {
     return false;
   }
   var _l = lineWidth;
-  if (y3 > y0 + _l && y3 > y1 + _l && y3 > y2 + _l || y3 < y0 - _l && y3 < y1 - _l && y3 < y2 - _l || x > x0 + _l && x > x1 + _l && x > x2 + _l || x < x0 - _l && x < x1 - _l && x < x2 - _l) {
+  if (y > y0 + _l && y > y1 + _l && y > y2 + _l || y < y0 - _l && y < y1 - _l && y < y2 - _l || x > x0 + _l && x > x1 + _l && x > x2 + _l || x < x0 - _l && x < x1 - _l && x < x2 - _l) {
     return false;
   }
-  var d2 = quadraticProjectPoint(x0, y0, x1, y1, x2, y2, x, y3, null);
-  return d2 <= _l / 2;
+  var d = quadraticProjectPoint(x0, y0, x1, y1, x2, y2, x, y, null);
+  return d <= _l / 2;
 }
 var PI2$6 = Math.PI * 2;
 function normalizeRadian(angle) {
@@ -20019,15 +17193,15 @@ function normalizeRadian(angle) {
   return angle;
 }
 var PI2$5 = Math.PI * 2;
-function containStroke$1(cx, cy, r2, startAngle, endAngle, anticlockwise, lineWidth, x, y2) {
+function containStroke$1(cx, cy, r, startAngle, endAngle, anticlockwise, lineWidth, x, y) {
   if (lineWidth === 0) {
     return false;
   }
   var _l = lineWidth;
   x -= cx;
-  y2 -= cy;
-  var d2 = Math.sqrt(x * x + y2 * y2);
-  if (d2 - _l > r2 || d2 + _l < r2) {
+  y -= cy;
+  var d = Math.sqrt(x * x + y * y);
+  if (d - _l > r || d + _l < r) {
     return false;
   }
   if (Math.abs(startAngle - endAngle) % PI2$5 < 1e-4) {
@@ -20044,20 +17218,20 @@ function containStroke$1(cx, cy, r2, startAngle, endAngle, anticlockwise, lineWi
   if (startAngle > endAngle) {
     endAngle += PI2$5;
   }
-  var angle = Math.atan2(y2, x);
+  var angle = Math.atan2(y, x);
   if (angle < 0) {
     angle += PI2$5;
   }
   return angle >= startAngle && angle <= endAngle || angle + PI2$5 >= startAngle && angle + PI2$5 <= endAngle;
 }
-function windingLine(x0, y0, x1, y1, x, y2) {
-  if (y2 > y0 && y2 > y1 || y2 < y0 && y2 < y1) {
+function windingLine(x0, y0, x1, y1, x, y) {
+  if (y > y0 && y > y1 || y < y0 && y < y1) {
     return 0;
   }
   if (y1 === y0) {
     return 0;
   }
-  var t2 = (y2 - y0) / (y1 - y0);
+  var t2 = (y - y0) / (y1 - y0);
   var dir3 = y1 < y0 ? 1 : -1;
   if (t2 === 1 || t2 === 0) {
     dir3 = y1 < y0 ? 0.5 : -0.5;
@@ -20068,8 +17242,8 @@ function windingLine(x0, y0, x1, y1, x, y2) {
 var CMD$3 = PathProxy.CMD;
 var PI2$4 = Math.PI * 2;
 var EPSILON$1 = 1e-4;
-function isAroundEqual$1(a2, b2) {
-  return Math.abs(a2 - b2) < EPSILON$1;
+function isAroundEqual$1(a, b) {
+  return Math.abs(a - b) < EPSILON$1;
 }
 var roots = [-1, -1, -1];
 var extrema = [-1, -1];
@@ -20078,15 +17252,15 @@ function swapExtrema() {
   extrema[0] = extrema[1];
   extrema[1] = tmp;
 }
-function windingCubic(x0, y0, x1, y1, x2, y2, x3, y3, x, y4) {
-  if (y4 > y0 && y4 > y1 && y4 > y2 && y4 > y3 || y4 < y0 && y4 < y1 && y4 < y2 && y4 < y3) {
+function windingCubic(x0, y0, x1, y1, x2, y2, x3, y3, x, y) {
+  if (y > y0 && y > y1 && y > y2 && y > y3 || y < y0 && y < y1 && y < y2 && y < y3) {
     return 0;
   }
-  var nRoots = cubicRootAt(y0, y1, y2, y3, y4, roots);
+  var nRoots = cubicRootAt(y0, y1, y2, y3, y, roots);
   if (nRoots === 0) {
     return 0;
   } else {
-    var w2 = 0;
+    var w = 0;
     var nExtrema = -1;
     var y0_ = void 0;
     var y1_ = void 0;
@@ -20109,34 +17283,34 @@ function windingCubic(x0, y0, x1, y1, x2, y2, x3, y3, x, y4) {
       }
       if (nExtrema === 2) {
         if (t2 < extrema[0]) {
-          w2 += y0_ < y0 ? unit : -unit;
+          w += y0_ < y0 ? unit : -unit;
         } else if (t2 < extrema[1]) {
-          w2 += y1_ < y0_ ? unit : -unit;
+          w += y1_ < y0_ ? unit : -unit;
         } else {
-          w2 += y3 < y1_ ? unit : -unit;
+          w += y3 < y1_ ? unit : -unit;
         }
       } else {
         if (t2 < extrema[0]) {
-          w2 += y0_ < y0 ? unit : -unit;
+          w += y0_ < y0 ? unit : -unit;
         } else {
-          w2 += y3 < y0_ ? unit : -unit;
+          w += y3 < y0_ ? unit : -unit;
         }
       }
     }
-    return w2;
+    return w;
   }
 }
-function windingQuadratic(x0, y0, x1, y1, x2, y2, x, y3) {
-  if (y3 > y0 && y3 > y1 && y3 > y2 || y3 < y0 && y3 < y1 && y3 < y2) {
+function windingQuadratic(x0, y0, x1, y1, x2, y2, x, y) {
+  if (y > y0 && y > y1 && y > y2 || y < y0 && y < y1 && y < y2) {
     return 0;
   }
-  var nRoots = quadraticRootAt(y0, y1, y2, y3, roots);
+  var nRoots = quadraticRootAt(y0, y1, y2, y, roots);
   if (nRoots === 0) {
     return 0;
   } else {
     var t2 = quadraticExtremum(y0, y1, y2);
     if (t2 >= 0 && t2 <= 1) {
-      var w2 = 0;
+      var w = 0;
       var y_ = quadraticAt$1(y0, y1, y2, t2);
       for (var i = 0; i < nRoots; i++) {
         var unit = roots[i] === 0 || roots[i] === 1 ? 0.5 : 1;
@@ -20145,12 +17319,12 @@ function windingQuadratic(x0, y0, x1, y1, x2, y2, x, y3) {
           continue;
         }
         if (roots[i] < t2) {
-          w2 += y_ < y0 ? unit : -unit;
+          w += y_ < y0 ? unit : -unit;
         } else {
-          w2 += y2 < y_ ? unit : -unit;
+          w += y2 < y_ ? unit : -unit;
         }
       }
-      return w2;
+      return w;
     } else {
       var unit = roots[0] === 0 || roots[0] === 1 ? 0.5 : 1;
       var x_ = quadraticAt$1(x0, x1, x2, roots[0]);
@@ -20161,12 +17335,12 @@ function windingQuadratic(x0, y0, x1, y1, x2, y2, x, y3) {
     }
   }
 }
-function windingArc(cx, cy, r2, startAngle, endAngle, anticlockwise, x, y2) {
-  y2 -= cy;
-  if (y2 > r2 || y2 < -r2) {
+function windingArc(cx, cy, r, startAngle, endAngle, anticlockwise, x, y) {
+  y -= cy;
+  if (y > r || y < -r) {
     return 0;
   }
-  var tmp = Math.sqrt(r2 * r2 - y2 * y2);
+  var tmp = Math.sqrt(r * r - y * y);
   roots[0] = -tmp;
   roots[1] = tmp;
   var dTheta = Math.abs(startAngle - endAngle);
@@ -20192,11 +17366,11 @@ function windingArc(cx, cy, r2, startAngle, endAngle, anticlockwise, x, y2) {
     startAngle += PI2$4;
     endAngle += PI2$4;
   }
-  var w2 = 0;
+  var w = 0;
   for (var i = 0; i < 2; i++) {
     var x_ = roots[i];
     if (x_ + cx > x) {
-      var angle = Math.atan2(y2, x_);
+      var angle = Math.atan2(y, x_);
       var dir3 = anticlockwise ? 1 : -1;
       if (angle < 0) {
         angle = PI2$4 + angle;
@@ -20205,16 +17379,16 @@ function windingArc(cx, cy, r2, startAngle, endAngle, anticlockwise, x, y2) {
         if (angle > Math.PI / 2 && angle < Math.PI * 1.5) {
           dir3 = -dir3;
         }
-        w2 += dir3;
+        w += dir3;
       }
     }
   }
-  return w2;
+  return w;
 }
-function containPath(path, lineWidth, isStroke, x, y2) {
+function containPath(path, lineWidth, isStroke, x, y) {
   var data = path.data;
   var len2 = path.len();
-  var w2 = 0;
+  var w = 0;
   var xi = 0;
   var yi = 0;
   var x0 = 0;
@@ -20226,7 +17400,7 @@ function containPath(path, lineWidth, isStroke, x, y2) {
     var isFirst = i === 1;
     if (cmd === CMD$3.M && i > 1) {
       if (!isStroke) {
-        w2 += windingLine(xi, yi, x0, y0, x, y2);
+        w += windingLine(xi, yi, x0, y0, x, y);
       }
     }
     if (isFirst) {
@@ -20244,33 +17418,33 @@ function containPath(path, lineWidth, isStroke, x, y2) {
         break;
       case CMD$3.L:
         if (isStroke) {
-          if (containStroke$4(xi, yi, data[i], data[i + 1], lineWidth, x, y2)) {
+          if (containStroke$4(xi, yi, data[i], data[i + 1], lineWidth, x, y)) {
             return true;
           }
         } else {
-          w2 += windingLine(xi, yi, data[i], data[i + 1], x, y2) || 0;
+          w += windingLine(xi, yi, data[i], data[i + 1], x, y) || 0;
         }
         xi = data[i++];
         yi = data[i++];
         break;
       case CMD$3.C:
         if (isStroke) {
-          if (containStroke$3(xi, yi, data[i++], data[i++], data[i++], data[i++], data[i], data[i + 1], lineWidth, x, y2)) {
+          if (containStroke$3(xi, yi, data[i++], data[i++], data[i++], data[i++], data[i], data[i + 1], lineWidth, x, y)) {
             return true;
           }
         } else {
-          w2 += windingCubic(xi, yi, data[i++], data[i++], data[i++], data[i++], data[i], data[i + 1], x, y2) || 0;
+          w += windingCubic(xi, yi, data[i++], data[i++], data[i++], data[i++], data[i], data[i + 1], x, y) || 0;
         }
         xi = data[i++];
         yi = data[i++];
         break;
       case CMD$3.Q:
         if (isStroke) {
-          if (containStroke$2(xi, yi, data[i++], data[i++], data[i], data[i + 1], lineWidth, x, y2)) {
+          if (containStroke$2(xi, yi, data[i++], data[i++], data[i], data[i + 1], lineWidth, x, y)) {
             return true;
           }
         } else {
-          w2 += windingQuadratic(xi, yi, data[i++], data[i++], data[i], data[i + 1], x, y2) || 0;
+          w += windingQuadratic(xi, yi, data[i++], data[i++], data[i], data[i + 1], x, y) || 0;
         }
         xi = data[i++];
         yi = data[i++];
@@ -20287,18 +17461,18 @@ function containPath(path, lineWidth, isStroke, x, y2) {
         x1 = Math.cos(theta) * rx + cx;
         y1 = Math.sin(theta) * ry + cy;
         if (!isFirst) {
-          w2 += windingLine(xi, yi, x1, y1, x, y2);
+          w += windingLine(xi, yi, x1, y1, x, y);
         } else {
           x0 = x1;
           y0 = y1;
         }
         var _x = (x - cx) * ry / rx + cx;
         if (isStroke) {
-          if (containStroke$1(cx, cy, ry, theta, theta + dTheta, anticlockwise, lineWidth, _x, y2)) {
+          if (containStroke$1(cx, cy, ry, theta, theta + dTheta, anticlockwise, lineWidth, _x, y)) {
             return true;
           }
         } else {
-          w2 += windingArc(cx, cy, ry, theta, theta + dTheta, anticlockwise, _x, y2);
+          w += windingArc(cx, cy, ry, theta, theta + dTheta, anticlockwise, _x, y);
         }
         xi = Math.cos(theta + dTheta) * rx + cx;
         yi = Math.sin(theta + dTheta) * ry + cy;
@@ -20311,21 +17485,21 @@ function containPath(path, lineWidth, isStroke, x, y2) {
         x1 = x0 + width;
         y1 = y0 + height;
         if (isStroke) {
-          if (containStroke$4(x0, y0, x1, y0, lineWidth, x, y2) || containStroke$4(x1, y0, x1, y1, lineWidth, x, y2) || containStroke$4(x1, y1, x0, y1, lineWidth, x, y2) || containStroke$4(x0, y1, x0, y0, lineWidth, x, y2)) {
+          if (containStroke$4(x0, y0, x1, y0, lineWidth, x, y) || containStroke$4(x1, y0, x1, y1, lineWidth, x, y) || containStroke$4(x1, y1, x0, y1, lineWidth, x, y) || containStroke$4(x0, y1, x0, y0, lineWidth, x, y)) {
             return true;
           }
         } else {
-          w2 += windingLine(x1, y0, x1, y1, x, y2);
-          w2 += windingLine(x0, y1, x0, y0, x, y2);
+          w += windingLine(x1, y0, x1, y1, x, y);
+          w += windingLine(x0, y1, x0, y0, x, y);
         }
         break;
       case CMD$3.Z:
         if (isStroke) {
-          if (containStroke$4(xi, yi, x0, y0, lineWidth, x, y2)) {
+          if (containStroke$4(xi, yi, x0, y0, lineWidth, x, y)) {
             return true;
           }
         } else {
-          w2 += windingLine(xi, yi, x0, y0, x, y2);
+          w += windingLine(xi, yi, x0, y0, x, y);
         }
         xi = x0;
         yi = y0;
@@ -20333,15 +17507,15 @@ function containPath(path, lineWidth, isStroke, x, y2) {
     }
   }
   if (!isStroke && !isAroundEqual$1(yi, y0)) {
-    w2 += windingLine(xi, yi, x0, y0, x, y2) || 0;
+    w += windingLine(xi, yi, x0, y0, x, y) || 0;
   }
-  return w2 !== 0;
+  return w !== 0;
 }
-function contain$2(pathProxy, x, y2) {
-  return containPath(pathProxy, 0, false, x, y2);
+function contain$2(pathProxy, x, y) {
+  return containPath(pathProxy, 0, false, x, y);
 }
-function containStroke(pathProxy, lineWidth, x, y2) {
-  return containPath(pathProxy, lineWidth, true, x, y2);
+function containStroke(pathProxy, lineWidth, x, y) {
+  return containPath(pathProxy, lineWidth, true, x, y);
 }
 var DEFAULT_PATH_STYLE = defaults({
   fill: "#000",
@@ -20525,29 +17699,29 @@ var Path = function(_super) {
       if (this.__dirty || needsUpdateRect) {
         rectStroke.copy(rect);
         var lineScale = style.strokeNoScale ? this.getLineScale() : 1;
-        var w2 = style.lineWidth;
+        var w = style.lineWidth;
         if (!this.hasFill()) {
           var strokeContainThreshold = this.strokeContainThreshold;
-          w2 = Math.max(w2, strokeContainThreshold == null ? 4 : strokeContainThreshold);
+          w = Math.max(w, strokeContainThreshold == null ? 4 : strokeContainThreshold);
         }
         if (lineScale > 1e-10) {
-          rectStroke.width += w2 / lineScale;
-          rectStroke.height += w2 / lineScale;
-          rectStroke.x -= w2 / lineScale / 2;
-          rectStroke.y -= w2 / lineScale / 2;
+          rectStroke.width += w / lineScale;
+          rectStroke.height += w / lineScale;
+          rectStroke.x -= w / lineScale / 2;
+          rectStroke.y -= w / lineScale / 2;
         }
       }
       return rectStroke;
     }
     return rect;
   };
-  Path2.prototype.contain = function(x, y2) {
-    var localPos = this.transformCoordToLocal(x, y2);
+  Path2.prototype.contain = function(x, y) {
+    var localPos = this.transformCoordToLocal(x, y);
     var rect = this.getBoundingRect();
     var style = this.style;
     x = localPos[0];
-    y2 = localPos[1];
-    if (rect.contain(x, y2)) {
+    y = localPos[1];
+    if (rect.contain(x, y)) {
       var pathProxy = this.path;
       if (this.hasStroke()) {
         var lineWidth = style.lineWidth;
@@ -20556,13 +17730,13 @@ var Path = function(_super) {
           if (!this.hasFill()) {
             lineWidth = Math.max(lineWidth, this.strokeContainThreshold);
           }
-          if (containStroke(pathProxy, lineWidth / lineScale, x, y2)) {
+          if (containStroke(pathProxy, lineWidth / lineScale, x, y)) {
             return true;
           }
         }
       }
       if (this.hasFill()) {
-        return contain$2(pathProxy, x, y2);
+        return contain$2(pathProxy, x, y);
       }
     }
     return false;
@@ -20762,11 +17936,11 @@ var TSpan = function(_super) {
       rect.x += style.x || 0;
       rect.y += style.y || 0;
       if (this.hasStroke()) {
-        var w2 = style.lineWidth;
-        rect.x -= w2 / 2;
-        rect.y -= w2 / 2;
-        rect.width += w2;
-        rect.height += w2;
+        var w = style.lineWidth;
+        rect.x -= w / 2;
+        rect.y -= w / 2;
+        rect.width += w;
+        rect.height += w;
       }
       this._rect = rect;
     }
@@ -20847,12 +18021,12 @@ ZRImage.prototype.type = "image";
 const ZRImage$1 = ZRImage;
 function buildPath$2(ctx, shape) {
   var x = shape.x;
-  var y2 = shape.y;
+  var y = shape.y;
   var width = shape.width;
   var height = shape.height;
-  var r2 = shape.r;
+  var r = shape.r;
   var r1;
-  var r22;
+  var r2;
   var r3;
   var r4;
   if (width < 0) {
@@ -20860,44 +18034,44 @@ function buildPath$2(ctx, shape) {
     width = -width;
   }
   if (height < 0) {
-    y2 = y2 + height;
+    y = y + height;
     height = -height;
   }
-  if (typeof r2 === "number") {
-    r1 = r22 = r3 = r4 = r2;
-  } else if (r2 instanceof Array) {
-    if (r2.length === 1) {
-      r1 = r22 = r3 = r4 = r2[0];
-    } else if (r2.length === 2) {
-      r1 = r3 = r2[0];
-      r22 = r4 = r2[1];
-    } else if (r2.length === 3) {
-      r1 = r2[0];
-      r22 = r4 = r2[1];
-      r3 = r2[2];
+  if (typeof r === "number") {
+    r1 = r2 = r3 = r4 = r;
+  } else if (r instanceof Array) {
+    if (r.length === 1) {
+      r1 = r2 = r3 = r4 = r[0];
+    } else if (r.length === 2) {
+      r1 = r3 = r[0];
+      r2 = r4 = r[1];
+    } else if (r.length === 3) {
+      r1 = r[0];
+      r2 = r4 = r[1];
+      r3 = r[2];
     } else {
-      r1 = r2[0];
-      r22 = r2[1];
-      r3 = r2[2];
-      r4 = r2[3];
+      r1 = r[0];
+      r2 = r[1];
+      r3 = r[2];
+      r4 = r[3];
     }
   } else {
-    r1 = r22 = r3 = r4 = 0;
+    r1 = r2 = r3 = r4 = 0;
   }
   var total;
-  if (r1 + r22 > width) {
-    total = r1 + r22;
+  if (r1 + r2 > width) {
+    total = r1 + r2;
     r1 *= width / total;
-    r22 *= width / total;
+    r2 *= width / total;
   }
   if (r3 + r4 > width) {
     total = r3 + r4;
     r3 *= width / total;
     r4 *= width / total;
   }
-  if (r22 + r3 > height) {
-    total = r22 + r3;
-    r22 *= height / total;
+  if (r2 + r3 > height) {
+    total = r2 + r3;
+    r2 *= height / total;
     r3 *= height / total;
   }
   if (r1 + r4 > height) {
@@ -20905,15 +18079,15 @@ function buildPath$2(ctx, shape) {
     r1 *= height / total;
     r4 *= height / total;
   }
-  ctx.moveTo(x + r1, y2);
-  ctx.lineTo(x + width - r22, y2);
-  r22 !== 0 && ctx.arc(x + width - r22, y2 + r22, r22, -Math.PI / 2, 0);
-  ctx.lineTo(x + width, y2 + height - r3);
-  r3 !== 0 && ctx.arc(x + width - r3, y2 + height - r3, r3, 0, Math.PI / 2);
-  ctx.lineTo(x + r4, y2 + height);
-  r4 !== 0 && ctx.arc(x + r4, y2 + height - r4, r4, Math.PI / 2, Math.PI);
-  ctx.lineTo(x, y2 + r1);
-  r1 !== 0 && ctx.arc(x + r1, y2 + r1, r1, Math.PI, Math.PI * 1.5);
+  ctx.moveTo(x + r1, y);
+  ctx.lineTo(x + width - r2, y);
+  r2 !== 0 && ctx.arc(x + width - r2, y + r2, r2, -Math.PI / 2, 0);
+  ctx.lineTo(x + width, y + height - r3);
+  r3 !== 0 && ctx.arc(x + width - r3, y + height - r3, r3, 0, Math.PI / 2);
+  ctx.lineTo(x + r4, y + height);
+  r4 !== 0 && ctx.arc(x + r4, y + height - r4, r4, Math.PI / 2, Math.PI);
+  ctx.lineTo(x, y + r1);
+  r1 !== 0 && ctx.arc(x + r1, y + r1, r1, Math.PI, Math.PI * 1.5);
 }
 var round$2 = Math.round;
 function subPixelOptimizeLine$1(outputShape, inputShape, style) {
@@ -20989,25 +18163,25 @@ var Rect$2 = function(_super) {
   };
   Rect2.prototype.buildPath = function(ctx, shape) {
     var x;
-    var y2;
+    var y;
     var width;
     var height;
     if (this.subPixelOptimize) {
       var optimizedShape = subPixelOptimizeRect$1(subPixelOptimizeOutputShape$1, shape, this.style);
       x = optimizedShape.x;
-      y2 = optimizedShape.y;
+      y = optimizedShape.y;
       width = optimizedShape.width;
       height = optimizedShape.height;
       optimizedShape.r = shape.r;
       shape = optimizedShape;
     } else {
       x = shape.x;
-      y2 = shape.y;
+      y = shape.y;
       width = shape.width;
       height = shape.height;
     }
     if (!shape.r) {
-      ctx.rect(x, y2, width, height);
+      ctx.rect(x, y, width, height);
     } else {
       buildPath$2(ctx, shape);
     }
@@ -21325,19 +18499,19 @@ var ZRText = function(_super) {
     var tokenStyle = style.rich[token.styleName] || {};
     tokenStyle.text = token.text;
     var verticalAlign = token.verticalAlign;
-    var y2 = lineTop + lineHeight / 2;
+    var y = lineTop + lineHeight / 2;
     if (verticalAlign === "top") {
-      y2 = lineTop + token.height / 2;
+      y = lineTop + token.height / 2;
     } else if (verticalAlign === "bottom") {
-      y2 = lineTop + lineHeight - token.height / 2;
+      y = lineTop + lineHeight - token.height / 2;
     }
     var needDrawBg = !token.isLineHolder && needDrawBackground(tokenStyle);
-    needDrawBg && this._renderBackground(tokenStyle, style, textAlign === "right" ? x - token.width : textAlign === "center" ? x - token.width / 2 : x, y2 - token.height / 2, token.width, token.height);
+    needDrawBg && this._renderBackground(tokenStyle, style, textAlign === "right" ? x - token.width : textAlign === "center" ? x - token.width / 2 : x, y - token.height / 2, token.width, token.height);
     var bgColorDrawn = !!tokenStyle.backgroundColor;
     var textPadding = token.textPadding;
     if (textPadding) {
       x = getTextXForPadding(x, textAlign, textPadding);
-      y2 -= token.height / 2 - textPadding[0] - token.innerHeight / 2;
+      y -= token.height / 2 - textPadding[0] - token.innerHeight / 2;
     }
     var el = this._getOrCreateChild(TSpan$1);
     var subElStyle = el.createStyle();
@@ -21350,7 +18524,7 @@ var ZRText = function(_super) {
     var hasShadow2 = tokenStyle.textShadowBlur > 0 || style.textShadowBlur > 0;
     subElStyle.text = token.text;
     subElStyle.x = x;
-    subElStyle.y = y2;
+    subElStyle.y = y;
     if (hasShadow2) {
       subElStyle.shadowBlur = tokenStyle.textShadowBlur || style.textShadowBlur || 0;
       subElStyle.shadowColor = tokenStyle.textShadowColor || style.textShadowColor || "transparent";
@@ -21375,7 +18549,7 @@ var ZRText = function(_super) {
     var textHeight = token.contentHeight;
     el.setBoundingRect(new BoundingRect$1(adjustTextX(subElStyle.x, textWidth, subElStyle.textAlign), adjustTextY(subElStyle.y, textHeight, subElStyle.textBaseline), textWidth, textHeight));
   };
-  ZRText2.prototype._renderBackground = function(style, topStyle, x, y2, width, height) {
+  ZRText2.prototype._renderBackground = function(style, topStyle, x, y, width, height) {
     var textBackgroundColor = style.backgroundColor;
     var textBorderWidth = style.borderWidth;
     var textBorderColor = style.borderColor;
@@ -21391,7 +18565,7 @@ var ZRText = function(_super) {
       rectEl.style.fill = null;
       var rectShape = rectEl.shape;
       rectShape.x = x;
-      rectShape.y = y2;
+      rectShape.y = y;
       rectShape.width = width;
       rectShape.height = height;
       rectShape.r = textBorderRadius;
@@ -21409,7 +18583,7 @@ var ZRText = function(_super) {
       var imgStyle = imgEl.style;
       imgStyle.image = textBackgroundColor.image;
       imgStyle.x = x;
-      imgStyle.y = y2;
+      imgStyle.y = y;
       imgStyle.width = width;
       imgStyle.height = height;
     }
@@ -21800,8 +18974,8 @@ function blurSeries(targetSeriesIndex, focus, blurScope, api) {
         leaveBlurOfIndices(seriesModel.getData(), focus);
       } else if (isObject$3(focus)) {
         var dataTypes = keys(focus);
-        for (var d2 = 0; d2 < dataTypes.length; d2++) {
-          leaveBlurOfIndices(seriesModel.getData(dataTypes[d2]), focus[dataTypes[d2]]);
+        for (var d = 0; d < dataTypes.length; d++) {
+          leaveBlurOfIndices(seriesModel.getData(dataTypes[d]), focus[dataTypes[d]]);
         }
       }
       blurredSeries.push(seriesModel);
@@ -22067,68 +19241,68 @@ function transformPath(path, m2) {
   var cmd;
   var nPoint;
   var i;
-  var j2;
+  var j;
   var k;
   var p2;
-  var M2 = CMD$2.M;
-  var C2 = CMD$2.C;
-  var L2 = CMD$2.L;
-  var R2 = CMD$2.R;
-  var A2 = CMD$2.A;
-  var Q2 = CMD$2.Q;
-  for (i = 0, j2 = 0; i < len2; ) {
+  var M = CMD$2.M;
+  var C = CMD$2.C;
+  var L = CMD$2.L;
+  var R = CMD$2.R;
+  var A = CMD$2.A;
+  var Q = CMD$2.Q;
+  for (i = 0, j = 0; i < len2; ) {
     cmd = data[i++];
-    j2 = i;
+    j = i;
     nPoint = 0;
     switch (cmd) {
-      case M2:
+      case M:
         nPoint = 1;
         break;
-      case L2:
+      case L:
         nPoint = 1;
         break;
-      case C2:
+      case C:
         nPoint = 3;
         break;
-      case Q2:
+      case Q:
         nPoint = 2;
         break;
-      case A2:
+      case A:
         var x = m2[4];
-        var y2 = m2[5];
+        var y = m2[5];
         var sx = mathSqrt$2(m2[0] * m2[0] + m2[1] * m2[1]);
         var sy = mathSqrt$2(m2[2] * m2[2] + m2[3] * m2[3]);
         var angle = mathAtan2(-m2[1] / sy, m2[0] / sx);
         data[i] *= sx;
         data[i++] += x;
         data[i] *= sy;
-        data[i++] += y2;
+        data[i++] += y;
         data[i++] *= sx;
         data[i++] *= sy;
         data[i++] += angle;
         data[i++] += angle;
         i += 2;
-        j2 = i;
+        j = i;
         break;
-      case R2:
+      case R:
         p2[0] = data[i++];
         p2[1] = data[i++];
         applyTransform$1(p2, p2, m2);
-        data[j2++] = p2[0];
-        data[j2++] = p2[1];
+        data[j++] = p2[0];
+        data[j++] = p2[1];
         p2[0] += data[i++];
         p2[1] += data[i++];
         applyTransform$1(p2, p2, m2);
-        data[j2++] = p2[0];
-        data[j2++] = p2[1];
+        data[j++] = p2[0];
+        data[j++] = p2[1];
     }
     for (k = 0; k < nPoint; k++) {
       var p_1 = points$2[k];
       p_1[0] = data[i++];
       p_1[1] = data[i++];
       applyTransform$1(p_1, p_1, m2);
-      data[j2++] = p_1[0];
-      data[j2++] = p_1[1];
+      data[j++] = p_1[0];
+      data[j++] = p_1[1];
     }
   }
   path.increaseVersion();
@@ -22137,16 +19311,16 @@ var mathSqrt$1 = Math.sqrt;
 var mathSin$2 = Math.sin;
 var mathCos$2 = Math.cos;
 var PI$7 = Math.PI;
-function vMag(v4) {
-  return Math.sqrt(v4[0] * v4[0] + v4[1] * v4[1]);
+function vMag(v) {
+  return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
 }
-function vRatio(u2, v4) {
-  return (u2[0] * v4[0] + u2[1] * v4[1]) / (vMag(u2) * vMag(v4));
+function vRatio(u, v) {
+  return (u[0] * v[0] + u[1] * v[1]) / (vMag(u) * vMag(v));
 }
-function vAngle(u2, v4) {
-  return (u2[0] * v4[1] < u2[1] * v4[0] ? -1 : 1) * Math.acos(vRatio(u2, v4));
+function vAngle(u, v) {
+  return (u[0] * v[1] < u[1] * v[0] ? -1 : 1) * Math.acos(vRatio(u, v));
 }
-function processArc(x1, y1, x2, y2, fa, fs2, rx, ry, psiDeg, cmd, path) {
+function processArc(x1, y1, x2, y2, fa, fs, rx, ry, psiDeg, cmd, path) {
   var psi = psiDeg * (PI$7 / 180);
   var xp = mathCos$2(psi) * (x1 - x2) / 2 + mathSin$2(psi) * (y1 - y2) / 2;
   var yp = -1 * mathSin$2(psi) * (x1 - x2) / 2 + mathCos$2(psi) * (y1 - y2) / 2;
@@ -22155,26 +19329,26 @@ function processArc(x1, y1, x2, y2, fa, fs2, rx, ry, psiDeg, cmd, path) {
     rx *= mathSqrt$1(lambda);
     ry *= mathSqrt$1(lambda);
   }
-  var f2 = (fa === fs2 ? -1 : 1) * mathSqrt$1((rx * rx * (ry * ry) - rx * rx * (yp * yp) - ry * ry * (xp * xp)) / (rx * rx * (yp * yp) + ry * ry * (xp * xp))) || 0;
+  var f2 = (fa === fs ? -1 : 1) * mathSqrt$1((rx * rx * (ry * ry) - rx * rx * (yp * yp) - ry * ry * (xp * xp)) / (rx * rx * (yp * yp) + ry * ry * (xp * xp))) || 0;
   var cxp = f2 * rx * yp / ry;
   var cyp = f2 * -ry * xp / rx;
   var cx = (x1 + x2) / 2 + mathCos$2(psi) * cxp - mathSin$2(psi) * cyp;
   var cy = (y1 + y2) / 2 + mathSin$2(psi) * cxp + mathCos$2(psi) * cyp;
   var theta = vAngle([1, 0], [(xp - cxp) / rx, (yp - cyp) / ry]);
-  var u2 = [(xp - cxp) / rx, (yp - cyp) / ry];
-  var v4 = [(-1 * xp - cxp) / rx, (-1 * yp - cyp) / ry];
-  var dTheta = vAngle(u2, v4);
-  if (vRatio(u2, v4) <= -1) {
+  var u = [(xp - cxp) / rx, (yp - cyp) / ry];
+  var v = [(-1 * xp - cxp) / rx, (-1 * yp - cyp) / ry];
+  var dTheta = vAngle(u, v);
+  if (vRatio(u, v) <= -1) {
     dTheta = PI$7;
   }
-  if (vRatio(u2, v4) >= 1) {
+  if (vRatio(u, v) >= 1) {
     dTheta = 0;
   }
   if (dTheta < 0) {
     var n2 = Math.round(dTheta / PI$7 * 1e6) / 1e6;
     dTheta = PI$7 * 2 + n2 % 2 * PI$7;
   }
-  path.addData(cmd, cx, cy, rx, ry, theta, dTheta, psi, fs2);
+  path.addData(cmd, cx, cy, rx, ry, theta, dTheta, psi, fs);
 }
 var commandReg = /([mlvhzcqtsa])([^mlvhzcqtsa]*)/ig;
 var numberReg$1 = /-?([0-9]*\.)?[0-9]+([eE]-?[0-9]+)?/g;
@@ -22193,8 +19367,8 @@ function createPathProxyFromString(data) {
   if (!cmdList) {
     return path;
   }
-  for (var l2 = 0; l2 < cmdList.length; l2++) {
-    var cmdText = cmdList[l2];
+  for (var l = 0; l < cmdList.length; l++) {
+    var cmdText = cmdList[l];
     var cmdStr = cmdText.charAt(0);
     var cmd = void 0;
     var p2 = cmdText.match(numberReg$1) || [];
@@ -22210,7 +19384,7 @@ function createPathProxyFromString(data) {
       var ry = void 0;
       var psi = void 0;
       var fa = void 0;
-      var fs2 = void 0;
+      var fs = void 0;
       var x1 = cpx;
       var y1 = cpy;
       var len2 = void 0;
@@ -22359,24 +19533,24 @@ function createPathProxyFromString(data) {
           ry = p2[off++];
           psi = p2[off++];
           fa = p2[off++];
-          fs2 = p2[off++];
+          fs = p2[off++];
           x1 = cpx, y1 = cpy;
           cpx = p2[off++];
           cpy = p2[off++];
           cmd = CMD2.A;
-          processArc(x1, y1, cpx, cpy, fa, fs2, rx, ry, psi, cmd, path);
+          processArc(x1, y1, cpx, cpy, fa, fs, rx, ry, psi, cmd, path);
           break;
         case "a":
           rx = p2[off++];
           ry = p2[off++];
           psi = p2[off++];
           fa = p2[off++];
-          fs2 = p2[off++];
+          fs = p2[off++];
           x1 = cpx, y1 = cpy;
           cpx += p2[off++];
           cpy += p2[off++];
           cmd = CMD2.A;
-          processArc(x1, y1, cpx, cpy, fa, fs2, rx, ry, psi, cmd, path);
+          processArc(x1, y1, cpx, cpy, fa, fs, rx, ry, psi, cmd, path);
           break;
       }
     }
@@ -22528,16 +19702,16 @@ var Ellipse = function(_super) {
   Ellipse2.prototype.buildPath = function(ctx, shape) {
     var k = 0.5522848;
     var x = shape.cx;
-    var y2 = shape.cy;
-    var a2 = shape.rx;
-    var b2 = shape.ry;
-    var ox = a2 * k;
-    var oy = b2 * k;
-    ctx.moveTo(x - a2, y2);
-    ctx.bezierCurveTo(x - a2, y2 - oy, x - ox, y2 - b2, x, y2 - b2);
-    ctx.bezierCurveTo(x + ox, y2 - b2, x + a2, y2 - oy, x + a2, y2);
-    ctx.bezierCurveTo(x + a2, y2 + oy, x + ox, y2 + b2, x, y2 + b2);
-    ctx.bezierCurveTo(x - ox, y2 + b2, x - a2, y2 + oy, x - a2, y2);
+    var y = shape.cy;
+    var a = shape.rx;
+    var b = shape.ry;
+    var ox = a * k;
+    var oy = b * k;
+    ctx.moveTo(x - a, y);
+    ctx.bezierCurveTo(x - a, y - oy, x - ox, y - b, x, y - b);
+    ctx.bezierCurveTo(x + ox, y - b, x + a, y - oy, x + a, y);
+    ctx.bezierCurveTo(x + a, y + oy, x + ox, y + b, x, y + b);
+    ctx.bezierCurveTo(x - ox, y + b, x - a, y + oy, x - a, y);
     ctx.closePath();
   };
   return Ellipse2;
@@ -22582,13 +19756,13 @@ function computeCornerTangents(x0, y0, x1, y1, radius, cr, clockwise) {
   var dx = x10 - x11;
   var dy = y10 - y11;
   var d2 = dx * dx + dy * dy;
-  var r2 = radius - cr;
-  var s2 = x11 * y10 - x10 * y11;
-  var d3 = (dy < 0 ? -1 : 1) * mathSqrt(mathMax$7(0, r2 * r2 * d2 - s2 * s2));
-  var cx0 = (s2 * dy - dx * d3) / d2;
-  var cy0 = (-s2 * dx - dy * d3) / d2;
-  var cx1 = (s2 * dy + dx * d3) / d2;
-  var cy1 = (-s2 * dx + dy * d3) / d2;
+  var r = radius - cr;
+  var s = x11 * y10 - x10 * y11;
+  var d = (dy < 0 ? -1 : 1) * mathSqrt(mathMax$7(0, r * r * d2 - s * s));
+  var cx0 = (s * dy - dx * d) / d2;
+  var cy0 = (-s * dx - dy * d) / d2;
+  var cx1 = (s * dy + dx * d) / d2;
+  var cy1 = (-s * dx + dy * d) / d2;
   var dx0 = cx0 - x00;
   var dy0 = cy0 - y00;
   var dx1 = cx1 - x00;
@@ -22602,8 +19776,8 @@ function computeCornerTangents(x0, y0, x1, y1, radius, cr, clockwise) {
     cy: cy0,
     x0: -ox,
     y0: -oy,
-    x1: cx0 * (radius / r2 - 1),
-    y1: cy0 * (radius / r2 - 1)
+    x1: cx0 * (radius / r - 1),
+    y1: cy0 * (radius / r - 1)
   };
 }
 function normalizeCornerRadius(cr) {
@@ -22709,10 +19883,10 @@ function buildPath$1(ctx, shape) {
             var y0 = yrs - it_1[1];
             var x1 = xre - it_1[0];
             var y1 = yre - it_1[1];
-            var a2 = 1 / mathSin$1(mathACos((x0 * x1 + y0 * y1) / (mathSqrt(x0 * x0 + y0 * y0) * mathSqrt(x1 * x1 + y1 * y1))) / 2);
-            var b2 = mathSqrt(it_1[0] * it_1[0] + it_1[1] * it_1[1]);
-            limitedOcrMax = mathMin$7(ocrMax, (radius - b2) / (a2 + 1));
-            limitedIcrMax = mathMin$7(icrMax, (innerRadius - b2) / (a2 - 1));
+            var a = 1 / mathSin$1(mathACos((x0 * x1 + y0 * y1) / (mathSqrt(x0 * x0 + y0 * y0) * mathSqrt(x1 * x1 + y1 * y1))) / 2);
+            var b = mathSqrt(it_1[0] * it_1[0] + it_1[1] * it_1[1]);
+            limitedOcrMax = mathMin$7(ocrMax, (radius - b) / (a + 1));
+            limitedIcrMax = mathMin$7(icrMax, (innerRadius - b) / (a - 1));
           }
         }
       }
@@ -22808,12 +19982,12 @@ var Ring = function(_super) {
   };
   Ring2.prototype.buildPath = function(ctx, shape) {
     var x = shape.cx;
-    var y2 = shape.cy;
+    var y = shape.cy;
     var PI22 = Math.PI * 2;
-    ctx.moveTo(x + shape.r, y2);
-    ctx.arc(x, y2, shape.r, 0, PI22, false);
-    ctx.moveTo(x + shape.r0, y2);
-    ctx.arc(x, y2, shape.r0, 0, PI22, true);
+    ctx.moveTo(x + shape.r, y);
+    ctx.arc(x, y, shape.r, 0, PI22, false);
+    ctx.moveTo(x + shape.r0, y);
+    ctx.arc(x, y, shape.r0, 0, PI22, true);
   };
   return Ring2;
 }(Path$1);
@@ -22821,7 +19995,7 @@ Ring.prototype.type = "ring";
 const Ring$1 = Ring;
 function smoothBezier(points2, smooth, isLoop, constraint) {
   var cps = [];
-  var v4 = [];
+  var v = [];
   var v12 = [];
   var v22 = [];
   var prevPoint;
@@ -22852,8 +20026,8 @@ function smoothBezier(points2, smooth, isLoop, constraint) {
         nextPoint = points2[i + 1];
       }
     }
-    sub(v4, nextPoint, prevPoint);
-    scale$2(v4, v4, smooth);
+    sub(v, nextPoint, prevPoint);
+    scale$2(v, v, smooth);
     var d0 = distance(point, prevPoint);
     var d1 = distance(point, nextPoint);
     var sum2 = d0 + d1;
@@ -22861,8 +20035,8 @@ function smoothBezier(points2, smooth, isLoop, constraint) {
       d0 /= sum2;
       d1 /= sum2;
     }
-    scale$2(v12, v4, -d0);
-    scale$2(v22, v4, d1);
+    scale$2(v12, v, -d0);
+    scale$2(v22, v, d1);
     var cp0 = add([], point, v12);
     var cp1 = add([], point, v22);
     if (constraint) {
@@ -22895,7 +20069,7 @@ function buildPath(ctx, shape, closePath) {
       }
     } else {
       ctx.moveTo(points2[0][0], points2[0][1]);
-      for (var i = 1, l2 = points2.length; i < l2; i++) {
+      for (var i = 1, l = points2.length; i < l; i++) {
         ctx.lineTo(points2[i][0], points2[i][1]);
       }
     }
@@ -23134,15 +20308,15 @@ var Arc = function(_super) {
   };
   Arc2.prototype.buildPath = function(ctx, shape) {
     var x = shape.cx;
-    var y2 = shape.cy;
-    var r2 = Math.max(shape.r, 0);
+    var y = shape.cy;
+    var r = Math.max(shape.r, 0);
     var startAngle = shape.startAngle;
     var endAngle = shape.endAngle;
     var clockwise = shape.clockwise;
     var unitX = Math.cos(startAngle);
     var unitY = Math.sin(startAngle);
-    ctx.moveTo(unitX * r2 + x, unitY * r2 + y2);
-    ctx.arc(x, y2, r2, startAngle, endAngle, !clockwise);
+    ctx.moveTo(unitX * r + x, unitY * r + y);
+    ctx.arc(x, y, r, startAngle, endAngle, !clockwise);
   };
   return Arc2;
 }(Path$1);
@@ -23210,12 +20384,12 @@ var Gradient = function() {
 const Gradient$1 = Gradient;
 var LinearGradient = function(_super) {
   __extends(LinearGradient2, _super);
-  function LinearGradient2(x, y2, x2, y22, colorStops, globalCoord) {
+  function LinearGradient2(x, y, x2, y2, colorStops, globalCoord) {
     var _this = _super.call(this, colorStops) || this;
     _this.x = x == null ? 0 : x;
-    _this.y = y2 == null ? 0 : y2;
+    _this.y = y == null ? 0 : y;
     _this.x2 = x2 == null ? 1 : x2;
-    _this.y2 = y22 == null ? 0 : y22;
+    _this.y2 = y2 == null ? 0 : y2;
     _this.type = "linear";
     _this.global = globalCoord || false;
     return _this;
@@ -23224,11 +20398,11 @@ var LinearGradient = function(_super) {
 }(Gradient$1);
 var RadialGradient = function(_super) {
   __extends(RadialGradient2, _super);
-  function RadialGradient2(x, y2, r2, colorStops, globalCoord) {
+  function RadialGradient2(x, y, r, colorStops, globalCoord) {
     var _this = _super.call(this, colorStops) || this;
     _this.x = x == null ? 0.5 : x;
-    _this.y = y2 == null ? 0.5 : y2;
-    _this.r = r2 == null ? 0.5 : r2;
+    _this.y = y == null ? 0.5 : y;
+    _this.r = r == null ? 0.5 : r;
     _this.type = "radial";
     _this.global = globalCoord || false;
     return _this;
@@ -23259,13 +20433,13 @@ var OrientedBoundingRect = function() {
     var corners = this._corners;
     var axes = this._axes;
     var x = rect.x;
-    var y2 = rect.y;
+    var y = rect.y;
     var x2 = x + rect.width;
-    var y22 = y2 + rect.height;
-    corners[0].set(x, y2);
-    corners[1].set(x2, y2);
-    corners[2].set(x2, y22);
-    corners[3].set(x, y22);
+    var y2 = y + rect.height;
+    corners[0].set(x, y);
+    corners[1].set(x2, y);
+    corners[2].set(x2, y2);
+    corners[3].set(x, y2);
     if (transform2) {
       for (var i = 0; i < 4; i++) {
         corners[i].transform(transform2);
@@ -23444,13 +20618,13 @@ var IncrementalDisplayable = function(_super) {
     }
     return this._rect;
   };
-  IncrementalDisplayable2.prototype.contain = function(x, y2) {
-    var localPos = this.transformCoordToLocal(x, y2);
+  IncrementalDisplayable2.prototype.contain = function(x, y) {
+    var localPos = this.transformCoordToLocal(x, y);
     var rect = this.getBoundingRect();
     if (rect.contain(localPos[0], localPos[1])) {
       for (var i = 0; i < this._displayables.length; i++) {
         var displayable = this._displayables[i];
-        if (displayable.contain(x, y2)) {
+        if (displayable.contain(x, y)) {
           return true;
         }
       }
@@ -23721,9 +20895,9 @@ function groupTransition(g1, g2, animatableModel) {
   if (!g1 || !g2) {
     return;
   }
-  function getElMap(g3) {
+  function getElMap(g) {
     var elMap = {};
-    g3.traverse(function(el) {
+    g.traverse(function(el) {
       if (isNotGroup(el) && el.anid) {
         elMap[el.anid] = el;
       }
@@ -23758,23 +20932,23 @@ function clipPointsByRect(points2, rect) {
     var x = point[0];
     x = mathMax$6(x, rect.x);
     x = mathMin$6(x, rect.x + rect.width);
-    var y2 = point[1];
-    y2 = mathMax$6(y2, rect.y);
-    y2 = mathMin$6(y2, rect.y + rect.height);
-    return [x, y2];
+    var y = point[1];
+    y = mathMax$6(y, rect.y);
+    y = mathMin$6(y, rect.y + rect.height);
+    return [x, y];
   });
 }
 function clipRectByRect(targetRect, rect) {
   var x = mathMax$6(targetRect.x, rect.x);
   var x2 = mathMin$6(targetRect.x + targetRect.width, rect.x + rect.width);
-  var y2 = mathMax$6(targetRect.y, rect.y);
-  var y22 = mathMin$6(targetRect.y + targetRect.height, rect.y + rect.height);
-  if (x2 >= x && y22 >= y2) {
+  var y = mathMax$6(targetRect.y, rect.y);
+  var y2 = mathMin$6(targetRect.y + targetRect.height, rect.y + rect.height);
+  if (x2 >= x && y2 >= y) {
     return {
       x,
-      y: y2,
+      y,
       width: x2 - x,
-      height: y22 - y2
+      height: y2 - y
     };
   }
 }
@@ -23815,8 +20989,8 @@ function lineLineIntersect$1(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y) {
   }
   var b1a1x = a1x - b1x;
   var b1a1y = a1y - b1y;
-  var q2 = crossProduct2d$1(b1a1x, b1a1y, mx, my2) / nmCrossProduct;
-  if (q2 < 0 || q2 > 1) {
+  var q = crossProduct2d$1(b1a1x, b1a1y, mx, my2) / nmCrossProduct;
+  if (q < 0 || q > 1) {
     return false;
   }
   var p2 = crossProduct2d$1(b1a1x, b1a1y, nx, ny) / nmCrossProduct;
@@ -24922,25 +22096,25 @@ function getDefaultFormatPrecisionOfInterval(timeUnit) {
 }
 function format(time, template, isUTC, lang) {
   var date = parseDate(time);
-  var y2 = date[fullYearGetterName(isUTC)]();
-  var M2 = date[monthGetterName(isUTC)]() + 1;
-  var q2 = Math.floor((M2 - 1) / 3) + 1;
-  var d2 = date[dateGetterName(isUTC)]();
+  var y = date[fullYearGetterName(isUTC)]();
+  var M = date[monthGetterName(isUTC)]() + 1;
+  var q = Math.floor((M - 1) / 3) + 1;
+  var d = date[dateGetterName(isUTC)]();
   var e2 = date["get" + (isUTC ? "UTC" : "") + "Day"]();
-  var H2 = date[hoursGetterName(isUTC)]();
-  var h2 = (H2 - 1) % 12 + 1;
+  var H = date[hoursGetterName(isUTC)]();
+  var h = (H - 1) % 12 + 1;
   var m2 = date[minutesGetterName(isUTC)]();
-  var s2 = date[secondsGetterName(isUTC)]();
-  var S2 = date[millisecondsGetterName(isUTC)]();
-  var a2 = H2 >= 12 ? "pm" : "am";
-  var A2 = a2.toUpperCase();
+  var s = date[secondsGetterName(isUTC)]();
+  var S = date[millisecondsGetterName(isUTC)]();
+  var a = H >= 12 ? "pm" : "am";
+  var A = a.toUpperCase();
   var localeModel = lang instanceof Model$1 ? lang : getLocaleModel(lang || SYSTEM_LANG) || getDefaultLocaleModel();
   var timeModel = localeModel.getModel("time");
   var month = timeModel.get("month");
   var monthAbbr = timeModel.get("monthAbbr");
   var dayOfWeek = timeModel.get("dayOfWeek");
   var dayOfWeekAbbr = timeModel.get("dayOfWeekAbbr");
-  return (template || "").replace(/{a}/g, a2 + "").replace(/{A}/g, A2 + "").replace(/{yyyy}/g, y2 + "").replace(/{yy}/g, pad(y2 % 100 + "", 2)).replace(/{Q}/g, q2 + "").replace(/{MMMM}/g, month[M2 - 1]).replace(/{MMM}/g, monthAbbr[M2 - 1]).replace(/{MM}/g, pad(M2, 2)).replace(/{M}/g, M2 + "").replace(/{dd}/g, pad(d2, 2)).replace(/{d}/g, d2 + "").replace(/{eeee}/g, dayOfWeek[e2]).replace(/{ee}/g, dayOfWeekAbbr[e2]).replace(/{e}/g, e2 + "").replace(/{HH}/g, pad(H2, 2)).replace(/{H}/g, H2 + "").replace(/{hh}/g, pad(h2 + "", 2)).replace(/{h}/g, h2 + "").replace(/{mm}/g, pad(m2, 2)).replace(/{m}/g, m2 + "").replace(/{ss}/g, pad(s2, 2)).replace(/{s}/g, s2 + "").replace(/{SSS}/g, pad(S2, 3)).replace(/{S}/g, S2 + "");
+  return (template || "").replace(/{a}/g, a + "").replace(/{A}/g, A + "").replace(/{yyyy}/g, y + "").replace(/{yy}/g, pad(y % 100 + "", 2)).replace(/{Q}/g, q + "").replace(/{MMMM}/g, month[M - 1]).replace(/{MMM}/g, monthAbbr[M - 1]).replace(/{MM}/g, pad(M, 2)).replace(/{M}/g, M + "").replace(/{dd}/g, pad(d, 2)).replace(/{d}/g, d + "").replace(/{eeee}/g, dayOfWeek[e2]).replace(/{ee}/g, dayOfWeekAbbr[e2]).replace(/{e}/g, e2 + "").replace(/{HH}/g, pad(H, 2)).replace(/{H}/g, H + "").replace(/{hh}/g, pad(h + "", 2)).replace(/{h}/g, h + "").replace(/{mm}/g, pad(m2, 2)).replace(/{m}/g, m2 + "").replace(/{ss}/g, pad(s, 2)).replace(/{s}/g, s + "").replace(/{SSS}/g, pad(S, 3)).replace(/{S}/g, S + "");
 }
 function leveledFormat(tick, idx, formatter, lang, isUTC) {
   var template = null;
@@ -24981,18 +22155,18 @@ function leveledFormat(tick, idx, formatter, lang, isUTC) {
 }
 function getUnitFromValue(value, isUTC) {
   var date = parseDate(value);
-  var M2 = date[monthGetterName(isUTC)]() + 1;
-  var d2 = date[dateGetterName(isUTC)]();
-  var h2 = date[hoursGetterName(isUTC)]();
+  var M = date[monthGetterName(isUTC)]() + 1;
+  var d = date[dateGetterName(isUTC)]();
+  var h = date[hoursGetterName(isUTC)]();
   var m2 = date[minutesGetterName(isUTC)]();
-  var s2 = date[secondsGetterName(isUTC)]();
-  var S2 = date[millisecondsGetterName(isUTC)]();
-  var isSecond = S2 === 0;
-  var isMinute = isSecond && s2 === 0;
+  var s = date[secondsGetterName(isUTC)]();
+  var S = date[millisecondsGetterName(isUTC)]();
+  var isSecond = S === 0;
+  var isMinute = isSecond && s === 0;
   var isHour = isMinute && m2 === 0;
-  var isDay = isHour && h2 === 0;
-  var isMonth = isDay && d2 === 1;
-  var isYear = isMonth && M2 === 1;
+  var isDay = isHour && h === 0;
+  var isMonth = isDay && d === 1;
+  var isYear = isMonth && M === 1;
   if (isYear) {
     return "year";
   } else if (isMonth) {
@@ -25200,7 +22374,7 @@ var LOCATION_PARAMS = ["left", "right", "top", "bottom", "width", "height"];
 var HV_NAMES = [["width", "left", "right"], ["height", "top", "bottom"]];
 function boxLayout(orient, group, gap, maxWidth, maxHeight) {
   var x = 0;
-  var y2 = 0;
+  var y = 0;
   if (maxWidth == null) {
     maxWidth = Infinity;
   }
@@ -25220,17 +22394,17 @@ function boxLayout(orient, group, gap, maxWidth, maxHeight) {
       if (nextX > maxWidth || child.newline) {
         x = 0;
         nextX = moveX;
-        y2 += currentLineMaxSize + gap;
+        y += currentLineMaxSize + gap;
         currentLineMaxSize = rect.height;
       } else {
         currentLineMaxSize = Math.max(currentLineMaxSize, rect.height);
       }
     } else {
       var moveY = rect.height + (nextChildRect ? -nextChildRect.y + rect.y : 0);
-      nextY = y2 + moveY;
+      nextY = y + moveY;
       if (nextY > maxHeight || child.newline) {
         x += currentLineMaxSize + gap;
-        y2 = 0;
+        y = 0;
         nextY = moveY;
         currentLineMaxSize = rect.width;
       } else {
@@ -25241,9 +22415,9 @@ function boxLayout(orient, group, gap, maxWidth, maxHeight) {
       return;
     }
     child.x = x;
-    child.y = y2;
+    child.y = y;
     child.markRedraw();
-    orient === "horizontal" ? x = nextX + gap : y2 = nextY + gap;
+    orient === "horizontal" ? x = nextX + gap : y = nextY + gap;
   });
 }
 var box = boxLayout;
@@ -25253,17 +22427,17 @@ function getAvailableSize(positionInfo, containerRect, margin) {
   var containerWidth = containerRect.width;
   var containerHeight = containerRect.height;
   var x = parsePercent(positionInfo.left, containerWidth);
-  var y2 = parsePercent(positionInfo.top, containerHeight);
+  var y = parsePercent(positionInfo.top, containerHeight);
   var x2 = parsePercent(positionInfo.right, containerWidth);
-  var y22 = parsePercent(positionInfo.bottom, containerHeight);
+  var y2 = parsePercent(positionInfo.bottom, containerHeight);
   (isNaN(x) || isNaN(parseFloat(positionInfo.left))) && (x = 0);
   (isNaN(x2) || isNaN(parseFloat(positionInfo.right))) && (x2 = containerWidth);
-  (isNaN(y2) || isNaN(parseFloat(positionInfo.top))) && (y2 = 0);
-  (isNaN(y22) || isNaN(parseFloat(positionInfo.bottom))) && (y22 = containerHeight);
+  (isNaN(y) || isNaN(parseFloat(positionInfo.top))) && (y = 0);
+  (isNaN(y2) || isNaN(parseFloat(positionInfo.bottom))) && (y2 = containerHeight);
   margin = normalizeCssArray(margin || 0);
   return {
     width: Math.max(x2 - x - margin[1] - margin[3], 0),
-    height: Math.max(y22 - y2 - margin[0] - margin[2], 0)
+    height: Math.max(y2 - y - margin[0] - margin[2], 0)
   };
 }
 function getLayoutRect(positionInfo, containerRect, margin) {
@@ -25336,13 +22510,13 @@ function getLayoutRect(positionInfo, containerRect, margin) {
   return rect;
 }
 function positionElement(el, positionInfo, containerRect, margin, opt, out2) {
-  var h2 = !opt || !opt.hv || opt.hv[0];
-  var v4 = !opt || !opt.hv || opt.hv[1];
+  var h = !opt || !opt.hv || opt.hv[0];
+  var v = !opt || !opt.hv || opt.hv[1];
   var boundingMode = opt && opt.boundingMode || "all";
   out2 = out2 || el;
   out2.x = el.x;
   out2.y = el.y;
-  if (!h2 && !v4) {
+  if (!h && !v) {
     return false;
   }
   var rect;
@@ -25360,8 +22534,8 @@ function positionElement(el, positionInfo, containerRect, margin, opt, out2) {
     width: rect.width,
     height: rect.height
   }, positionInfo), containerRect, margin);
-  var dx = h2 ? layoutRect.x - rect.x : 0;
-  var dy = v4 ? layoutRect.y - rect.y : 0;
+  var dx = h ? layoutRect.x - rect.x : 0;
+  var dy = v ? layoutRect.y - rect.y : 0;
   if (boundingMode === "raw") {
     out2.x = dx;
     out2.y = dy;
@@ -26304,16 +23478,16 @@ var GlobalModel = (
         return !!cmpt;
       });
       return doFilter(filterBySubType(result, condition));
-      function getQueryCond(q2) {
+      function getQueryCond(q) {
         var indexAttr = mainType + "Index";
         var idAttr = mainType + "Id";
         var nameAttr = mainType + "Name";
-        return q2 && (q2[indexAttr] != null || q2[idAttr] != null || q2[nameAttr] != null) ? {
+        return q && (q[indexAttr] != null || q[idAttr] != null || q[nameAttr] != null) ? {
           mainType,
           // subType will be filtered finally.
-          index: q2[indexAttr],
-          id: q2[idAttr],
-          name: q2[nameAttr]
+          index: q[indexAttr],
+          id: q[idAttr],
+          name: q[nameAttr]
         } : null;
       }
       function doFilter(res) {
@@ -27278,8 +24452,8 @@ function calculateStack(stackInfoList) {
         byValue = targetData.get(targetStackInfo.stackedByDimension, dataIndex);
       }
       var stackedOver = NaN;
-      for (var j2 = idxInStack - 1; j2 >= 0; j2--) {
-        var stackInfo = stackInfoList[j2];
+      for (var j = idxInStack - 1; j >= 0; j--) {
+        var stackInfo = stackInfoList[j];
         if (!isStackedByIndex) {
           stackedDataRawIndex = stackInfo.data.rawIndexOf(stackInfo.stackedByDimension, byValue);
         }
@@ -28013,17 +25187,17 @@ var iterator = /* @__PURE__ */ function() {
   var modBy;
   var modDataCount;
   var winCount;
-  var it2 = {
-    reset: function(s2, e2, sStep, sCount) {
-      current = s2;
+  var it = {
+    reset: function(s, e2, sStep, sCount) {
+      current = s;
       end2 = e2;
       modBy = sStep;
       modDataCount = sCount;
       winCount = Math.ceil(modDataCount / modBy);
-      it2.next = modBy > 1 && modDataCount > 0 ? modNext : sequentialNext;
+      it.next = modBy > 1 && modDataCount > 0 ? modNext : sequentialNext;
     }
   };
-  return it2;
+  return it;
   function sequentialNext() {
     return current < end2 ? current++ : null;
   }
@@ -28468,8 +25642,8 @@ function prepareStore(store, dimIdx, dimType, end2, append) {
     var oldLen = oldStore && oldStore.length;
     if (!(oldLen === end2)) {
       var newStore = new DataCtor(end2);
-      for (var j2 = 0; j2 < oldLen; j2++) {
-        newStore[j2] = oldStore[j2];
+      for (var j = 0; j < oldLen; j++) {
+        newStore[j] = oldStore[j];
       }
       store[dimIdx] = newStore;
     }
@@ -28707,8 +25881,8 @@ var DataStore = (
           dimDataArray.push(val);
         }
       });
-      var sortedDimDataArray = dimDataArray.sort(function(a2, b2) {
-        return a2 - b2;
+      var sortedDimDataArray = dimDataArray.sort(function(a, b) {
+        return a - b;
       });
       var len2 = this.count();
       return len2 === 0 ? 0 : len2 % 2 === 1 ? sortedDimDataArray[(len2 - 1) / 2] : (sortedDimDataArray[len2 / 2] + sortedDimDataArray[len2 / 2 - 1]) / 2;
@@ -28984,11 +26158,11 @@ var DataStore = (
         var avgY = 0;
         for (var idx = nextFrameStart; idx < nextFrameEnd; idx++) {
           var rawIndex = this.getRawIndex(idx);
-          var y2 = dimStore[rawIndex];
-          if (isNaN(y2)) {
+          var y = dimStore[rawIndex];
+          if (isNaN(y)) {
             continue;
           }
-          avgY += y2;
+          avgY += y;
         }
         avgY /= nextFrameEnd - nextFrameStart;
         var frameStart = i;
@@ -29001,15 +26175,15 @@ var DataStore = (
         var countNaN = 0;
         for (var idx = frameStart; idx < frameEnd; idx++) {
           var rawIndex = this.getRawIndex(idx);
-          var y2 = dimStore[rawIndex];
-          if (isNaN(y2)) {
+          var y = dimStore[rawIndex];
+          if (isNaN(y)) {
             countNaN++;
             if (firstNaNIndex < 0) {
               firstNaNIndex = rawIndex;
             }
             continue;
           }
-          area = Math.abs((pointAX - avgX) * (y2 - pointAY) - (pointAX - idx) * (avgY - pointAY));
+          area = Math.abs((pointAX - avgX) * (y - pointAY) - (pointAX - idx) * (avgY - pointAY));
           if (area > maxArea) {
             maxArea = area;
             nextRawIndex = rawIndex;
@@ -29566,8 +26740,8 @@ function buildSection(ctx, fragment, topMarginForOuterGap, toolTipTextStyle) {
     };
     if (hasOwn(orderMap, orderMode)) {
       var comparator_1 = new SortOrderComparator(orderMap[orderMode], null);
-      subBlocks.sort(function(a2, b2) {
-        return comparator_1.evaluate(a2.sortParam, b2.sortParam);
+      subBlocks.sort(function(a, b) {
+        return comparator_1.evaluate(a.sortParam, b.sortParam);
       });
     } else if (orderMode === "seriesDesc") {
       subBlocks.reverse();
@@ -30460,38 +27634,38 @@ var seriesStyleTask = {
     var stylePath = seriesModel.visualStyleAccessPath || "itemStyle";
     var styleModel = seriesModel.getModel(stylePath);
     var getStyle2 = getStyleMapper(seriesModel, stylePath);
-    var globalStyle2 = getStyle2(styleModel);
+    var globalStyle = getStyle2(styleModel);
     var decalOption = styleModel.getShallow("decal");
     if (decalOption) {
       data.setVisual("decal", decalOption);
       decalOption.dirty = true;
     }
     var colorKey = getDefaultColorKey(seriesModel, stylePath);
-    var color = globalStyle2[colorKey];
+    var color = globalStyle[colorKey];
     var colorCallback = isFunction(color) ? color : null;
-    var hasAutoColor = globalStyle2.fill === "auto" || globalStyle2.stroke === "auto";
-    if (!globalStyle2[colorKey] || colorCallback || hasAutoColor) {
+    var hasAutoColor = globalStyle.fill === "auto" || globalStyle.stroke === "auto";
+    if (!globalStyle[colorKey] || colorCallback || hasAutoColor) {
       var colorPalette2 = seriesModel.getColorFromPalette(
         // TODO series count changed.
         seriesModel.name,
         null,
         ecModel.getSeriesCount()
       );
-      if (!globalStyle2[colorKey]) {
-        globalStyle2[colorKey] = colorPalette2;
+      if (!globalStyle[colorKey]) {
+        globalStyle[colorKey] = colorPalette2;
         data.setVisual("colorFromPalette", true);
       }
-      globalStyle2.fill = globalStyle2.fill === "auto" || isFunction(globalStyle2.fill) ? colorPalette2 : globalStyle2.fill;
-      globalStyle2.stroke = globalStyle2.stroke === "auto" || isFunction(globalStyle2.stroke) ? colorPalette2 : globalStyle2.stroke;
+      globalStyle.fill = globalStyle.fill === "auto" || isFunction(globalStyle.fill) ? colorPalette2 : globalStyle.fill;
+      globalStyle.stroke = globalStyle.stroke === "auto" || isFunction(globalStyle.stroke) ? colorPalette2 : globalStyle.stroke;
     }
-    data.setVisual("style", globalStyle2);
+    data.setVisual("style", globalStyle);
     data.setVisual("drawType", colorKey);
     if (!ecModel.isSeriesFiltered(seriesModel) && colorCallback) {
       data.setVisual("colorFromPalette", false);
       return {
         dataEach: function(data2, idx) {
           var dataParams = seriesModel.getDataParams(idx);
-          var itemStyle = extend({}, globalStyle2);
+          var itemStyle = extend({}, globalStyle);
           itemStyle[colorKey] = colorCallback(dataParams);
           data2.setItemVisual(idx, "style", itemStyle);
         }
@@ -30652,18 +27826,18 @@ function defaultLoading(api, opts) {
   }
   group.resize = function() {
     var textWidth = textContent.getBoundingRect().width;
-    var r2 = opts.showSpinner ? opts.spinnerRadius : 0;
-    var cx = (api.getWidth() - r2 * 2 - (opts.showSpinner && textWidth ? 10 : 0) - textWidth) / 2 - (opts.showSpinner && textWidth ? 0 : 5 + textWidth / 2) + (opts.showSpinner ? 0 : textWidth / 2) + (textWidth ? 0 : r2);
+    var r = opts.showSpinner ? opts.spinnerRadius : 0;
+    var cx = (api.getWidth() - r * 2 - (opts.showSpinner && textWidth ? 10 : 0) - textWidth) / 2 - (opts.showSpinner && textWidth ? 0 : 5 + textWidth / 2) + (opts.showSpinner ? 0 : textWidth / 2) + (textWidth ? 0 : r);
     var cy = api.getHeight() / 2;
     opts.showSpinner && arc.setShape({
       cx,
       cy
     });
     labelRect.setShape({
-      x: cx - r2,
-      y: cy - r2,
-      width: r2 * 2,
-      height: r2 * 2
+      x: cx - r,
+      y: cy - r,
+      width: r * 2,
+      height: r * 2
     });
     mask.setShape({
       x: 0,
@@ -30975,7 +28149,7 @@ function seriesTaskReset(context) {
     context.data.clearAllVisual();
   }
   var resetDefines = context.resetDefines = normalizeToArray(context.reset(context.model, context.ecModel, context.api, context.payload));
-  return resetDefines.length > 1 ? map$1(resetDefines, function(v4, idx) {
+  return resetDefines.length > 1 ? map$1(resetDefines, function(v, idx) {
     return makeSeriesTaskProgress(idx);
   }) : singleSeriesTaskProgress;
 }
@@ -31582,22 +28756,22 @@ var Pin = Path$1.extend({
   },
   buildPath: function(path, shape) {
     var x = shape.x;
-    var y2 = shape.y;
-    var w2 = shape.width / 5 * 3;
-    var h2 = Math.max(w2, shape.height);
-    var r2 = w2 / 2;
-    var dy = r2 * r2 / (h2 - r2);
-    var cy = y2 - h2 + r2 + dy;
-    var angle = Math.asin(dy / r2);
-    var dx = Math.cos(angle) * r2;
+    var y = shape.y;
+    var w = shape.width / 5 * 3;
+    var h = Math.max(w, shape.height);
+    var r = w / 2;
+    var dy = r * r / (h - r);
+    var cy = y - h + r + dy;
+    var angle = Math.asin(dy / r);
+    var dx = Math.cos(angle) * r;
     var tanX = Math.sin(angle);
     var tanY = Math.cos(angle);
-    var cpLen = r2 * 0.6;
-    var cpLen2 = r2 * 0.7;
+    var cpLen = r * 0.6;
+    var cpLen2 = r * 0.7;
     path.moveTo(x - dx, cy + dy);
-    path.arc(x, cy, r2, Math.PI - angle, Math.PI * 2 + angle);
-    path.bezierCurveTo(x + dx - tanX * cpLen, cy + dy + tanY * cpLen, x, y2 - cpLen2, x, y2);
-    path.bezierCurveTo(x, y2 - cpLen2, x - dx + tanX * cpLen, cy + dy + tanY * cpLen, x - dx, cy + dy);
+    path.arc(x, cy, r, Math.PI - angle, Math.PI * 2 + angle);
+    path.bezierCurveTo(x + dx - tanX * cpLen, cy + dy + tanY * cpLen, x, y - cpLen2, x, y);
+    path.bezierCurveTo(x, y - cpLen2, x - dx + tanX * cpLen, cy + dy + tanY * cpLen, x - dx, cy + dy);
     path.closePath();
   }
 });
@@ -31613,13 +28787,13 @@ var Arrow = Path$1.extend({
     var height = shape.height;
     var width = shape.width;
     var x = shape.x;
-    var y2 = shape.y;
+    var y = shape.y;
     var dx = width / 3 * 2;
-    ctx.moveTo(x, y2);
-    ctx.lineTo(x + dx, y2 + height);
-    ctx.lineTo(x, y2 + height / 4 * 3);
-    ctx.lineTo(x - dx, y2 + height);
-    ctx.lineTo(x, y2);
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + dx, y + height);
+    ctx.lineTo(x, y + height / 4 * 3);
+    ctx.lineTo(x - dx, y + height);
+    ctx.lineTo(x, y);
     ctx.closePath();
   }
 });
@@ -31635,60 +28809,60 @@ var symbolCtors = {
   triangle: Triangle
 };
 var symbolShapeMakers = {
-  line: function(x, y2, w2, h2, shape) {
+  line: function(x, y, w, h, shape) {
     shape.x1 = x;
-    shape.y1 = y2 + h2 / 2;
-    shape.x2 = x + w2;
-    shape.y2 = y2 + h2 / 2;
+    shape.y1 = y + h / 2;
+    shape.x2 = x + w;
+    shape.y2 = y + h / 2;
   },
-  rect: function(x, y2, w2, h2, shape) {
+  rect: function(x, y, w, h, shape) {
     shape.x = x;
-    shape.y = y2;
-    shape.width = w2;
-    shape.height = h2;
+    shape.y = y;
+    shape.width = w;
+    shape.height = h;
   },
-  roundRect: function(x, y2, w2, h2, shape) {
+  roundRect: function(x, y, w, h, shape) {
     shape.x = x;
-    shape.y = y2;
-    shape.width = w2;
-    shape.height = h2;
-    shape.r = Math.min(w2, h2) / 4;
+    shape.y = y;
+    shape.width = w;
+    shape.height = h;
+    shape.r = Math.min(w, h) / 4;
   },
-  square: function(x, y2, w2, h2, shape) {
-    var size2 = Math.min(w2, h2);
+  square: function(x, y, w, h, shape) {
+    var size2 = Math.min(w, h);
     shape.x = x;
-    shape.y = y2;
+    shape.y = y;
     shape.width = size2;
     shape.height = size2;
   },
-  circle: function(x, y2, w2, h2, shape) {
-    shape.cx = x + w2 / 2;
-    shape.cy = y2 + h2 / 2;
-    shape.r = Math.min(w2, h2) / 2;
+  circle: function(x, y, w, h, shape) {
+    shape.cx = x + w / 2;
+    shape.cy = y + h / 2;
+    shape.r = Math.min(w, h) / 2;
   },
-  diamond: function(x, y2, w2, h2, shape) {
-    shape.cx = x + w2 / 2;
-    shape.cy = y2 + h2 / 2;
-    shape.width = w2;
-    shape.height = h2;
+  diamond: function(x, y, w, h, shape) {
+    shape.cx = x + w / 2;
+    shape.cy = y + h / 2;
+    shape.width = w;
+    shape.height = h;
   },
-  pin: function(x, y2, w2, h2, shape) {
-    shape.x = x + w2 / 2;
-    shape.y = y2 + h2 / 2;
-    shape.width = w2;
-    shape.height = h2;
+  pin: function(x, y, w, h, shape) {
+    shape.x = x + w / 2;
+    shape.y = y + h / 2;
+    shape.width = w;
+    shape.height = h;
   },
-  arrow: function(x, y2, w2, h2, shape) {
-    shape.x = x + w2 / 2;
-    shape.y = y2 + h2 / 2;
-    shape.width = w2;
-    shape.height = h2;
+  arrow: function(x, y, w, h, shape) {
+    shape.x = x + w / 2;
+    shape.y = y + h / 2;
+    shape.width = w;
+    shape.height = h;
   },
-  triangle: function(x, y2, w2, h2, shape) {
-    shape.cx = x + w2 / 2;
-    shape.cy = y2 + h2 / 2;
-    shape.width = w2;
-    shape.height = h2;
+  triangle: function(x, y, w, h, shape) {
+    shape.cx = x + w / 2;
+    shape.cy = y + h / 2;
+    shape.width = w;
+    shape.height = h;
   }
 };
 var symbolBuildProxies = {};
@@ -31740,24 +28914,24 @@ function symbolPathSetColor(color, innerColor2) {
     this.markRedraw();
   }
 }
-function createSymbol$1(symbolType, x, y2, w2, h2, color, keepAspect) {
+function createSymbol$1(symbolType, x, y, w, h, color, keepAspect) {
   var isEmpty = symbolType.indexOf("empty") === 0;
   if (isEmpty) {
     symbolType = symbolType.substr(5, 1).toLowerCase() + symbolType.substr(6);
   }
   var symbolPath;
   if (symbolType.indexOf("image://") === 0) {
-    symbolPath = makeImage(symbolType.slice(8), new BoundingRect$1(x, y2, w2, h2), keepAspect ? "center" : "cover");
+    symbolPath = makeImage(symbolType.slice(8), new BoundingRect$1(x, y, w, h), keepAspect ? "center" : "cover");
   } else if (symbolType.indexOf("path://") === 0) {
-    symbolPath = makePath(symbolType.slice(7), {}, new BoundingRect$1(x, y2, w2, h2), keepAspect ? "center" : "cover");
+    symbolPath = makePath(symbolType.slice(7), {}, new BoundingRect$1(x, y, w, h), keepAspect ? "center" : "cover");
   } else {
     symbolPath = new SymbolClz({
       shape: {
         symbolType,
         x,
-        y: y2,
-        width: w2,
-        height: h2
+        y,
+        width: w,
+        height: h
       }
     });
   }
@@ -31789,19 +28963,19 @@ function isSafeNum(num) {
 function createLinearGradient(ctx, obj, rect) {
   var x = obj.x == null ? 0 : obj.x;
   var x2 = obj.x2 == null ? 1 : obj.x2;
-  var y2 = obj.y == null ? 0 : obj.y;
-  var y22 = obj.y2 == null ? 0 : obj.y2;
+  var y = obj.y == null ? 0 : obj.y;
+  var y2 = obj.y2 == null ? 0 : obj.y2;
   if (!obj.global) {
     x = x * rect.width + rect.x;
     x2 = x2 * rect.width + rect.x;
+    y = y * rect.height + rect.y;
     y2 = y2 * rect.height + rect.y;
-    y22 = y22 * rect.height + rect.y;
   }
   x = isSafeNum(x) ? x : 0;
   x2 = isSafeNum(x2) ? x2 : 1;
+  y = isSafeNum(y) ? y : 0;
   y2 = isSafeNum(y2) ? y2 : 0;
-  y22 = isSafeNum(y22) ? y22 : 0;
-  var canvasGradient = ctx.createLinearGradient(x, y2, x2, y22);
+  var canvasGradient = ctx.createLinearGradient(x, y, x2, y2);
   return canvasGradient;
 }
 function createRadialGradient(ctx, obj, rect) {
@@ -31809,17 +28983,17 @@ function createRadialGradient(ctx, obj, rect) {
   var height = rect.height;
   var min3 = Math.min(width, height);
   var x = obj.x == null ? 0.5 : obj.x;
-  var y2 = obj.y == null ? 0.5 : obj.y;
-  var r2 = obj.r == null ? 0.5 : obj.r;
+  var y = obj.y == null ? 0.5 : obj.y;
+  var r = obj.r == null ? 0.5 : obj.r;
   if (!obj.global) {
     x = x * width + rect.x;
-    y2 = y2 * height + rect.y;
-    r2 = r2 * min3;
+    y = y * height + rect.y;
+    r = r * min3;
   }
   x = isSafeNum(x) ? x : 0.5;
-  y2 = isSafeNum(y2) ? y2 : 0.5;
-  r2 = r2 >= 0 && isSafeNum(r2) ? r2 : 0.5;
-  var canvasGradient = ctx.createRadialGradient(x, y2, 0, x, y2, r2);
+  y = isSafeNum(y) ? y : 0.5;
+  r = r >= 0 && isSafeNum(r) ? r : 0.5;
+  var canvasGradient = ctx.createRadialGradient(x, y, 0, x, y, r);
   return canvasGradient;
 }
 function getCanvasGradient(ctx, obj, rect) {
@@ -32042,7 +29216,7 @@ function brushImage(ctx, el, style) {
     return;
   }
   var x = style.x || 0;
-  var y2 = style.y || 0;
+  var y = style.y || 0;
   var width = el.getWidth();
   var height = el.getHeight();
   var aspect = image.width / image.height;
@@ -32057,15 +29231,15 @@ function brushImage(ctx, el, style) {
   if (style.sWidth && style.sHeight) {
     var sx = style.sx || 0;
     var sy = style.sy || 0;
-    ctx.drawImage(image, sx, sy, style.sWidth, style.sHeight, x, y2, width, height);
+    ctx.drawImage(image, sx, sy, style.sWidth, style.sHeight, x, y, width, height);
   } else if (style.sx && style.sy) {
     var sx = style.sx;
     var sy = style.sy;
     var sWidth = width - sx;
     var sHeight = height - sy;
-    ctx.drawImage(image, sx, sy, sWidth, sHeight, x, y2, width, height);
+    ctx.drawImage(image, sx, sy, sWidth, sHeight, x, y, width, height);
   } else {
-    ctx.drawImage(image, x, y2, width, height);
+    ctx.drawImage(image, x, y, width, height);
   }
 }
 function brushText(ctx, el, style) {
@@ -32513,11 +29687,11 @@ function createOrUpdatePatternFromDecal(decalObject, api) {
       if (ySum <= 0) {
         return;
       }
-      var y2 = -lineBlockLengthY;
+      var y = -lineBlockLengthY;
       var yId = 0;
       var yIdTotal = 0;
       var xId0 = 0;
-      while (y2 < pSize.height) {
+      while (y < pSize.height) {
         if (yId % 2 === 0) {
           var symbolYId = yIdTotal / 2 % symbolArray.length;
           var x = 0;
@@ -32534,7 +29708,7 @@ function createOrUpdatePatternFromDecal(decalObject, api) {
             if (xId1 % 2 === 0) {
               var size2 = (1 - decalOpt.symbolSize) * 0.5;
               var left = x + dashArrayX[xId0][xId1] * size2;
-              var top_1 = y2 + dashArrayY[yId] * size2;
+              var top_1 = y + dashArrayY[yId] * size2;
               var width = dashArrayX[xId0][xId1] * decalOpt.symbolSize;
               var height = dashArrayY[yId] * decalOpt.symbolSize;
               var symbolXId = xId1Total / 2 % symbolArray[symbolYId].length;
@@ -32552,16 +29726,16 @@ function createOrUpdatePatternFromDecal(decalObject, api) {
             xId0 = 0;
           }
         }
-        y2 += dashArrayY[yId];
+        y += dashArrayY[yId];
         ++yIdTotal;
         ++yId;
         if (yId === dashArrayY.length) {
           yId = 0;
         }
       }
-      function brushSymbol(x2, y22, width2, height2, symbolType) {
+      function brushSymbol(x2, y2, width2, height2, symbolType) {
         var scale2 = isSVG ? 1 : dpr2;
-        var symbol = createSymbol$1(symbolType, x2 * scale2, y22 * scale2, width2 * scale2, height2 * scale2, decalOpt.color, decalOpt.symbolKeepAspect);
+        var symbol = createSymbol$1(symbolType, x2 * scale2, y2 * scale2, width2 * scale2, height2 * scale2, decalOpt.color, decalOpt.symbolKeepAspect);
         if (isSVG) {
           var symbolVNode = zr.painter.renderOneToVNode(symbol);
           if (symbolVNode) {
@@ -32868,8 +30042,8 @@ var ECharts = (
       _this._locale = createLocaleObject(opts.locale || SYSTEM_LANG);
       _this._coordSysMgr = new CoordinateSystemManager();
       var api = _this._api = createExtensionAPI(_this);
-      function prioritySortFunc(a2, b2) {
-        return a2.__prio - b2.__prio;
+      function prioritySortFunc(a, b) {
+        return a.__prio - b.__prio;
       }
       sort$2(visualFuncs, prioritySortFunc);
       sort$2(dataProcessorFuncs, prioritySortFunc);
@@ -33135,8 +30309,8 @@ var ECharts = (
           var content_1 = "";
           each$f(canvasList_1, function(item) {
             var x = item.left - left_1;
-            var y2 = item.top - top_1;
-            content_1 += '<g transform="translate(' + x + "," + y2 + ')">' + item.dom + "</g>";
+            var y = item.top - top_1;
+            content_1 += '<g transform="translate(' + x + "," + y + ')">' + item.dom + "</g>";
           });
           zr_1.painter.getSvgRoot().innerHTML = content_1;
           if (opts.connectedBackgroundColor) {
@@ -33904,12 +31078,12 @@ var ECharts = (
         var hasSeparateZLevel = false;
         ecModel.eachComponent(function(componentType, componentModel) {
           var zlevel = componentModel.get("zlevel") || 0;
-          var z2 = componentModel.get("z") || 0;
+          var z = componentModel.get("z") || 0;
           var zlevelKey = componentModel.getZLevelKey();
           hasSeparateZLevel = hasSeparateZLevel || !!zlevelKey;
           (componentType === "series" ? seriesZLevels : componentZLevels).push({
             zlevel,
-            z: z2,
+            z,
             idx: componentModel.componentIndex,
             type: componentType,
             key: zlevelKey
@@ -33919,11 +31093,11 @@ var ECharts = (
           var zLevels = componentZLevels.concat(seriesZLevels);
           var lastSeriesZLevel_1;
           var lastSeriesKey_1;
-          sort$2(zLevels, function(a2, b2) {
-            if (a2.zlevel === b2.zlevel) {
-              return a2.z - b2.z;
+          sort$2(zLevels, function(a, b) {
+            if (a.zlevel === b.zlevel) {
+              return a.z - b.z;
             }
-            return a2.zlevel - b2.zlevel;
+            return a.zlevel - b.zlevel;
           });
           each$f(zLevels, function(item) {
             var componentModel = ecModel.getComponent(item.type, item.idx);
@@ -34076,35 +31250,35 @@ var ECharts = (
         if (model.preventAutoZ) {
           return;
         }
-        var z2 = model.get("z") || 0;
+        var z = model.get("z") || 0;
         var zlevel = model.get("zlevel") || 0;
         view.eachRendered(function(el) {
-          doUpdateZ(el, z2, zlevel, -Infinity);
+          doUpdateZ(el, z, zlevel, -Infinity);
           return true;
         });
       }
-      function doUpdateZ(el, z2, zlevel, maxZ2) {
+      function doUpdateZ(el, z, zlevel, maxZ2) {
         var label = el.getTextContent();
         var labelLine = el.getTextGuideLine();
         var isGroup = el.isGroup;
         if (isGroup) {
           var children = el.childrenRef();
           for (var i = 0; i < children.length; i++) {
-            maxZ2 = Math.max(doUpdateZ(children[i], z2, zlevel, maxZ2), maxZ2);
+            maxZ2 = Math.max(doUpdateZ(children[i], z, zlevel, maxZ2), maxZ2);
           }
         } else {
-          el.z = z2;
+          el.z = z;
           el.zlevel = zlevel;
           maxZ2 = Math.max(el.z2, maxZ2);
         }
         if (label) {
-          label.z = z2;
+          label.z = z;
           label.zlevel = zlevel;
           isFinite(maxZ2) && (label.z2 = maxZ2 + 2);
         }
         if (labelLine) {
           var textGuideLineConfig = el.textGuideLineConfig;
-          labelLine.z = z2;
+          labelLine.z = z;
           labelLine.zlevel = zlevel;
           isFinite(maxZ2) && (labelLine.z2 = maxZ2 + (textGuideLineConfig && textGuideLineConfig.showAbove ? 1 : -1));
         }
@@ -34620,8 +31794,8 @@ var DataDiffer = (
         var newIdxMapVal = newDataIndexMap[newKey];
         var idxMapValLen = dataIndexMapValueLength(newIdxMapVal);
         if (idxMapValLen > 1) {
-          for (var j2 = 0; j2 < idxMapValLen; j2++) {
-            this._add && this._add(newIdxMapVal[j2]);
+          for (var j = 0; j < idxMapValLen; j++) {
+            this._add && this._add(newIdxMapVal[j]);
           }
         } else if (idxMapValLen === 1) {
           this._add && this._add(newIdxMapVal);
@@ -34707,7 +31881,7 @@ function summarizeDimensions(data, schema) {
         defaultedTooltip.push(dimName);
       }
     }
-    VISUAL_DIMENSIONS.each(function(v4, otherDim) {
+    VISUAL_DIMENSIONS.each(function(v, otherDim) {
       var encodeArr = getOrCreateEncodeArr(encode2, otherDim);
       var dimIndex = dimItem.otherDims[otherDim];
       if (dimIndex != null && dimIndex !== false) {
@@ -34717,7 +31891,7 @@ function summarizeDimensions(data, schema) {
   });
   var dataDimsOnCoord = [];
   var encodeFirstDimNotExtra = {};
-  notExtraCoordDimMap.each(function(v4, coordDim) {
+  notExtraCoordDimMap.each(function(v, coordDim) {
     var dimArr = encode2[coordDim];
     encodeFirstDimNotExtra[coordDim] = dimArr[0];
     dataDimsOnCoord = dataDimsOnCoord.concat(dimArr);
@@ -36607,12 +33781,12 @@ function getValueAxesMinGaps(barSeries) {
     if (axisValues.hasOwnProperty(key)) {
       var valuesInAxis = axisValues[key];
       if (valuesInAxis) {
-        valuesInAxis.sort(function(a2, b2) {
-          return a2 - b2;
+        valuesInAxis.sort(function(a, b) {
+          return a - b;
         });
         var min3 = null;
-        for (var j2 = 1; j2 < valuesInAxis.length; ++j2) {
-          var delta = valuesInAxis[j2] - valuesInAxis[j2 - 1];
+        for (var j = 1; j < valuesInAxis.length; ++j) {
+          var delta = valuesInAxis[j] - valuesInAxis[j - 1];
           if (delta > 0) {
             min3 = min3 === null ? delta : Math.min(min3, delta);
           }
@@ -36848,7 +34022,7 @@ function createProgressiveLayout(seriesType2) {
               stackStartValue = +value - store.get(valueDimIdx, dataIndex);
             }
             var x = void 0;
-            var y2 = void 0;
+            var y = void 0;
             var width = void 0;
             var height = void 0;
             if (isValueAxisH) {
@@ -36858,7 +34032,7 @@ function createProgressiveLayout(seriesType2) {
                 baseCoord = startCoord[0];
               }
               x = baseCoord;
-              y2 = coord[1] + columnOffset;
+              y = coord[1] + columnOffset;
               width = coord[0] - baseCoord;
               height = columnWidth;
               if (Math.abs(width) < barMinHeight) {
@@ -36871,7 +34045,7 @@ function createProgressiveLayout(seriesType2) {
                 baseCoord = startCoord[1];
               }
               x = coord[0] + columnOffset;
-              y2 = baseCoord;
+              y = baseCoord;
               width = columnWidth;
               height = coord[1] - baseCoord;
               if (Math.abs(height) < barMinHeight) {
@@ -36881,17 +34055,17 @@ function createProgressiveLayout(seriesType2) {
             if (!isLarge) {
               data2.setItemLayout(dataIndex, {
                 x,
-                y: y2,
+                y,
                 width,
                 height
               });
             } else {
               largePoints[idxOffset] = x;
-              largePoints[idxOffset + 1] = y2;
+              largePoints[idxOffset + 1] = y;
               largePoints[idxOffset + 2] = isValueAxisH ? width : height;
               if (largeBackgroundPoints) {
                 largeBackgroundPoints[idxOffset] = isValueAxisH ? coordLayout.x : x;
-                largeBackgroundPoints[idxOffset + 1] = isValueAxisH ? y2 : coordLayout.y;
+                largeBackgroundPoints[idxOffset + 1] = isValueAxisH ? y : coordLayout.y;
                 largeBackgroundPoints[idxOffset + 2] = bgSize;
               }
               largeDataIndices[dataIndex] = dataIndex;
@@ -36924,10 +34098,10 @@ function getValueAxisStart(baseAxis, valueAxis2) {
   }
   return valueAxis2.toGlobalCoord(valueAxis2.dataToCoord(valueAxis2.type === "log" ? startValue > 0 ? startValue : 1 : startValue));
 }
-var bisect = function(a2, x, lo, hi) {
+var bisect = function(a, x, lo, hi) {
   while (lo < hi) {
     var mid = lo + hi >>> 1;
-    if (a2[mid][1] < x) {
+    if (a[mid][1] < x) {
       lo = mid + 1;
     } else {
       hi = mid;
@@ -36980,8 +34154,8 @@ var TimeScale = (
         extent3[1] += ONE_DAY;
       }
       if (extent3[1] === -Infinity && extent3[0] === Infinity) {
-        var d2 = /* @__PURE__ */ new Date();
-        extent3[1] = +new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+        var d = /* @__PURE__ */ new Date();
+        extent3[1] = +new Date(d.getFullYear(), d.getMonth(), d.getDate());
         extent3[0] = extent3[1] - ONE_DAY;
       }
       this.calcNiceTicks(opt.splitNumber, opt.minInterval, opt.maxInterval);
@@ -37123,13 +34297,13 @@ function getIntervalTicks(bottomUnitName, approxInterval, isUTC, extent3) {
   function addTicksInSpan(interval, minTimestamp, maxTimestamp, getMethodName, setMethodName, isDate, out2) {
     var date = new Date(minTimestamp);
     var dateTime = minTimestamp;
-    var d2 = date[getMethodName]();
+    var d = date[getMethodName]();
     while (dateTime < maxTimestamp && dateTime <= extent3[1]) {
       out2.push({
         value: dateTime
       });
-      d2 += interval;
-      date[setMethodName](d2);
+      d += interval;
+      date[setMethodName](d);
       dateTime = date.getTime();
     }
     out2.push({
@@ -37231,8 +34405,8 @@ function getIntervalTicks(bottomUnitName, approxInterval, isUTC, extent3) {
     if (primaryTimeUnit !== nextPrimaryTimeUnit) {
       if (currentLevelTicks.length) {
         lastLevelTickCount = tickCount;
-        currentLevelTicks.sort(function(a2, b2) {
-          return a2.value - b2.value;
+        currentLevelTicks.sort(function(a, b) {
+          return a.value - b.value;
         });
         var levelTicksRemoveDuplicated = [];
         for (var i_1 = 0; i_1 < currentLevelTicks.length; ++i_1) {
@@ -37279,8 +34453,8 @@ function getIntervalTicks(bottomUnitName, approxInterval, isUTC, extent3) {
       });
     }
   }
-  ticks.sort(function(a2, b2) {
-    return a2.value - b2.value;
+  ticks.sort(function(a, b) {
+    return a.value - b.value;
   });
   var result = [];
   for (var i = 0; i < ticks.length; ++i) {
@@ -37765,25 +34939,25 @@ var AxisModelCommonMixin = (
   }()
 );
 var EPSILON = 1e-8;
-function isAroundEqual(a2, b2) {
-  return Math.abs(a2 - b2) < EPSILON;
+function isAroundEqual(a, b) {
+  return Math.abs(a - b) < EPSILON;
 }
-function contain(points2, x, y2) {
-  var w2 = 0;
+function contain(points2, x, y) {
+  var w = 0;
   var p2 = points2[0];
   if (!p2) {
     return false;
   }
   for (var i = 1; i < points2.length; i++) {
     var p22 = points2[i];
-    w2 += windingLine(p2[0], p2[1], p22[0], p22[1], x, y2);
+    w += windingLine(p2[0], p2[1], p22[0], p22[1], x, y);
     p2 = p22;
   }
   var p0 = points2[0];
   if (!isAroundEqual(p2[0], p0[0]) || !isAroundEqual(p2[1], p0[1])) {
-    w2 += windingLine(p2[0], p2[1], p0[0], p0[1], x, y2);
+    w += windingLine(p2[0], p2[1], p0[0], p0[1], x, y);
   }
-  return w2 !== 0;
+  return w !== 0;
 }
 var TMP_TRANSFORM = [];
 function transformPoints(points2, transform2) {
@@ -37813,10 +34987,10 @@ function centroid$1(points2) {
   for (var i = 0; i < len2; i++) {
     var x1 = points2[i][0];
     var y1 = points2[i][1];
-    var a2 = x0 * y1 - x1 * y0;
-    signedArea += a2;
-    cx += (x0 + x1) * a2;
-    cy += (y0 + y1) * a2;
+    var a = x0 * y1 - x1 * y0;
+    signedArea += a;
+    cx += (x0 + x1) * a;
+    cy += (y0 + y1) * a;
     x0 = x1;
     y0 = y1;
   }
@@ -37943,7 +35117,7 @@ var GeoJSONRegion = (
         }
       return false;
     };
-    GeoJSONRegion2.prototype.transformTo = function(x, y2, width, height) {
+    GeoJSONRegion2.prototype.transformTo = function(x, y, width, height) {
       var rect = this.getBoundingRect();
       var aspect = rect.width / rect.height;
       if (!width) {
@@ -37951,7 +35125,7 @@ var GeoJSONRegion = (
       } else if (!height) {
         height = width / aspect;
       }
-      var target = new BoundingRect$1(x, y2, width, height);
+      var target = new BoundingRect$1(x, y, width, height);
       var transform2 = rect.calculateTransform(target);
       var geometries = this.geometries;
       for (var i = 0; i < geometries.length; i++) {
@@ -38045,8 +35219,8 @@ function decode(json) {
   return jsonCompressed;
 }
 function decodeRings(rings, encodeOffsets, encodeScale) {
-  for (var c2 = 0; c2 < rings.length; c2++) {
-    rings[c2] = decodeRing(rings[c2], encodeOffsets[c2], encodeScale);
+  for (var c = 0; c < rings.length; c++) {
+    rings[c] = decodeRing(rings[c], encodeOffsets[c], encodeScale);
   }
 }
 function decodeRing(coordinate, encodeOffsets, encodeScale) {
@@ -38055,14 +35229,14 @@ function decodeRing(coordinate, encodeOffsets, encodeScale) {
   var prevY = encodeOffsets[1];
   for (var i = 0; i < coordinate.length; i += 2) {
     var x = coordinate.charCodeAt(i) - 64;
-    var y2 = coordinate.charCodeAt(i + 1) - 64;
+    var y = coordinate.charCodeAt(i + 1) - 64;
     x = x >> 1 ^ -(x & 1);
-    y2 = y2 >> 1 ^ -(y2 & 1);
+    y = y >> 1 ^ -(y & 1);
     x += prevX;
-    y2 += prevY;
+    y += prevY;
     prevX = x;
-    prevY = y2;
-    result.push([x / encodeScale, y2 / encodeScale]);
+    prevY = y;
+    result.push([x / encodeScale, y / encodeScale]);
   }
   return result;
 }
@@ -38518,10 +35692,10 @@ function fixOnBandTicksCoords(axis, ticksCoords, alignWithLabel, clamp2) {
       coord: axisExtent[1]
     });
   }
-  function littleThan2(a2, b2) {
-    a2 = round$3(a2);
-    b2 = round$3(b2);
-    return inverse ? a2 > b2 : a2 < b2;
+  function littleThan2(a, b) {
+    a = round$3(a);
+    b = round$3(b);
+    return inverse ? a > b : a < b;
   }
 }
 const Axis$1 = Axis;
@@ -38550,18 +35724,18 @@ function getCandidateAnchor(pos, distance2, rect, outPt, outDir) {
       break;
   }
 }
-function projectPointToArc(cx, cy, r2, startAngle, endAngle, anticlockwise, x, y2, out2) {
+function projectPointToArc(cx, cy, r, startAngle, endAngle, anticlockwise, x, y, out2) {
   x -= cx;
-  y2 -= cy;
-  var d2 = Math.sqrt(x * x + y2 * y2);
-  x /= d2;
-  y2 /= d2;
-  var ox = x * r2 + cx;
-  var oy = y2 * r2 + cy;
+  y -= cy;
+  var d = Math.sqrt(x * x + y * y);
+  x /= d;
+  y /= d;
+  var ox = x * r + cx;
+  var oy = y * r + cy;
   if (Math.abs(startAngle - endAngle) % PI2$2 < 1e-4) {
     out2[0] = ox;
     out2[1] = oy;
-    return d2 - r2;
+    return d - r;
   }
   if (anticlockwise) {
     var tmp = startAngle;
@@ -38574,34 +35748,34 @@ function projectPointToArc(cx, cy, r2, startAngle, endAngle, anticlockwise, x, y
   if (startAngle > endAngle) {
     endAngle += PI2$2;
   }
-  var angle = Math.atan2(y2, x);
+  var angle = Math.atan2(y, x);
   if (angle < 0) {
     angle += PI2$2;
   }
   if (angle >= startAngle && angle <= endAngle || angle + PI2$2 >= startAngle && angle + PI2$2 <= endAngle) {
     out2[0] = ox;
     out2[1] = oy;
-    return d2 - r2;
+    return d - r;
   }
-  var x1 = r2 * Math.cos(startAngle) + cx;
-  var y1 = r2 * Math.sin(startAngle) + cy;
-  var x2 = r2 * Math.cos(endAngle) + cx;
-  var y22 = r2 * Math.sin(endAngle) + cy;
-  var d1 = (x1 - x) * (x1 - x) + (y1 - y2) * (y1 - y2);
-  var d22 = (x2 - x) * (x2 - x) + (y22 - y2) * (y22 - y2);
-  if (d1 < d22) {
+  var x1 = r * Math.cos(startAngle) + cx;
+  var y1 = r * Math.sin(startAngle) + cy;
+  var x2 = r * Math.cos(endAngle) + cx;
+  var y2 = r * Math.sin(endAngle) + cy;
+  var d1 = (x1 - x) * (x1 - x) + (y1 - y) * (y1 - y);
+  var d2 = (x2 - x) * (x2 - x) + (y2 - y) * (y2 - y);
+  if (d1 < d2) {
     out2[0] = x1;
     out2[1] = y1;
     return Math.sqrt(d1);
   } else {
     out2[0] = x2;
-    out2[1] = y22;
-    return Math.sqrt(d22);
+    out2[1] = y2;
+    return Math.sqrt(d2);
   }
 }
-function projectPointToLine(x1, y1, x2, y2, x, y3, out2, limitToEnds) {
+function projectPointToLine(x1, y1, x2, y2, x, y, out2, limitToEnds) {
   var dx = x - x1;
-  var dy = y3 - y1;
+  var dy = y - y1;
   var dx1 = x2 - x1;
   var dy1 = y2 - y1;
   var lineLen = Math.sqrt(dx1 * dx1 + dy1 * dy1);
@@ -38615,9 +35789,9 @@ function projectPointToLine(x1, y1, x2, y2, x, y3, out2, limitToEnds) {
   t2 *= lineLen;
   var ox = out2[0] = x1 + t2 * dx1;
   var oy = out2[1] = y1 + t2 * dy1;
-  return Math.sqrt((ox - x) * (ox - x) + (oy - y3) * (oy - y3));
+  return Math.sqrt((ox - x) * (ox - x) + (oy - y) * (oy - y));
 }
-function projectPointToRect(x1, y1, width, height, x, y2, out2) {
+function projectPointToRect(x1, y1, width, height, x, y, out2) {
   if (width < 0) {
     x1 = x1 + width;
     width = -width;
@@ -38627,18 +35801,18 @@ function projectPointToRect(x1, y1, width, height, x, y2, out2) {
     height = -height;
   }
   var x2 = x1 + width;
-  var y22 = y1 + height;
+  var y2 = y1 + height;
   var ox = out2[0] = Math.min(Math.max(x, x1), x2);
-  var oy = out2[1] = Math.min(Math.max(y2, y1), y22);
-  return Math.sqrt((ox - x) * (ox - x) + (oy - y2) * (oy - y2));
+  var oy = out2[1] = Math.min(Math.max(y, y1), y2);
+  return Math.sqrt((ox - x) * (ox - x) + (oy - y) * (oy - y));
 }
 var tmpPt = [];
-function nearestPointOnRect(pt3, rect, out2) {
-  var dist2 = projectPointToRect(rect.x, rect.y, rect.width, rect.height, pt3.x, pt3.y, tmpPt);
+function nearestPointOnRect(pt, rect, out2) {
+  var dist2 = projectPointToRect(rect.x, rect.y, rect.width, rect.height, pt.x, pt.y, tmpPt);
   out2.set(tmpPt[0], tmpPt[1]);
   return dist2;
 }
-function nearestPointOnPath(pt3, path, out2) {
+function nearestPointOnPath(pt, path, out2) {
   var xi = 0;
   var yi = 0;
   var x0 = 0;
@@ -38647,8 +35821,8 @@ function nearestPointOnPath(pt3, path, out2) {
   var y1;
   var minDist = Infinity;
   var data = path.data;
-  var x = pt3.x;
-  var y2 = pt3.y;
+  var x = pt.x;
+  var y = pt.y;
   for (var i = 0; i < data.length; ) {
     var cmd = data[i++];
     if (i === 1) {
@@ -38657,7 +35831,7 @@ function nearestPointOnPath(pt3, path, out2) {
       x0 = xi;
       y0 = yi;
     }
-    var d2 = minDist;
+    var d = minDist;
     switch (cmd) {
       case CMD$1.M:
         x0 = data[i++];
@@ -38666,17 +35840,17 @@ function nearestPointOnPath(pt3, path, out2) {
         yi = y0;
         break;
       case CMD$1.L:
-        d2 = projectPointToLine(xi, yi, data[i], data[i + 1], x, y2, tmpPt, true);
+        d = projectPointToLine(xi, yi, data[i], data[i + 1], x, y, tmpPt, true);
         xi = data[i++];
         yi = data[i++];
         break;
       case CMD$1.C:
-        d2 = cubicProjectPoint(xi, yi, data[i++], data[i++], data[i++], data[i++], data[i], data[i + 1], x, y2, tmpPt);
+        d = cubicProjectPoint(xi, yi, data[i++], data[i++], data[i++], data[i++], data[i], data[i + 1], x, y, tmpPt);
         xi = data[i++];
         yi = data[i++];
         break;
       case CMD$1.Q:
-        d2 = quadraticProjectPoint(xi, yi, data[i++], data[i++], data[i], data[i + 1], x, y2, tmpPt);
+        d = quadraticProjectPoint(xi, yi, data[i++], data[i++], data[i], data[i + 1], x, y, tmpPt);
         xi = data[i++];
         yi = data[i++];
         break;
@@ -38696,7 +35870,7 @@ function nearestPointOnPath(pt3, path, out2) {
           y0 = y1;
         }
         var _x = (x - cx) * ry / rx + cx;
-        d2 = projectPointToArc(cx, cy, ry, theta, theta + dTheta, anticlockwise, _x, y2, tmpPt);
+        d = projectPointToArc(cx, cy, ry, theta, theta + dTheta, anticlockwise, _x, y, tmpPt);
         xi = Math.cos(theta + dTheta) * rx + cx;
         yi = Math.sin(theta + dTheta) * ry + cy;
         break;
@@ -38705,16 +35879,16 @@ function nearestPointOnPath(pt3, path, out2) {
         y0 = yi = data[i++];
         var width = data[i++];
         var height = data[i++];
-        d2 = projectPointToRect(x0, y0, width, height, x, y2, tmpPt);
+        d = projectPointToRect(x0, y0, width, height, x, y, tmpPt);
         break;
       case CMD$1.Z:
-        d2 = projectPointToLine(xi, yi, x0, y0, x, y2, tmpPt, true);
+        d = projectPointToLine(xi, yi, x0, y0, x, y, tmpPt, true);
         xi = x0;
         yi = y0;
         break;
     }
-    if (d2 < minDist) {
-      minDist = d2;
+    if (d < minDist) {
+      minDist = d;
       out2.set(tmpPt[0], tmpPt[1]);
     }
   }
@@ -38790,9 +35964,9 @@ function limitTurnAngle(linePoints, minTurnAngle) {
   var angleCos = dir.dot(dir2);
   var minTurnAngleCos = Math.cos(minTurnAngle);
   if (minTurnAngleCos < angleCos) {
-    var d2 = projectPointToLine(pt1.x, pt1.y, pt2.x, pt2.y, pt0.x, pt0.y, tmpArr, false);
+    var d = projectPointToLine(pt1.x, pt1.y, pt2.x, pt2.y, pt0.x, pt0.y, tmpArr, false);
     tmpProjPoint.fromArray(tmpArr);
-    tmpProjPoint.scaleAndAdd(dir2, d2 / Math.tan(Math.PI - minTurnAngle));
+    tmpProjPoint.scaleAndAdd(dir2, d / Math.tan(Math.PI - minTurnAngle));
     var t2 = pt2.x !== pt1.x ? (tmpProjPoint.x - pt1.x) / (pt2.x - pt1.x) : (tmpProjPoint.y - pt1.y) / (pt2.y - pt1.y);
     if (isNaN(t2)) {
       return;
@@ -38825,7 +35999,7 @@ function limitSurfaceAngle(linePoints, surfaceNormal, maxSurfaceAngle) {
   var angleCos = dir.dot(surfaceNormal);
   var maxSurfaceAngleCos = Math.cos(maxSurfaceAngle);
   if (angleCos < maxSurfaceAngleCos) {
-    var d2 = projectPointToLine(pt1.x, pt1.y, pt2.x, pt2.y, pt0.x, pt0.y, tmpArr, false);
+    var d = projectPointToLine(pt1.x, pt1.y, pt2.x, pt2.y, pt0.x, pt0.y, tmpArr, false);
     tmpProjPoint.fromArray(tmpArr);
     var HALF_PI = Math.PI / 2;
     var angle2 = Math.acos(dir2.dot(surfaceNormal));
@@ -38833,7 +36007,7 @@ function limitSurfaceAngle(linePoints, surfaceNormal, maxSurfaceAngle) {
     if (newAngle >= HALF_PI) {
       Point.copy(tmpProjPoint, pt2);
     } else {
-      tmpProjPoint.scaleAndAdd(dir2, d2 / Math.tan(Math.PI / 2 - newAngle));
+      tmpProjPoint.scaleAndAdd(dir2, d / Math.tan(Math.PI / 2 - newAngle));
       var t2 = pt2.x !== pt1.x ? (tmpProjPoint.x - pt1.x) / (pt2.x - pt1.x) : (tmpProjPoint.y - pt1.y) / (pt2.y - pt1.y);
       if (isNaN(t2)) {
         return;
@@ -38990,8 +36164,8 @@ function shiftLayout(list, xyDim, sizeDim, minBound, maxBound, balanceShift) {
   if (len2 < 2) {
     return;
   }
-  list.sort(function(a2, b2) {
-    return a2.rect[xyDim] - b2.rect[xyDim];
+  list.sort(function(a, b) {
+    return a.rect[xyDim] - b.rect[xyDim];
   });
   var lastPos = 0;
   var delta;
@@ -39110,8 +36284,8 @@ function shiftLayoutOnY(list, topBound, bottomBound, balanceShift) {
 }
 function hideOverlap(labelList) {
   var displayedLabels = [];
-  labelList.sort(function(a2, b2) {
-    return b2.priority - a2.priority;
+  labelList.sort(function(a, b) {
+    return b.priority - a.priority;
   });
   var globalRect = new BoundingRect$1(0, 0, 0, 0);
   function hideEl(el) {
@@ -39137,8 +36311,8 @@ function hideOverlap(labelList) {
     globalRect.y += 0.05;
     var obb = labelItem.obb;
     var overlapped = false;
-    for (var j2 = 0; j2 < displayedLabels.length; j2++) {
-      var existsTextCfg = displayedLabels[j2];
+    for (var j = 0; j < displayedLabels.length; j++) {
+      var existsTextCfg = displayedLabels[j];
       if (!globalRect.intersect(existsTextCfg.rect)) {
         continue;
       }
@@ -39552,20 +36726,20 @@ var SVGPathRebuilder = function() {
     this._str = "";
     this._p = Math.pow(10, precision || 4);
   };
-  SVGPathRebuilder2.prototype.moveTo = function(x, y2) {
-    this._add("M", x, y2);
+  SVGPathRebuilder2.prototype.moveTo = function(x, y) {
+    this._add("M", x, y);
   };
-  SVGPathRebuilder2.prototype.lineTo = function(x, y2) {
-    this._add("L", x, y2);
+  SVGPathRebuilder2.prototype.lineTo = function(x, y) {
+    this._add("L", x, y);
   };
-  SVGPathRebuilder2.prototype.bezierCurveTo = function(x, y2, x2, y22, x3, y3) {
-    this._add("C", x, y2, x2, y22, x3, y3);
+  SVGPathRebuilder2.prototype.bezierCurveTo = function(x, y, x2, y2, x3, y3) {
+    this._add("C", x, y, x2, y2, x3, y3);
   };
-  SVGPathRebuilder2.prototype.quadraticCurveTo = function(x, y2, x2, y22) {
-    this._add("Q", x, y2, x2, y22);
+  SVGPathRebuilder2.prototype.quadraticCurveTo = function(x, y, x2, y2) {
+    this._add("Q", x, y, x2, y2);
   };
-  SVGPathRebuilder2.prototype.arc = function(cx, cy, r2, startAngle, endAngle, anticlockwise) {
-    this.ellipse(cx, cy, r2, r2, 0, startAngle, endAngle, anticlockwise);
+  SVGPathRebuilder2.prototype.arc = function(cx, cy, r, startAngle, endAngle, anticlockwise) {
+    this.ellipse(cx, cy, r, r, 0, startAngle, endAngle, anticlockwise);
   };
   SVGPathRebuilder2.prototype.ellipse = function(cx, cy, rx, ry, psi, startAngle, endAngle, anticlockwise) {
     var dTheta = endAngle - startAngle;
@@ -39596,15 +36770,15 @@ var SVGPathRebuilder = function() {
       }
     } else {
       var x = cx + rx * mathCos(endAngle);
-      var y2 = cy + ry * mathSin(endAngle);
-      this._add("A", rx, ry, xRot, +large, +clockwise, x, y2);
+      var y = cy + ry * mathSin(endAngle);
+      this._add("A", rx, ry, xRot, +large, +clockwise, x, y);
     }
   };
-  SVGPathRebuilder2.prototype.rect = function(x, y2, w2, h2) {
-    this._add("M", x, y2);
-    this._add("l", w2, 0);
-    this._add("l", 0, h2);
-    this._add("l", -w2, 0);
+  SVGPathRebuilder2.prototype.rect = function(x, y, w, h) {
+    this._add("M", x, y);
+    this._add("l", w, 0);
+    this._add("l", 0, h);
+    this._add("l", -w, 0);
     this._add("Z");
   };
   SVGPathRebuilder2.prototype.closePath = function() {
@@ -39612,7 +36786,7 @@ var SVGPathRebuilder = function() {
       this._add("Z");
     }
   };
-  SVGPathRebuilder2.prototype._add = function(cmd, a2, b2, c2, d2, e2, f2, g2, h2) {
+  SVGPathRebuilder2.prototype._add = function(cmd, a, b, c, d, e2, f2, g, h) {
     var vals = [];
     var p2 = this._p;
     for (var i = 1; i < arguments.length; i++) {
@@ -39742,25 +36916,25 @@ function createElementClose(name) {
 }
 function vNodeToString(el, opts) {
   opts = opts || {};
-  var S2 = opts.newline ? "\n" : "";
+  var S = opts.newline ? "\n" : "";
   function convertElToString(el2) {
     var children = el2.children, tag = el2.tag, attrs = el2.attrs, text = el2.text;
-    return createElementOpen(tag, attrs) + (tag !== "style" ? encodeHTML(text) : text || "") + (children ? "" + S2 + map$1(children, function(child) {
+    return createElementOpen(tag, attrs) + (tag !== "style" ? encodeHTML(text) : text || "") + (children ? "" + S + map$1(children, function(child) {
       return convertElToString(child);
-    }).join(S2) + S2 : "") + createElementClose(tag);
+    }).join(S) + S : "") + createElementClose(tag);
   }
   return convertElToString(el);
 }
 function getCssString(selectorNodes, animationNodes, opts) {
   opts = opts || {};
-  var S2 = opts.newline ? "\n" : "";
-  var bracketBegin = " {" + S2;
-  var bracketEnd = S2 + "}";
+  var S = opts.newline ? "\n" : "";
+  var bracketBegin = " {" + S;
+  var bracketEnd = S + "}";
   var selectors = map$1(keys(selectorNodes), function(className) {
     return className + bracketBegin + map$1(keys(selectorNodes[className]), function(attrName) {
       return attrName + ":" + selectorNodes[className][attrName] + ";";
-    }).join(S2) + bracketEnd;
-  }).join(S2);
+    }).join(S) + bracketEnd;
+  }).join(S);
   var animations = map$1(keys(animationNodes), function(animationName) {
     return "@keyframes " + animationName + bracketBegin + map$1(keys(animationNodes[animationName]), function(percent) {
       return percent + bracketBegin + map$1(keys(animationNodes[animationName][percent]), function(attrName) {
@@ -39769,13 +36943,13 @@ function getCssString(selectorNodes, animationNodes, opts) {
           val = 'path("' + val + '")';
         }
         return attrName + ":" + val + ";";
-      }).join(S2) + bracketEnd;
-    }).join(S2) + bracketEnd;
-  }).join(S2);
+      }).join(S) + bracketEnd;
+    }).join(S) + bracketEnd;
+  }).join(S);
   if (!selectors && !animations) {
     return "";
   }
-  return ["<![CDATA[", selectors, animations, "]]>"].join(S2);
+  return ["<![CDATA[", selectors, animations, "]]>"].join(S);
 }
 function createBrushScope(zrId) {
   return {
@@ -40266,7 +37440,7 @@ function brushSVGImage(el, scope) {
     return;
   }
   var x = style.x || 0;
-  var y2 = style.y || 0;
+  var y = style.y || 0;
   var dw = style.width;
   var dh = style.height;
   var attrs = {
@@ -40277,8 +37451,8 @@ function brushSVGImage(el, scope) {
   if (x) {
     attrs.x = x;
   }
-  if (y2) {
-    attrs.y = y2;
+  if (y) {
+    attrs.y = y;
   }
   setTransform(attrs, el.transform);
   setStyleAttrs(attrs, style, el, scope);
@@ -40295,7 +37469,7 @@ function brushSVGTSpan(el, scope) {
   }
   var font = style.font || DEFAULT_FONT;
   var x = style.x || 0;
-  var y2 = adjustTextY$1(style.y || 0, getLineHeight(font), style.textBaseline);
+  var y = adjustTextY$1(style.y || 0, getLineHeight(font), style.textBaseline);
   var textAlign = TEXT_ALIGN_TO_ANCHOR[style.textAlign] || style.textAlign;
   var attrs = {
     "dominant-baseline": "central",
@@ -40327,8 +37501,8 @@ function brushSVGTSpan(el, scope) {
   if (x) {
     attrs.x = x;
   }
-  if (y2) {
-    attrs.y = y2;
+  if (y) {
+    attrs.y = y;
   }
   setTransform(attrs, el.transform);
   setStyleAttrs(attrs, style, el, scope);
@@ -40578,11 +37752,11 @@ function setTextContent(node, text) {
 var colonChar = 58;
 var xChar = 120;
 var emptyNode = createVNode("", "");
-function isUndef(s2) {
-  return s2 === void 0;
+function isUndef(s) {
+  return s === void 0;
 }
-function isDef(s2) {
-  return s2 !== void 0;
+function isDef(s) {
+  return s !== void 0;
 }
 function createKeyToOldIdx(children, beginIdx, endIdx) {
   var map2 = {};
@@ -40925,10 +38099,10 @@ var SVGPainter = function() {
         for (var i_2 = lca + 1; i_2 < len2; i_2++) {
           var groupAttrs = {};
           setClipPath(clipPaths[i_2], groupAttrs, scope);
-          var g2 = createVNode("g", "clip-g-" + clipGroupNodeIdx++, groupAttrs, []);
-          (currentClipPathGroup ? currentClipPathGroup.children : out2).push(g2);
-          clipPathsGroupsStack[clipPathsGroupsStackDepth++] = g2;
-          currentClipPathGroup = g2;
+          var g = createVNode("g", "clip-g-" + clipGroupNodeIdx++, groupAttrs, []);
+          (currentClipPathGroup ? currentClipPathGroup.children : out2).push(g);
+          clipPathsGroupsStack[clipPathsGroupsStackDepth++] = g;
+          currentClipPathGroup = g;
         }
         prevClipPaths = clipPaths;
         var ret = brush(displayable, scope);
@@ -41215,13 +38389,13 @@ var Layer = function(_super) {
           mergedRepaintRects.splice(i, 1);
           continue;
         }
-        for (var j2 = i + 1; j2 < mergedRepaintRects.length; ) {
-          if (mergedRepaintRects[i].intersect(mergedRepaintRects[j2])) {
+        for (var j = i + 1; j < mergedRepaintRects.length; ) {
+          if (mergedRepaintRects[i].intersect(mergedRepaintRects[j])) {
             hasIntersections = true;
-            mergedRepaintRects[i].union(mergedRepaintRects[j2]);
-            mergedRepaintRects.splice(j2, 1);
+            mergedRepaintRects[i].union(mergedRepaintRects[j]);
+            mergedRepaintRects.splice(j, 1);
           } else {
-            j2++;
+            j++;
           }
         }
         i++;
@@ -41270,8 +38444,8 @@ var Layer = function(_super) {
       this.ctxBack.drawImage(dom, 0, 0, width / dpr2, height / dpr2);
     }
     var domBack = this.domBack;
-    function doClear(x, y2, width2, height2) {
-      ctx.clearRect(x, y2, width2, height2);
+    function doClear(x, y, width2, height2) {
+      ctx.clearRect(x, y, width2, height2);
       if (clearColor && clearColor !== "transparent") {
         var clearColorGradientOrPattern = void 0;
         if (isGradientObject(clearColor)) {
@@ -41297,13 +38471,13 @@ var Layer = function(_super) {
         }
         ctx.save();
         ctx.fillStyle = clearColorGradientOrPattern || clearColor;
-        ctx.fillRect(x, y2, width2, height2);
+        ctx.fillRect(x, y, width2, height2);
         ctx.restore();
       }
       if (haveMotionBLur) {
         ctx.save();
         ctx.globalAlpha = lastFrameAlpha;
-        ctx.drawImage(domBack, x, y2, width2, height2);
+        ctx.drawImage(domBack, x, y, width2, height2);
         ctx.restore();
       }
     }
@@ -41423,8 +38597,8 @@ var CanvasPainter = function() {
     this._redrawId = Math.random();
     this._paintList(list, prevList, paintAll, this._redrawId);
     for (var i = 0; i < zlevelList.length; i++) {
-      var z2 = zlevelList[i];
-      var layer = this._layers[z2];
+      var z = zlevelList[i];
+      var layer = this._layers[z];
       if (!layer.__builtin__ && layer.refresh) {
         var clearColor = i === 0 ? this._backgroundColor : null;
         layer.refresh(clearColor);
@@ -41573,8 +38747,8 @@ var CanvasPainter = function() {
           i = layer2.__endIndex;
         } else {
           var dpr2 = this_1.dpr;
-          for (var r2 = 0; r2 < repaintRects.length; ++r2) {
-            var rect = repaintRects[r2];
+          for (var r = 0; r < repaintRects.length; ++r) {
+            var rect = repaintRects[r];
             ctx.save();
             ctx.beginPath();
             ctx.rect(rect.x * dpr2, rect.y * dpr2, rect.width * dpr2, rect.height * dpr2);
@@ -41693,27 +38867,27 @@ var CanvasPainter = function() {
   CanvasPainter2.prototype.eachLayer = function(cb, context) {
     var zlevelList = this._zlevelList;
     for (var i = 0; i < zlevelList.length; i++) {
-      var z2 = zlevelList[i];
-      cb.call(context, this._layers[z2], z2);
+      var z = zlevelList[i];
+      cb.call(context, this._layers[z], z);
     }
   };
   CanvasPainter2.prototype.eachBuiltinLayer = function(cb, context) {
     var zlevelList = this._zlevelList;
     for (var i = 0; i < zlevelList.length; i++) {
-      var z2 = zlevelList[i];
-      var layer = this._layers[z2];
+      var z = zlevelList[i];
+      var layer = this._layers[z];
       if (layer.__builtin__) {
-        cb.call(context, layer, z2);
+        cb.call(context, layer, z);
       }
     }
   };
   CanvasPainter2.prototype.eachOtherLayer = function(cb, context) {
     var zlevelList = this._zlevelList;
     for (var i = 0; i < zlevelList.length; i++) {
-      var z2 = zlevelList[i];
-      var layer = this._layers[z2];
+      var z = zlevelList[i];
+      var layer = this._layers[z];
       if (!layer.__builtin__) {
-        cb.call(context, layer, z2);
+        cb.call(context, layer, z);
       }
     }
   };
@@ -41721,7 +38895,7 @@ var CanvasPainter = function() {
     return this._layers;
   };
   CanvasPainter2.prototype._updateLayerStatus = function(list) {
-    this.eachBuiltinLayer(function(layer2, z2) {
+    this.eachBuiltinLayer(function(layer2, z) {
       layer2.__dirty = layer2.__used = false;
     });
     function updatePrevLayer(idx) {
@@ -41785,7 +38959,7 @@ var CanvasPainter = function() {
       }
     }
     updatePrevLayer(i);
-    this.eachBuiltinLayer(function(layer2, z2) {
+    this.eachBuiltinLayer(function(layer2, z) {
       if (!layer2.__used && layer2.getElementCount() > 0) {
         layer2.__dirty = true;
         layer2.__startIndex = layer2.__endIndex = layer2.__drawIndex = 0;
@@ -42098,10 +39272,10 @@ var Symbol$1 = (
     Symbol2.prototype.downplay = function() {
       leaveEmphasis(this.childAt(0));
     };
-    Symbol2.prototype.setZ = function(zlevel, z2) {
+    Symbol2.prototype.setZ = function(zlevel, z) {
       var symbolPath = this.childAt(0);
       symbolPath.zlevel = zlevel;
-      symbolPath.z = z2;
+      symbolPath.z = z;
     };
     Symbol2.prototype.setDraggable = function(draggable, hasCursorOption) {
       var symbolPath = this.childAt(0);
@@ -42593,8 +39767,8 @@ function lineAnimationDiff(oldData, newData, oldStackedOnPoints, newStackedOnPoi
       sortedIndices.push(sortedIndices.length);
     }
   }
-  sortedIndices.sort(function(a2, b2) {
-    return rawIndices[a2] - rawIndices[b2];
+  sortedIndices.sort(function(a, b) {
+    return rawIndices[a] - rawIndices[b];
   });
   var len2 = currPoints.length;
   var sortedCurrPoints = createFloat32Array(len2);
@@ -42626,8 +39800,8 @@ function lineAnimationDiff(oldData, newData, oldStackedOnPoints, newStackedOnPoi
 }
 var mathMin$5 = Math.min;
 var mathMax$5 = Math.max;
-function isPointNull$1(x, y2) {
-  return isNaN(x) || isNaN(y2);
+function isPointNull$1(x, y) {
+  return isNaN(x) || isNaN(y);
 }
 function drawSegment(ctx, points2, start2, segLen, allLen, dir3, smooth, smoothMonotone, connectNulls) {
   var prevX;
@@ -42640,11 +39814,11 @@ function drawSegment(ctx, points2, start2, segLen, allLen, dir3, smooth, smoothM
   var k = 0;
   for (; k < segLen; k++) {
     var x = points2[idx * 2];
-    var y2 = points2[idx * 2 + 1];
+    var y = points2[idx * 2 + 1];
     if (idx >= allLen || idx < 0) {
       break;
     }
-    if (isPointNull$1(x, y2)) {
+    if (isPointNull$1(x, y)) {
       if (connectNulls) {
         idx += dir3;
         continue;
@@ -42652,12 +39826,12 @@ function drawSegment(ctx, points2, start2, segLen, allLen, dir3, smooth, smoothM
       break;
     }
     if (idx === start2) {
-      ctx[dir3 > 0 ? "moveTo" : "lineTo"](x, y2);
+      ctx[dir3 > 0 ? "moveTo" : "lineTo"](x, y);
       cpx0 = x;
-      cpy0 = y2;
+      cpy0 = y;
     } else {
       var dx = x - prevX;
-      var dy = y2 - prevY;
+      var dy = y - prevY;
       if (dx * dx + dy * dy < 0.5) {
         idx += dir3;
         continue;
@@ -42666,16 +39840,16 @@ function drawSegment(ctx, points2, start2, segLen, allLen, dir3, smooth, smoothM
         var nextIdx = idx + dir3;
         var nextX = points2[nextIdx * 2];
         var nextY = points2[nextIdx * 2 + 1];
-        while (nextX === x && nextY === y2 && k < segLen) {
+        while (nextX === x && nextY === y && k < segLen) {
           k++;
           nextIdx += dir3;
           idx += dir3;
           nextX = points2[nextIdx * 2];
           nextY = points2[nextIdx * 2 + 1];
           x = points2[idx * 2];
-          y2 = points2[idx * 2 + 1];
+          y = points2[idx * 2 + 1];
           dx = x - prevX;
-          dy = y2 - prevY;
+          dy = y - prevY;
         }
         var tmpK = k + 1;
         if (connectNulls) {
@@ -42693,14 +39867,14 @@ function drawSegment(ctx, points2, start2, segLen, allLen, dir3, smooth, smoothM
         var nextCpy0 = void 0;
         if (tmpK >= segLen || isPointNull$1(nextX, nextY)) {
           cpx1 = x;
-          cpy1 = y2;
+          cpy1 = y;
         } else {
           vx = nextX - prevX;
           vy = nextY - prevY;
           var dx0 = x - prevX;
           var dx1 = nextX - x;
-          var dy0 = y2 - prevY;
-          var dy1 = nextY - y2;
+          var dy0 = y - prevY;
+          var dy1 = nextY - y;
           var lenPrevSeg = void 0;
           var lenNextSeg = void 0;
           if (smoothMonotone === "x") {
@@ -42708,52 +39882,52 @@ function drawSegment(ctx, points2, start2, segLen, allLen, dir3, smooth, smoothM
             lenNextSeg = Math.abs(dx1);
             var dir_1 = vx > 0 ? 1 : -1;
             cpx1 = x - dir_1 * lenPrevSeg * smooth;
-            cpy1 = y2;
+            cpy1 = y;
             nextCpx0 = x + dir_1 * lenNextSeg * smooth;
-            nextCpy0 = y2;
+            nextCpy0 = y;
           } else if (smoothMonotone === "y") {
             lenPrevSeg = Math.abs(dy0);
             lenNextSeg = Math.abs(dy1);
             var dir_2 = vy > 0 ? 1 : -1;
             cpx1 = x;
-            cpy1 = y2 - dir_2 * lenPrevSeg * smooth;
+            cpy1 = y - dir_2 * lenPrevSeg * smooth;
             nextCpx0 = x;
-            nextCpy0 = y2 + dir_2 * lenNextSeg * smooth;
+            nextCpy0 = y + dir_2 * lenNextSeg * smooth;
           } else {
             lenPrevSeg = Math.sqrt(dx0 * dx0 + dy0 * dy0);
             lenNextSeg = Math.sqrt(dx1 * dx1 + dy1 * dy1);
             ratioNextSeg = lenNextSeg / (lenNextSeg + lenPrevSeg);
             cpx1 = x - vx * smooth * (1 - ratioNextSeg);
-            cpy1 = y2 - vy * smooth * (1 - ratioNextSeg);
+            cpy1 = y - vy * smooth * (1 - ratioNextSeg);
             nextCpx0 = x + vx * smooth * ratioNextSeg;
-            nextCpy0 = y2 + vy * smooth * ratioNextSeg;
+            nextCpy0 = y + vy * smooth * ratioNextSeg;
             nextCpx0 = mathMin$5(nextCpx0, mathMax$5(nextX, x));
-            nextCpy0 = mathMin$5(nextCpy0, mathMax$5(nextY, y2));
+            nextCpy0 = mathMin$5(nextCpy0, mathMax$5(nextY, y));
             nextCpx0 = mathMax$5(nextCpx0, mathMin$5(nextX, x));
-            nextCpy0 = mathMax$5(nextCpy0, mathMin$5(nextY, y2));
+            nextCpy0 = mathMax$5(nextCpy0, mathMin$5(nextY, y));
             vx = nextCpx0 - x;
-            vy = nextCpy0 - y2;
+            vy = nextCpy0 - y;
             cpx1 = x - vx * lenPrevSeg / lenNextSeg;
-            cpy1 = y2 - vy * lenPrevSeg / lenNextSeg;
+            cpy1 = y - vy * lenPrevSeg / lenNextSeg;
             cpx1 = mathMin$5(cpx1, mathMax$5(prevX, x));
-            cpy1 = mathMin$5(cpy1, mathMax$5(prevY, y2));
+            cpy1 = mathMin$5(cpy1, mathMax$5(prevY, y));
             cpx1 = mathMax$5(cpx1, mathMin$5(prevX, x));
-            cpy1 = mathMax$5(cpy1, mathMin$5(prevY, y2));
+            cpy1 = mathMax$5(cpy1, mathMin$5(prevY, y));
             vx = x - cpx1;
-            vy = y2 - cpy1;
+            vy = y - cpy1;
             nextCpx0 = x + vx * lenNextSeg / lenPrevSeg;
-            nextCpy0 = y2 + vy * lenNextSeg / lenPrevSeg;
+            nextCpy0 = y + vy * lenNextSeg / lenPrevSeg;
           }
         }
-        ctx.bezierCurveTo(cpx0, cpy0, cpx1, cpy1, x, y2);
+        ctx.bezierCurveTo(cpx0, cpy0, cpx1, cpy1, x, y);
         cpx0 = nextCpx0;
         cpy0 = nextCpy0;
       } else {
-        ctx.lineTo(x, y2);
+        ctx.lineTo(x, y);
       }
     }
     prevX = x;
-    prevY = y2;
+    prevY = y;
     idx += dir3;
   }
   return k;
@@ -42821,9 +39995,9 @@ var ECPolyline = (
       for (var i = 0; i < data.length; ) {
         var cmd = data[i++];
         var x = void 0;
-        var y2 = void 0;
+        var y = void 0;
         var x2 = void 0;
-        var y22 = void 0;
+        var y2 = void 0;
         var x3 = void 0;
         var y3 = void 0;
         var t2 = void 0;
@@ -42834,28 +40008,28 @@ var ECPolyline = (
             break;
           case CMD2.L:
             x = data[i++];
-            y2 = data[i++];
-            t2 = isDimX ? (xOrY - x0) / (x - x0) : (xOrY - y0) / (y2 - y0);
+            y = data[i++];
+            t2 = isDimX ? (xOrY - x0) / (x - x0) : (xOrY - y0) / (y - y0);
             if (t2 <= 1 && t2 >= 0) {
-              var val = isDimX ? (y2 - y0) * t2 + y0 : (x - x0) * t2 + x0;
+              var val = isDimX ? (y - y0) * t2 + y0 : (x - x0) * t2 + x0;
               return isDimX ? [xOrY, val] : [val, xOrY];
             }
             x0 = x;
-            y0 = y2;
+            y0 = y;
             break;
           case CMD2.C:
             x = data[i++];
-            y2 = data[i++];
+            y = data[i++];
             x2 = data[i++];
-            y22 = data[i++];
+            y2 = data[i++];
             x3 = data[i++];
             y3 = data[i++];
-            var nRoot = isDimX ? cubicRootAt(x0, x, x2, x3, xOrY, roots2) : cubicRootAt(y0, y2, y22, y3, xOrY, roots2);
+            var nRoot = isDimX ? cubicRootAt(x0, x, x2, x3, xOrY, roots2) : cubicRootAt(y0, y, y2, y3, xOrY, roots2);
             if (nRoot > 0) {
               for (var i_1 = 0; i_1 < nRoot; i_1++) {
                 var t_1 = roots2[i_1];
                 if (t_1 <= 1 && t_1 >= 0) {
-                  var val = isDimX ? cubicAt(y0, y2, y22, y3, t_1) : cubicAt(x0, x, x2, x3, t_1);
+                  var val = isDimX ? cubicAt(y0, y, y2, y3, t_1) : cubicAt(x0, x, x2, x3, t_1);
                   return isDimX ? [xOrY, val] : [val, xOrY];
                 }
               }
@@ -42922,12 +40096,12 @@ var ECPolygon = (
 function createGridClipPath(cartesian, hasAnimation, seriesModel, done, during) {
   var rect = cartesian.getArea();
   var x = rect.x;
-  var y2 = rect.y;
+  var y = rect.y;
   var width = rect.width;
   var height = rect.height;
   var lineWidth = seriesModel.get(["lineStyle", "width"]) || 0;
   x -= lineWidth / 2;
-  y2 -= lineWidth / 2;
+  y -= lineWidth / 2;
   width += lineWidth;
   height += lineWidth;
   width = Math.ceil(width);
@@ -42938,7 +40112,7 @@ function createGridClipPath(cartesian, hasAnimation, seriesModel, done, during) 
   var clipPath = new Rect$3({
     shape: {
       x,
-      y: y2,
+      y,
       width,
       height
     }
@@ -42966,7 +40140,7 @@ function createGridClipPath(cartesian, hasAnimation, seriesModel, done, during) 
         width,
         height,
         x,
-        y: y2
+        y
       }
     }, seriesModel, null, done, duringCb);
   }
@@ -42975,13 +40149,13 @@ function createGridClipPath(cartesian, hasAnimation, seriesModel, done, during) 
 function createPolarClipPath(polar, hasAnimation, seriesModel) {
   var sectorArea = polar.getArea();
   var r0 = round$3(sectorArea.r0, 1);
-  var r2 = round$3(sectorArea.r, 1);
+  var r = round$3(sectorArea.r, 1);
   var clipPath = new Sector$1({
     shape: {
       cx: round$3(polar.cx, 1),
       cy: round$3(polar.cy, 1),
       r0,
-      r: r2,
+      r,
       startAngle: sectorArea.startAngle,
       endAngle: sectorArea.endAngle,
       clockwise: sectorArea.clockwise
@@ -42997,7 +40171,7 @@ function createPolarClipPath(polar, hasAnimation, seriesModel) {
     initProps(clipPath, {
       shape: {
         endAngle: sectorArea.endAngle,
-        r: r2
+        r
       }
     }, seriesModel);
   }
@@ -43034,14 +40208,14 @@ function bboxFromPoints(points2) {
   var maxY = -Infinity;
   for (var i = 0; i < points2.length; ) {
     var x = points2[i++];
-    var y2 = points2[i++];
+    var y = points2[i++];
     if (!isNaN(x)) {
       minX = Math.min(x, minX);
       maxX = Math.max(x, maxX);
     }
-    if (!isNaN(y2)) {
-      minY = Math.min(y2, minY);
-      maxY = Math.max(y2, maxY);
+    if (!isNaN(y)) {
+      minY = Math.min(y, minY);
+      maxY = Math.max(y, maxY);
     }
   }
   return [[minX, minY], [maxX, maxY]];
@@ -43061,9 +40235,9 @@ function getStackedOnPoints(coordSys, data, dataCoordInfo) {
   var len2 = data.count();
   var points2 = createFloat32Array(len2 * 2);
   for (var idx = 0; idx < len2; idx++) {
-    var pt3 = getStackedOnPoint(dataCoordInfo, coordSys, data, idx);
-    points2[idx * 2] = pt3[0];
-    points2[idx * 2 + 1] = pt3[1];
+    var pt = getStackedOnPoint(dataCoordInfo, coordSys, data, idx);
+    points2[idx * 2] = pt[0];
+    points2[idx * 2 + 1] = pt[1];
   }
   return points2;
 }
@@ -43073,7 +40247,7 @@ function turnPointsIntoStep(points2, basePoints, coordSys, stepTurnAt, connectNu
   var stepPoints = [];
   var i = 0;
   var stepPt = [];
-  var pt3 = [];
+  var pt = [];
   var nextPt = [];
   var filteredPoints = [];
   if (connectNulls) {
@@ -43088,26 +40262,26 @@ function turnPointsIntoStep(points2, basePoints, coordSys, stepTurnAt, connectNu
   for (i = 0; i < points2.length - 2; i += 2) {
     nextPt[0] = points2[i + 2];
     nextPt[1] = points2[i + 3];
-    pt3[0] = points2[i];
-    pt3[1] = points2[i + 1];
-    stepPoints.push(pt3[0], pt3[1]);
+    pt[0] = points2[i];
+    pt[1] = points2[i + 1];
+    stepPoints.push(pt[0], pt[1]);
     switch (stepTurnAt) {
       case "end":
         stepPt[baseIndex] = nextPt[baseIndex];
-        stepPt[1 - baseIndex] = pt3[1 - baseIndex];
+        stepPt[1 - baseIndex] = pt[1 - baseIndex];
         stepPoints.push(stepPt[0], stepPt[1]);
         break;
       case "middle":
-        var middle = (pt3[baseIndex] + nextPt[baseIndex]) / 2;
+        var middle = (pt[baseIndex] + nextPt[baseIndex]) / 2;
         var stepPt2 = [];
         stepPt[baseIndex] = stepPt2[baseIndex] = middle;
-        stepPt[1 - baseIndex] = pt3[1 - baseIndex];
+        stepPt[1 - baseIndex] = pt[1 - baseIndex];
         stepPt2[1 - baseIndex] = nextPt[1 - baseIndex];
         stepPoints.push(stepPt[0], stepPt[1]);
         stepPoints.push(stepPt2[0], stepPt2[1]);
         break;
       default:
-        stepPt[baseIndex] = pt3[baseIndex];
+        stepPt[baseIndex] = pt[baseIndex];
         stepPt[1 - baseIndex] = nextPt[1 - baseIndex];
         stepPoints.push(stepPt[0], stepPt[1]);
     }
@@ -43261,8 +40435,8 @@ function canShowAllSymbolForCategory(categoryAxis2, data) {
   }
   return true;
 }
-function isPointNull(x, y2) {
-  return isNaN(x) || isNaN(y2);
+function isPointNull(x, y) {
+  return isNaN(x) || isNaN(y);
 }
 function getLastIndexNotNull(points2) {
   var len2 = points2.length / 2;
@@ -43279,29 +40453,29 @@ function getPointAtIndex(points2, idx) {
 function getIndexRange(points2, xOrY, dim) {
   var len2 = points2.length / 2;
   var dimIdx = dim === "x" ? 0 : 1;
-  var a2;
-  var b2;
+  var a;
+  var b;
   var prevIndex = 0;
   var nextIndex = -1;
   for (var i = 0; i < len2; i++) {
-    b2 = points2[i * 2 + dimIdx];
-    if (isNaN(b2) || isNaN(points2[i * 2 + 1 - dimIdx])) {
+    b = points2[i * 2 + dimIdx];
+    if (isNaN(b) || isNaN(points2[i * 2 + 1 - dimIdx])) {
       continue;
     }
     if (i === 0) {
-      a2 = b2;
+      a = b;
       continue;
     }
-    if (a2 <= xOrY && b2 >= xOrY || a2 >= xOrY && b2 <= xOrY) {
+    if (a <= xOrY && b >= xOrY || a >= xOrY && b <= xOrY) {
       nextIndex = i;
       break;
     }
     prevIndex = i;
-    a2 = b2;
+    a = b;
   }
   return {
     range: [prevIndex, nextIndex],
-    t: (xOrY - a2) / (b2 - a2)
+    t: (xOrY - a) / (b - a)
   };
 }
 function anyStateShowEndLabel(seriesModel) {
@@ -43596,23 +40770,23 @@ var LineView = (
         var symbol = data.getItemGraphicEl(dataIndex);
         if (!symbol) {
           var x = points2[dataIndex * 2];
-          var y2 = points2[dataIndex * 2 + 1];
-          if (isNaN(x) || isNaN(y2)) {
+          var y = points2[dataIndex * 2 + 1];
+          if (isNaN(x) || isNaN(y)) {
             return;
           }
-          if (this._clipShapeForSymbol && !this._clipShapeForSymbol.contain(x, y2)) {
+          if (this._clipShapeForSymbol && !this._clipShapeForSymbol.contain(x, y)) {
             return;
           }
           var zlevel = seriesModel.get("zlevel") || 0;
-          var z2 = seriesModel.get("z") || 0;
+          var z = seriesModel.get("z") || 0;
           symbol = new Symbol$1(data, dataIndex);
           symbol.x = x;
-          symbol.y = y2;
-          symbol.setZ(zlevel, z2);
+          symbol.y = y;
+          symbol.setZ(zlevel, z);
           var symbolLabel = symbol.getSymbolPath().getTextContent();
           if (symbolLabel) {
             symbolLabel.zlevel = zlevel;
-            symbolLabel.z = z2;
+            symbolLabel.z = z;
             symbolLabel.z2 = this._polyline.z2 + 1;
           }
           symbol.__temp = true;
@@ -43831,17 +41005,17 @@ var LineView = (
         var value = void 0;
         if (diff2 >= 1) {
           if (diff2 > 1 && !connectNulls) {
-            var pt3 = getPointAtIndex(points2, indices[0]);
+            var pt = getPointAtIndex(points2, indices[0]);
             endLabel.attr({
-              x: pt3[0] + distanceX,
-              y: pt3[1] + distanceY
+              x: pt[0] + distanceX,
+              y: pt[1] + distanceY
             });
             valueAnimation && (value = seriesModel.getRawValue(indices[0]));
           } else {
-            var pt3 = polyline.getPointOn(xOrY, dim);
-            pt3 && endLabel.attr({
-              x: pt3[0] + distanceX,
-              y: pt3[1] + distanceY
+            var pt = polyline.getPointOn(xOrY, dim);
+            pt && endLabel.attr({
+              x: pt[0] + distanceX,
+              y: pt[1] + distanceY
             });
             var startValue = seriesModel.getRawValue(indices[0]);
             var endValue = seriesModel.getRawValue(indices[1]);
@@ -43850,11 +41024,11 @@ var LineView = (
           animationRecord.lastFrameIndex = indices[0];
         } else {
           var idx = percent === 1 || animationRecord.lastFrameIndex > 0 ? indices[0] : 0;
-          var pt3 = getPointAtIndex(points2, idx);
+          var pt = getPointAtIndex(points2, idx);
           valueAnimation && (value = seriesModel.getRawValue(idx));
           endLabel.attr({
-            x: pt3[0] + distanceX,
-            y: pt3[1] + distanceY
+            x: pt[0] + distanceX,
+            y: pt[1] + distanceY
           });
         }
         if (valueAnimation) {
@@ -44308,8 +41482,8 @@ var SausagePath = (
       var cx = shape.cx;
       var cy = shape.cy;
       var r0 = Math.max(shape.r0 || 0, 0);
-      var r2 = Math.max(shape.r, 0);
-      var dr = (r2 - r0) * 0.5;
+      var r = Math.max(shape.r, 0);
+      var dr = (r - r0) * 0.5;
       var rCenter = r0 + dr;
       var startAngle = shape.startAngle;
       var endAngle = shape.endAngle;
@@ -44327,9 +41501,9 @@ var SausagePath = (
         ctx.moveTo(unitStartX * r0 + cx, unitStartY * r0 + cy);
         ctx.arc(unitStartX * rCenter + cx, unitStartY * rCenter + cy, dr, -Math.PI + startAngle, startAngle, !clockwise);
       } else {
-        ctx.moveTo(unitStartX * r2 + cx, unitStartY * r2 + cy);
+        ctx.moveTo(unitStartX * r + cx, unitStartY * r + cy);
       }
-      ctx.arc(cx, cy, r2, startAngle, endAngle, !clockwise);
+      ctx.arc(cx, cy, r, startAngle, endAngle, !clockwise);
       ctx.arc(unitEndX * rCenter + cx, unitEndY * rCenter + cy, dr, endAngle - Math.PI * 2, endAngle - Math.PI, !clockwise);
       if (r0 !== 0) {
         ctx.arc(cx, cy, r0, endAngle, startAngle, clockwise);
@@ -44351,71 +41525,71 @@ function createSectorCalculateTextPosition(positionMapping, opts) {
     var sector = this.shape;
     var cx = sector.cx;
     var cy = sector.cy;
-    var r2 = sector.r;
+    var r = sector.r;
     var r0 = sector.r0;
-    var middleR = (r2 + r0) / 2;
+    var middleR = (r + r0) / 2;
     var startAngle = sector.startAngle;
     var endAngle = sector.endAngle;
     var middleAngle = (startAngle + endAngle) / 2;
-    var extraDist = isRoundCap ? Math.abs(r2 - r0) / 2 : 0;
+    var extraDist = isRoundCap ? Math.abs(r - r0) / 2 : 0;
     var mathCos2 = Math.cos;
     var mathSin2 = Math.sin;
-    var x = cx + r2 * mathCos2(startAngle);
-    var y2 = cy + r2 * mathSin2(startAngle);
+    var x = cx + r * mathCos2(startAngle);
+    var y = cy + r * mathSin2(startAngle);
     var textAlign = "left";
     var textVerticalAlign = "top";
     switch (mappedSectorPosition) {
       case "startArc":
         x = cx + (r0 - distance2) * mathCos2(middleAngle);
-        y2 = cy + (r0 - distance2) * mathSin2(middleAngle);
+        y = cy + (r0 - distance2) * mathSin2(middleAngle);
         textAlign = "center";
         textVerticalAlign = "top";
         break;
       case "insideStartArc":
         x = cx + (r0 + distance2) * mathCos2(middleAngle);
-        y2 = cy + (r0 + distance2) * mathSin2(middleAngle);
+        y = cy + (r0 + distance2) * mathSin2(middleAngle);
         textAlign = "center";
         textVerticalAlign = "bottom";
         break;
       case "startAngle":
         x = cx + middleR * mathCos2(startAngle) + adjustAngleDistanceX(startAngle, distance2 + extraDist, false);
-        y2 = cy + middleR * mathSin2(startAngle) + adjustAngleDistanceY(startAngle, distance2 + extraDist, false);
+        y = cy + middleR * mathSin2(startAngle) + adjustAngleDistanceY(startAngle, distance2 + extraDist, false);
         textAlign = "right";
         textVerticalAlign = "middle";
         break;
       case "insideStartAngle":
         x = cx + middleR * mathCos2(startAngle) + adjustAngleDistanceX(startAngle, -distance2 + extraDist, false);
-        y2 = cy + middleR * mathSin2(startAngle) + adjustAngleDistanceY(startAngle, -distance2 + extraDist, false);
+        y = cy + middleR * mathSin2(startAngle) + adjustAngleDistanceY(startAngle, -distance2 + extraDist, false);
         textAlign = "left";
         textVerticalAlign = "middle";
         break;
       case "middle":
         x = cx + middleR * mathCos2(middleAngle);
-        y2 = cy + middleR * mathSin2(middleAngle);
+        y = cy + middleR * mathSin2(middleAngle);
         textAlign = "center";
         textVerticalAlign = "middle";
         break;
       case "endArc":
-        x = cx + (r2 + distance2) * mathCos2(middleAngle);
-        y2 = cy + (r2 + distance2) * mathSin2(middleAngle);
+        x = cx + (r + distance2) * mathCos2(middleAngle);
+        y = cy + (r + distance2) * mathSin2(middleAngle);
         textAlign = "center";
         textVerticalAlign = "bottom";
         break;
       case "insideEndArc":
-        x = cx + (r2 - distance2) * mathCos2(middleAngle);
-        y2 = cy + (r2 - distance2) * mathSin2(middleAngle);
+        x = cx + (r - distance2) * mathCos2(middleAngle);
+        y = cy + (r - distance2) * mathSin2(middleAngle);
         textAlign = "center";
         textVerticalAlign = "top";
         break;
       case "endAngle":
         x = cx + middleR * mathCos2(endAngle) + adjustAngleDistanceX(endAngle, distance2 + extraDist, true);
-        y2 = cy + middleR * mathSin2(endAngle) + adjustAngleDistanceY(endAngle, distance2 + extraDist, true);
+        y = cy + middleR * mathSin2(endAngle) + adjustAngleDistanceY(endAngle, distance2 + extraDist, true);
         textAlign = "left";
         textVerticalAlign = "middle";
         break;
       case "insideEndAngle":
         x = cx + middleR * mathCos2(endAngle) + adjustAngleDistanceX(endAngle, -distance2 + extraDist, true);
-        y2 = cy + middleR * mathSin2(endAngle) + adjustAngleDistanceY(endAngle, -distance2 + extraDist, true);
+        y = cy + middleR * mathSin2(endAngle) + adjustAngleDistanceY(endAngle, -distance2 + extraDist, true);
         textAlign = "right";
         textVerticalAlign = "middle";
         break;
@@ -44424,7 +41598,7 @@ function createSectorCalculateTextPosition(positionMapping, opts) {
     }
     out2 = out2 || {};
     out2.x = x;
-    out2.y = y2;
+    out2.y = y;
     out2.align = textAlign;
     out2.verticalAlign = textVerticalAlign;
     return out2;
@@ -44766,8 +41940,8 @@ var BarView = (
           ordinalNumber
         });
       });
-      info.sort(function(a2, b2) {
-        return b2.mappedValue - a2.mappedValue;
+      info.sort(function(a, b) {
+        return b.mappedValue - a.mappedValue;
       });
       return {
         ordinalNumbers: map$1(info, function(item) {
@@ -44880,14 +42054,14 @@ var clip = {
     var coordSysY2 = coordSysBoundingRect.y + coordSysBoundingRect.height;
     var x = mathMax$4(layout2.x, coordSysBoundingRect.x);
     var x2 = mathMin$4(layout2.x + layout2.width, coordSysX2);
-    var y2 = mathMax$4(layout2.y, coordSysBoundingRect.y);
-    var y22 = mathMin$4(layout2.y + layout2.height, coordSysY2);
+    var y = mathMax$4(layout2.y, coordSysBoundingRect.y);
+    var y2 = mathMin$4(layout2.y + layout2.height, coordSysY2);
     var xClipped = x2 < x;
-    var yClipped = y22 < y2;
+    var yClipped = y2 < y;
     layout2.x = xClipped && x > coordSysX2 ? x2 : x;
-    layout2.y = yClipped && y2 > coordSysY2 ? y22 : y2;
+    layout2.y = yClipped && y > coordSysY2 ? y2 : y;
     layout2.width = xClipped ? 0 : x2 - x;
-    layout2.height = yClipped ? 0 : y22 - y2;
+    layout2.height = yClipped ? 0 : y2 - y;
     if (signWidth < 0) {
       layout2.x += layout2.width;
       layout2.width = -layout2.width;
@@ -44905,11 +42079,11 @@ var clip = {
       layout2.r = layout2.r0;
       layout2.r0 = tmp;
     }
-    var r2 = mathMin$4(layout2.r, coordSysClipArea.r);
+    var r = mathMin$4(layout2.r, coordSysClipArea.r);
     var r0 = mathMax$4(layout2.r0, coordSysClipArea.r0);
-    layout2.r = r2;
+    layout2.r = r;
     layout2.r0 = r0;
-    var clipped = r2 - r0 < 0;
+    var clipped = r - r0 < 0;
     if (signR < 0) {
       var tmp = layout2.r;
       layout2.r = layout2.r0;
@@ -45218,7 +42392,7 @@ var largePathUpdateDataIndex = throttle(function(event) {
   var dataIndex = largePathFindDataIndex(largePath, event.offsetX, event.offsetY);
   getECData(largePath).dataIndex = dataIndex >= 0 ? dataIndex : null;
 }, 30, false);
-function largePathFindDataIndex(largePath, x, y2) {
+function largePathFindDataIndex(largePath, x, y) {
   var baseDimIdx = largePath.baseDimIdx;
   var valueDimIdx = 1 - baseDimIdx;
   var points2 = largePath.shape.points;
@@ -45236,7 +42410,7 @@ function largePathFindDataIndex(largePath, x, y2) {
       startPoint[valueDimIdx] += size2[valueDimIdx];
       size2[valueDimIdx] = -size2[valueDimIdx];
     }
-    if (x >= startPoint[0] && x <= startPoint[0] + size2[0] && y2 >= startPoint[1] && y2 <= startPoint[1] + size2[1]) {
+    if (x >= startPoint[0] && x <= startPoint[0] + size2[0] && y >= startPoint[1] && y <= startPoint[1] + size2[1]) {
       return largeDataIndices[i];
     }
   }
@@ -45315,7 +42489,7 @@ function getBasicPieLayout(seriesModel, api) {
   var height = parsePercent(viewRect2.height, api.getHeight());
   var size2 = Math.min(width, height);
   var r0 = parsePercent(radius[0], size2 / 2);
-  var r2 = parsePercent(radius[1], size2 / 2);
+  var r = parsePercent(radius[1], size2 / 2);
   var cx;
   var cy;
   var coordSys = seriesModel.coordinateSystem;
@@ -45334,7 +42508,7 @@ function getBasicPieLayout(seriesModel, api) {
     cx,
     cy,
     r0,
-    r: r2
+    r
   };
 }
 function pieLayout(seriesType2, ecModel, api) {
@@ -45342,7 +42516,7 @@ function pieLayout(seriesType2, ecModel, api) {
     var data = seriesModel.getData();
     var valueDim = data.mapDimension("value");
     var viewRect2 = getViewRect$5(seriesModel, api);
-    var _a2 = getBasicPieLayout(seriesModel, api), cx = _a2.cx, cy = _a2.cy, r2 = _a2.r, r0 = _a2.r0;
+    var _a2 = getBasicPieLayout(seriesModel, api), cx = _a2.cx, cy = _a2.cy, r = _a2.r, r0 = _a2.r0;
     var startAngle = -seriesModel.get("startAngle") * RADIAN$2;
     var endAngle = seriesModel.get("endAngle");
     var padAngle = seriesModel.get("padAngle") * RADIAN$2;
@@ -45375,7 +42549,7 @@ function pieLayout(seriesType2, ecModel, api) {
     var currentAngle = startAngle;
     data.setLayout({
       viewRect: viewRect2,
-      r: r2
+      r
     });
     data.each(valueDim, function(value, idx) {
       var angle;
@@ -45388,7 +42562,7 @@ function pieLayout(seriesType2, ecModel, api) {
           cx,
           cy,
           r0,
-          r: roseType ? NaN : r2
+          r: roseType ? NaN : r
         });
         return;
       }
@@ -45421,7 +42595,7 @@ function pieLayout(seriesType2, ecModel, api) {
         cx,
         cy,
         r0,
-        r: roseType ? linearMap$2(value, extent3, [r0, r2]) : r2
+        r: roseType ? linearMap$2(value, extent3, [r0, r]) : r
       });
       currentAngle = endAngle2;
     });
@@ -45495,7 +42669,7 @@ function dataFilter$1(seriesType2) {
   };
 }
 var RADIAN$1 = Math.PI / 180;
-function adjustSingleSide(list, cx, cy, r2, dir3, viewWidth, viewHeight, viewLeft, viewTop, farthestX) {
+function adjustSingleSide(list, cx, cy, r, dir3, viewWidth, viewHeight, viewLeft, viewTop, farthestX) {
   if (list.length < 2) {
     return;
   }
@@ -45505,7 +42679,7 @@ function adjustSingleSide(list, cx, cy, r2, dir3, viewWidth, viewHeight, viewLef
     for (var i2 = 0; i2 < semi.list.length; i2++) {
       var item = semi.list[i2];
       var dy = Math.abs(item.label.y - cy);
-      var rA = r2 + item.len;
+      var rA = r + item.len;
       var rA2 = rA * rA;
       var dx2 = Math.sqrt(Math.abs((1 - dy * dy / rB2) * rA2));
       var newX = cx + (dx2 + item.len2) * dir3;
@@ -45533,7 +42707,7 @@ function adjustSingleSide(list, cx, cy, r2, dir3, viewWidth, viewHeight, viewLef
       var dy = Math.abs(item.label.y - cy);
       if (dy >= semi.maxY) {
         var dx2 = item.label.x - cx - item.len2 * dir3;
-        var rA = r2 + item.len;
+        var rA = r + item.len;
         var rB = Math.abs(dx2) < rA ? Math.sqrt(dy * dy / (1 - dx2 * dx2 / rA / rA)) : rA;
         semi.rB = rB;
         semi.maxY = dy;
@@ -45555,7 +42729,7 @@ function adjustSingleSide(list, cx, cy, r2, dir3, viewWidth, viewHeight, viewLef
     recalculateX(list);
   }
 }
-function avoidOverlap(labelLayoutList, cx, cy, r2, viewWidth, viewHeight, viewLeft, viewTop) {
+function avoidOverlap(labelLayoutList, cx, cy, r, viewWidth, viewHeight, viewLeft, viewTop) {
   var leftList = [];
   var rightList = [];
   var leftmostX = Number.MAX_VALUE;
@@ -45605,8 +42779,8 @@ function avoidOverlap(labelLayoutList, cx, cy, r2, viewWidth, viewHeight, viewLe
       constrainTextWidth(layout2, targetTextWidth);
     }
   }
-  adjustSingleSide(rightList, cx, cy, r2, 1, viewWidth, viewHeight, viewLeft, viewTop, rightmostX);
-  adjustSingleSide(leftList, cx, cy, r2, -1, viewWidth, viewHeight, viewLeft, viewTop, leftmostX);
+  adjustSingleSide(rightList, cx, cy, r, 1, viewWidth, viewHeight, viewLeft, viewTop, rightmostX);
+  adjustSingleSide(leftList, cx, cy, r, -1, viewWidth, viewHeight, viewLeft, viewTop, leftmostX);
   for (var i = 0; i < labelLayoutList.length; i++) {
     var layout2 = labelLayoutList[i];
     if (!isPositionCenter(layout2) && layout2.linePoints) {
@@ -45686,7 +42860,7 @@ function pieLabelLayout(seriesModel) {
   var hasLabelRotate = false;
   var minShowLabelRadian = (seriesModel.get("minShowLabelAngle") || 0) * RADIAN$1;
   var viewRect2 = data.getLayout("viewRect");
-  var r2 = data.getLayout("r");
+  var r = data.getLayout("r");
   var viewWidth = viewRect2.width;
   var viewLeft = viewRect2.x;
   var viewTop = viewRect2.y;
@@ -45754,8 +42928,8 @@ function pieLabelLayout(seriesModel) {
       textX = x1 + nx * 3;
       textY = y1 + ny * 3;
       if (!isLabelInside) {
-        var x2 = x1 + nx * (labelLineLen + r2 - sectorShape.r);
-        var y2 = y1 + ny * (labelLineLen + r2 - sectorShape.r);
+        var x2 = x1 + nx * (labelLineLen + r - sectorShape.r);
+        var y2 = y1 + ny * (labelLineLen + r - sectorShape.r);
         var x3 = x2 + (nx < 0 ? -1 : 1) * labelLineLen2;
         var y3 = y2;
         if (labelAlignTo === "edge") {
@@ -45836,7 +43010,7 @@ function pieLabelLayout(seriesModel) {
     });
   });
   if (!hasLabelRotate && seriesModel.get("avoidLabelOverlap")) {
-    avoidOverlap(labelLayoutList, cx, cy, r2, viewWidth, viewHeight, viewLeft, viewTop);
+    avoidOverlap(labelLayoutList, cx, cy, r, viewWidth, viewHeight, viewLeft, viewTop);
   }
   for (var i = 0; i < labelLayoutList.length; i++) {
     var layout2 = labelLayoutList[i];
@@ -46034,8 +43208,8 @@ var PieView = (
       var startAngle;
       if (!oldData && data.count() > 0) {
         var shape = data.getItemLayout(0);
-        for (var s2 = 1; isNaN(shape && shape.startAngle) && s2 < data.count(); ++s2) {
-          shape = data.getItemLayout(s2);
+        for (var s = 1; isNaN(shape && shape.startAngle) && s < data.count(); ++s) {
+          shape = data.getItemLayout(s);
         }
         if (shape) {
           startAngle = shape.startAngle;
@@ -46415,15 +43589,15 @@ var LargeSymbolPath = (
       this._ctx = null;
       for (i = this._off; i < points2.length; ) {
         var x = points2[i++];
-        var y2 = points2[i++];
-        if (isNaN(x) || isNaN(y2)) {
+        var y = points2[i++];
+        if (isNaN(x) || isNaN(y)) {
           continue;
         }
-        if (softClipShape && !softClipShape.contain(x, y2)) {
+        if (softClipShape && !softClipShape.contain(x, y)) {
           continue;
         }
         symbolProxyShape.x = x - size2[0] / 2;
-        symbolProxyShape.y = y2 - size2[1] / 2;
+        symbolProxyShape.y = y - size2[1] / 2;
         symbolProxyShape.width = size2[0];
         symbolProxyShape.height = size2[1];
         symbolProxy.buildPath(path, symbolProxyShape, true);
@@ -46445,43 +43619,43 @@ var LargeSymbolPath = (
       }
       for (i = this._off; i < points2.length; ) {
         var x = points2[i++];
-        var y2 = points2[i++];
-        if (isNaN(x) || isNaN(y2)) {
+        var y = points2[i++];
+        if (isNaN(x) || isNaN(y)) {
           continue;
         }
-        if (softClipShape && !softClipShape.contain(x, y2)) {
+        if (softClipShape && !softClipShape.contain(x, y)) {
           continue;
         }
-        ctx.fillRect(x - size2[0] / 2, y2 - size2[1] / 2, size2[0], size2[1]);
+        ctx.fillRect(x - size2[0] / 2, y - size2[1] / 2, size2[0], size2[1]);
       }
       if (this.incremental) {
         this._off = i;
         this.notClear = true;
       }
     };
-    LargeSymbolPath2.prototype.findDataIndex = function(x, y2) {
+    LargeSymbolPath2.prototype.findDataIndex = function(x, y) {
       var shape = this.shape;
       var points2 = shape.points;
       var size2 = shape.size;
-      var w2 = Math.max(size2[0], 4);
-      var h2 = Math.max(size2[1], 4);
+      var w = Math.max(size2[0], 4);
+      var h = Math.max(size2[1], 4);
       for (var idx = points2.length / 2 - 1; idx >= 0; idx--) {
         var i = idx * 2;
-        var x0 = points2[i] - w2 / 2;
-        var y0 = points2[i + 1] - h2 / 2;
-        if (x >= x0 && y2 >= y0 && x <= x0 + w2 && y2 <= y0 + h2) {
+        var x0 = points2[i] - w / 2;
+        var y0 = points2[i + 1] - h / 2;
+        if (x >= x0 && y >= y0 && x <= x0 + w && y <= y0 + h) {
           return idx;
         }
       }
       return -1;
     };
-    LargeSymbolPath2.prototype.contain = function(x, y2) {
-      var localPos = this.transformCoordToLocal(x, y2);
+    LargeSymbolPath2.prototype.contain = function(x, y) {
+      var localPos = this.transformCoordToLocal(x, y);
       var rect = this.getBoundingRect();
       x = localPos[0];
-      y2 = localPos[1];
-      if (rect.contain(x, y2)) {
-        var dataIdx = this.hoverDataIdx = this.findDataIndex(x, y2);
+      y = localPos[1];
+      if (rect.contain(x, y)) {
+        var dataIdx = this.hoverDataIdx = this.findDataIndex(x, y);
         return dataIdx >= 0;
       }
       this.hoverDataIdx = -1;
@@ -46493,21 +43667,21 @@ var LargeSymbolPath = (
         var shape = this.shape;
         var points2 = shape.points;
         var size2 = shape.size;
-        var w2 = size2[0];
-        var h2 = size2[1];
+        var w = size2[0];
+        var h = size2[1];
         var minX = Infinity;
         var minY = Infinity;
         var maxX = -Infinity;
         var maxY = -Infinity;
         for (var i = 0; i < points2.length; ) {
           var x = points2[i++];
-          var y2 = points2[i++];
+          var y = points2[i++];
           minX = Math.min(x, minX);
           maxX = Math.max(x, maxX);
-          minY = Math.min(y2, minY);
-          maxY = Math.max(y2, maxY);
+          minY = Math.min(y, minY);
+          maxY = Math.max(y, maxY);
         }
-        rect = this._rect = new BoundingRect$1(minX - w2 / 2, minY - h2 / 2, maxX - minX + w2, maxY - minY + h2);
+        rect = this._rect = new BoundingRect$1(minX - w / 2, minY - h / 2, maxX - minX + w, maxY - minY + h);
       }
       return rect;
     };
@@ -46593,8 +43767,8 @@ var LargeSymbolDraw = (
         // Draw shadow when doing fillRect is extremely slow.
         hostModel.getModel("itemStyle").getItemStyle(extrudeShadow ? ["color", "shadowBlur", "shadowColor"] : ["color"])
       );
-      var globalStyle2 = data.getVisual("style");
-      var visualColor = globalStyle2 && globalStyle2.fill;
+      var globalStyle = data.getVisual("style");
+      var visualColor = globalStyle && globalStyle.fill;
       if (visualColor) {
         symbolEl.setColor(visualColor);
       }
@@ -46916,7 +44090,7 @@ var AXIS_TYPES = {
   log: 1
 };
 function axisModelCreator(registers, axisName, BaseAxisModelClass, extraDefaultOption) {
-  each$f(AXIS_TYPES, function(v4, axisType) {
+  each$f(AXIS_TYPES, function(v, axisType) {
     var defaultOption2 = merge(merge({}, axisDefault[axisType], true), extraDefaultOption, true);
     var AxisModel = (
       /** @class */
@@ -47074,10 +44248,10 @@ var Cartesian2D = (
       var xAxisExtent = xScale.getExtent();
       var yAxisExtent = yScale.getExtent();
       var x = xScale.parse(data[0]);
-      var y2 = yScale.parse(data[1]);
+      var y = yScale.parse(data[1]);
       out2 = out2 || [];
       out2[0] = Math.min(Math.max(Math.min(xAxisExtent[0], xAxisExtent[1]), x), Math.max(xAxisExtent[0], xAxisExtent[1]));
-      out2[1] = Math.min(Math.max(Math.min(yAxisExtent[0], yAxisExtent[1]), y2), Math.max(yAxisExtent[0], yAxisExtent[1]));
+      out2[1] = Math.min(Math.max(Math.min(yAxisExtent[0], yAxisExtent[1]), y), Math.max(yAxisExtent[0], yAxisExtent[1]));
       return out2;
     };
     Cartesian2D2.prototype.pointToData = function(point, clamp2) {
@@ -47099,10 +44273,10 @@ var Cartesian2D = (
       var xExtent = this.getAxis("x").getGlobalExtent();
       var yExtent = this.getAxis("y").getGlobalExtent();
       var x = Math.min(xExtent[0], xExtent[1]) - tolerance;
-      var y2 = Math.min(yExtent[0], yExtent[1]) - tolerance;
+      var y = Math.min(yExtent[0], yExtent[1]) - tolerance;
       var width = Math.max(xExtent[0], xExtent[1]) - x + tolerance;
-      var height = Math.max(yExtent[0], yExtent[1]) - y2 + tolerance;
-      return new BoundingRect$1(x, y2, width, height);
+      var height = Math.max(yExtent[0], yExtent[1]) - y + tolerance;
+      return new BoundingRect$1(x, y, width, height);
     };
     return Cartesian2D2;
   }(Cartesian$1)
@@ -47196,7 +44370,7 @@ function findAxisModels(seriesModel) {
     xAxisModel: null,
     yAxisModel: null
   };
-  each$f(axisModelMap, function(v4, key) {
+  each$f(axisModelMap, function(v, key) {
     var axisType = key.replace(/Model$/, "");
     var axisModel = seriesModel.getReferringComponents(axisType, SINGLE_REFERRING).models[0];
     {
@@ -47792,12 +44966,12 @@ var builders = {
       }], function(point, index2) {
         if (arrows[index2] !== "none" && arrows[index2] != null) {
           var symbol = createSymbol$1(arrows[index2], -symbolWidth_1 / 2, -symbolHeight_1 / 2, symbolWidth_1, symbolHeight_1, lineStyle.stroke, true);
-          var r2 = point.r + point.offset;
-          var pt3 = inverse ? pt22 : pt12;
+          var r = point.r + point.offset;
+          var pt = inverse ? pt22 : pt12;
           symbol.attr({
             rotation: point.rotate,
-            x: pt3[0] + r2 * Math.cos(opt.rotation),
-            y: pt3[1] - r2 * Math.sin(opt.rotation),
+            x: pt[0] + r * Math.cos(opt.rotation),
+            y: pt[1] - r * Math.sin(opt.rotation),
             silent: true,
             z2: 11
           });
@@ -48435,21 +45609,21 @@ function rectCoordAxisBuildSplitArea(axisView, axisGroup, axisModel, gridModel) 
   for (var i = 1; i < ticksCoords.length; i++) {
     var tickCoord = axis.toGlobalCoord(ticksCoords[i].coord);
     var x = void 0;
-    var y2 = void 0;
+    var y = void 0;
     var width = void 0;
     var height = void 0;
     if (axis.isHorizontal()) {
       x = prev;
-      y2 = gridRect.y;
+      y = gridRect.y;
       width = tickCoord - x;
       height = gridRect.height;
       prev = x + width;
     } else {
       x = gridRect.x;
-      y2 = prev;
+      y = prev;
       width = gridRect.width;
-      height = tickCoord - y2;
-      prev = y2 + height;
+      height = tickCoord - y;
+      prev = y + height;
     }
     var tickValue = ticksCoords[i - 1].tickValue;
     tickValue != null && newSplitAreaColors.set(tickValue, colorIndex);
@@ -48457,7 +45631,7 @@ function rectCoordAxisBuildSplitArea(axisView, axisGroup, axisModel, gridModel) 
       anid: tickValue != null ? "area_" + tickValue : null,
       shape: {
         x,
-        y: y2,
+        y,
         width,
         height
       },
@@ -48822,7 +45996,7 @@ var RadarView$2 = (
         }
       }
       function getInitialPoints(points2) {
-        return map$1(points2, function(pt3) {
+        return map$1(points2, function(pt) {
           return [polar.cx, polar.cy];
         });
       }
@@ -49233,8 +46407,8 @@ var RadarView = (
         var prevPoints = [];
         for (var i = 0; i <= realSplitNumber_1; i++) {
           var points2 = [];
-          for (var j2 = 0; j2 < indicatorAxes.length; j2++) {
-            points2.push(axesTicksPoints[j2][i]);
+          for (var j = 0; j < indicatorAxes.length; j++) {
+            points2.push(axesTicksPoints[j][i]);
           }
           if (points2[0]) {
             points2.push(points2[0].slice());
@@ -49335,12 +46509,12 @@ var Radar = (
       var indicatorAxis = this._indicatorAxes[indicatorIndex];
       var angle = indicatorAxis.angle;
       var x = this.cx + coord * Math.cos(angle);
-      var y2 = this.cy - coord * Math.sin(angle);
-      return [x, y2];
+      var y = this.cy - coord * Math.sin(angle);
+      return [x, y];
     };
-    Radar2.prototype.pointToData = function(pt3) {
-      var dx = pt3[0] - this.cx;
-      var dy = pt3[1] - this.cy;
+    Radar2.prototype.pointToData = function(pt) {
+      var dx = pt[0] - this.cx;
+      var dy = pt[1] - this.cy;
       var radius = Math.sqrt(dx * dx + dy * dy);
       dx /= radius;
       dy /= radius;
@@ -49547,10 +46721,10 @@ var RoamController = (
         el = el.__hostTarget || el.parent;
       }
       var x = e2.offsetX;
-      var y2 = e2.offsetY;
-      if (this.pointerChecker && this.pointerChecker(e2, x, y2)) {
+      var y = e2.offsetY;
+      if (this.pointerChecker && this.pointerChecker(e2, x, y)) {
         this._x = x;
-        this._y = y2;
+        this._y = y;
         this._dragging = true;
       }
     };
@@ -49559,13 +46733,13 @@ var RoamController = (
         return;
       }
       var x = e2.offsetX;
-      var y2 = e2.offsetY;
+      var y = e2.offsetY;
       var oldX = this._x;
       var oldY = this._y;
       var dx = x - oldX;
-      var dy = y2 - oldY;
+      var dy = y - oldY;
       this._x = x;
-      this._y = y2;
+      this._y = y;
       this._opt.preventDefaultMouseMove && stop(e2.event);
       trigger$1(this, "pan", "moveOnMouseMove", e2, {
         dx,
@@ -49573,7 +46747,7 @@ var RoamController = (
         oldX,
         oldY,
         newX: x,
-        newY: y2,
+        newY: y,
         isAvailableBehavior: null
       });
     };
@@ -49881,10 +47055,10 @@ var SVGParser = function() {
   SVGParser2.internalField = function() {
     nodeParsers = {
       "g": function(xmlNode, parentGroup) {
-        var g2 = new Group$3();
-        inheritStyle(parentGroup, g2);
-        parseAttributes(xmlNode, g2, this._defsUsePending, false, false);
-        return g2;
+        var g = new Group$3();
+        inheritStyle(parentGroup, g);
+        parseAttributes(xmlNode, g, this._defsUsePending, false, false);
+        return g;
       },
       "rect": function(xmlNode, parentGroup) {
         var rect = new Rect$3();
@@ -49985,37 +47159,37 @@ var SVGParser = function() {
       },
       "text": function(xmlNode, parentGroup) {
         var x = xmlNode.getAttribute("x") || "0";
-        var y2 = xmlNode.getAttribute("y") || "0";
+        var y = xmlNode.getAttribute("y") || "0";
         var dx = xmlNode.getAttribute("dx") || "0";
         var dy = xmlNode.getAttribute("dy") || "0";
         this._textX = parseFloat(x) + parseFloat(dx);
-        this._textY = parseFloat(y2) + parseFloat(dy);
-        var g2 = new Group$3();
-        inheritStyle(parentGroup, g2);
-        parseAttributes(xmlNode, g2, this._defsUsePending, false, true);
-        return g2;
+        this._textY = parseFloat(y) + parseFloat(dy);
+        var g = new Group$3();
+        inheritStyle(parentGroup, g);
+        parseAttributes(xmlNode, g, this._defsUsePending, false, true);
+        return g;
       },
       "tspan": function(xmlNode, parentGroup) {
         var x = xmlNode.getAttribute("x");
-        var y2 = xmlNode.getAttribute("y");
+        var y = xmlNode.getAttribute("y");
         if (x != null) {
           this._textX = parseFloat(x);
         }
-        if (y2 != null) {
-          this._textY = parseFloat(y2);
+        if (y != null) {
+          this._textY = parseFloat(y);
         }
         var dx = xmlNode.getAttribute("dx") || "0";
         var dy = xmlNode.getAttribute("dy") || "0";
-        var g2 = new Group$3();
-        inheritStyle(parentGroup, g2);
-        parseAttributes(xmlNode, g2, this._defsUsePending, false, true);
+        var g = new Group$3();
+        inheritStyle(parentGroup, g);
+        parseAttributes(xmlNode, g, this._defsUsePending, false, true);
         this._textX += parseFloat(dx);
         this._textY += parseFloat(dy);
-        return g2;
+        return g;
       },
       "path": function(xmlNode, parentGroup) {
-        var d2 = xmlNode.getAttribute("d") || "";
-        var path = createFromString(d2);
+        var d = xmlNode.getAttribute("d") || "";
+        var path = createFromString(d);
         inheritStyle(parentGroup, path);
         parseAttributes(xmlNode, path, this._defsUsePending, false, false);
         path.silent = true;
@@ -50039,8 +47213,8 @@ var paintServerParsers = {
   "radialgradient": function(xmlNode) {
     var cx = parseInt(xmlNode.getAttribute("cx") || "0", 10);
     var cy = parseInt(xmlNode.getAttribute("cy") || "0", 10);
-    var r2 = parseInt(xmlNode.getAttribute("r") || "0", 10);
-    var gradient = new RadialGradient$1(cx, cy, r2);
+    var r = parseInt(xmlNode.getAttribute("r") || "0", 10);
+    var gradient = new RadialGradient$1(cx, cy, r);
     parsePaintServerUnit(xmlNode, gradient);
     parseGradientColorStops(xmlNode, gradient);
     return gradient;
@@ -50089,8 +47263,8 @@ function parsePoints(pointsString) {
   var points2 = [];
   for (var i = 0; i < list.length; i += 2) {
     var x = parseFloat(list[i]);
-    var y2 = parseFloat(list[i + 1]);
-    points2.push([x, y2]);
+    var y = parseFloat(list[i + 1]);
+    points2.push([x, y]);
   }
   return points2;
 }
@@ -50212,7 +47386,7 @@ function parseTransformAttribute(xmlNode, node) {
   if (transform2) {
     transform2 = transform2.replace(/,/g, " ");
     var transformOps_1 = [];
-    var mt2 = null;
+    var mt = null;
     transform2.replace(transformRegex, function(str, type2, value2) {
       transformOps_1.push(type2, value2);
       return "";
@@ -50221,39 +47395,39 @@ function parseTransformAttribute(xmlNode, node) {
       var value = transformOps_1[i];
       var type = transformOps_1[i - 1];
       var valueArr = splitNumberSequence(value);
-      mt2 = mt2 || create$1();
+      mt = mt || create$1();
       switch (type) {
         case "translate":
-          translate(mt2, mt2, [parseFloat(valueArr[0]), parseFloat(valueArr[1] || "0")]);
+          translate(mt, mt, [parseFloat(valueArr[0]), parseFloat(valueArr[1] || "0")]);
           break;
         case "scale":
-          scale$1(mt2, mt2, [parseFloat(valueArr[0]), parseFloat(valueArr[1] || valueArr[0])]);
+          scale$1(mt, mt, [parseFloat(valueArr[0]), parseFloat(valueArr[1] || valueArr[0])]);
           break;
         case "rotate":
-          rotate(mt2, mt2, -parseFloat(valueArr[0]) * DEGREE_TO_ANGLE, [
+          rotate(mt, mt, -parseFloat(valueArr[0]) * DEGREE_TO_ANGLE, [
             parseFloat(valueArr[1] || "0"),
             parseFloat(valueArr[2] || "0")
           ]);
           break;
         case "skewX":
           var sx = Math.tan(parseFloat(valueArr[0]) * DEGREE_TO_ANGLE);
-          mul(mt2, [1, 0, sx, 1, 0, 0], mt2);
+          mul(mt, [1, 0, sx, 1, 0, 0], mt);
           break;
         case "skewY":
           var sy = Math.tan(parseFloat(valueArr[0]) * DEGREE_TO_ANGLE);
-          mul(mt2, [1, sy, 0, 1, 0, 0], mt2);
+          mul(mt, [1, sy, 0, 1, 0, 0], mt);
           break;
         case "matrix":
-          mt2[0] = parseFloat(valueArr[0]);
-          mt2[1] = parseFloat(valueArr[1]);
-          mt2[2] = parseFloat(valueArr[2]);
-          mt2[3] = parseFloat(valueArr[3]);
-          mt2[4] = parseFloat(valueArr[4]);
-          mt2[5] = parseFloat(valueArr[5]);
+          mt[0] = parseFloat(valueArr[0]);
+          mt[1] = parseFloat(valueArr[1]);
+          mt[2] = parseFloat(valueArr[2]);
+          mt[3] = parseFloat(valueArr[3]);
+          mt[4] = parseFloat(valueArr[4]);
+          mt[5] = parseFloat(valueArr[5]);
           break;
       }
     }
-    node.setLocalTransform(mt2);
+    node.setLocalTransform(mt);
   }
 }
 var styleRegex = /([^\s:;]+)\s*:\s*([^:;]+)/g;
@@ -51007,8 +48181,8 @@ var MapDraw = (
           }
         }));
       }, this);
-      controller.setPointerChecker(function(e2, x, y2) {
-        return geo.containPoint([x, y2]) && !onIrrelevantElement(e2, api, mapOrGeoModel);
+      controller.setPointerChecker(function(e2, x, y) {
+        return geo.containPoint([x, y]) && !onIrrelevantElement(e2, api, mapOrGeoModel);
       });
     };
     MapDraw2.prototype.resetForLabelLayout = function() {
@@ -51154,9 +48328,9 @@ function projectPolys(rings, createStream, isLine) {
     polygonEnd: endPolygon,
     lineStart: startPolygon,
     lineEnd: endPolygon,
-    point: function(x, y2) {
-      if (isFinite(x) && isFinite(y2)) {
-        curPoly.push([x, y2]);
+    point: function(x, y) {
+      if (isFinite(x) && isFinite(y)) {
+        curPoly.push([x, y]);
       }
     },
     sphere: function() {
@@ -51576,21 +48750,21 @@ var View = (
       _this.name = name;
       return _this;
     }
-    View2.prototype.setBoundingRect = function(x, y2, width, height) {
-      this._rect = new BoundingRect$1(x, y2, width, height);
+    View2.prototype.setBoundingRect = function(x, y, width, height) {
+      this._rect = new BoundingRect$1(x, y, width, height);
       return this._rect;
     };
     View2.prototype.getBoundingRect = function() {
       return this._rect;
     };
-    View2.prototype.setViewRect = function(x, y2, width, height) {
-      this._transformTo(x, y2, width, height);
-      this._viewRect = new BoundingRect$1(x, y2, width, height);
+    View2.prototype.setViewRect = function(x, y, width, height) {
+      this._transformTo(x, y, width, height);
+      this._viewRect = new BoundingRect$1(x, y, width, height);
     };
-    View2.prototype._transformTo = function(x, y2, width, height) {
+    View2.prototype._transformTo = function(x, y, width, height) {
       var rect = this.getBoundingRect();
       var rawTransform = this._rawTransformable;
-      rawTransform.transform = rect.calculateTransform(new BoundingRect$1(x, y2, width, height));
+      rawTransform.transform = rect.calculateTransform(new BoundingRect$1(x, y, width, height));
       var rawParent = rawTransform.parent;
       rawTransform.parent = null;
       rawTransform.decomposeTransform();
@@ -51776,7 +48950,7 @@ var Geo = (
       _this._invertLongitute = projection ? false : defaultParams.invertLongitute;
       return _this;
     }
-    Geo2.prototype._transformTo = function(x, y2, width, height) {
+    Geo2.prototype._transformTo = function(x, y, width, height) {
       var rect = this.getBoundingRect();
       var invertLongitute = this._invertLongitute;
       rect = rect.clone();
@@ -51784,7 +48958,7 @@ var Geo = (
         rect.y = -rect.y - rect.height;
       }
       var rawTransformable = this._rawTransformable;
-      rawTransformable.transform = rect.calculateTransform(new BoundingRect$1(x, y2, width, height));
+      rawTransformable.transform = rect.calculateTransform(new BoundingRect$1(x, y, width, height));
       var rawParent = rawTransformable.parent;
       rawTransformable.parent = null;
       rawTransformable.decomposeTransform();
@@ -51879,9 +49053,9 @@ function resizeGeo(geoModel, api) {
           var dy = y1 - y0;
           for (var i = 0; i <= 100; i++) {
             var p2 = i / 100;
-            var pt3 = projection_1.project([x0 + dx * p2, y0 + dy * p2]);
-            min$1(leftTop_1, leftTop_1, pt3);
-            max$1(rightBottom_1, rightBottom_1, pt3);
+            var pt = projection_1.project([x0 + dx * p2, y0 + dy * p2]);
+            min$1(leftTop_1, leftTop_1, pt);
+            max$1(rightBottom_1, rightBottom_1, pt);
           }
         };
         sampleLine(xMin, yMin, xMax, yMin);
@@ -52306,7 +49480,7 @@ function install$J(registers) {
           selected[region.name] = geoModel.isSelected(region.name) || false;
         });
         var names = [];
-        each$f(selected, function(v4, name) {
+        each$f(selected, function(v, name) {
           selected[name] && names.push(name);
         });
         allSelected.push({
@@ -52432,11 +49606,11 @@ function secondWalk(node) {
 function separation(cb) {
   return arguments.length ? cb : defaultSeparation;
 }
-function radialCoordinate(rad, r2) {
+function radialCoordinate(rad, r) {
   rad -= Math.PI / 2;
   return {
-    x: r2 * Math.cos(rad),
-    y: r2 * Math.sin(rad)
+    x: r * Math.cos(rad),
+    y: r * Math.sin(rad)
   };
 }
 function getViewRect$4(seriesModel, api) {
@@ -52684,10 +49858,10 @@ var TreeView = (
       var controller = this._controller;
       var controllerHost = this._controllerHost;
       var group = this.group;
-      controller.setPointerChecker(function(e2, x, y2) {
+      controller.setPointerChecker(function(e2, x, y) {
         var rect = group.getBoundingRect();
         rect.applyTransform(group.transform);
-        return rect.contain(x, y2) && !onIrrelevantElement(e2, api, seriesModel);
+        return rect.contain(x, y) && !onIrrelevantElement(e2, api, seriesModel);
       });
       controller.enable(seriesModel.get("roam"));
       controllerHost.zoomLimit = seriesModel.get("scaleLimit");
@@ -54134,10 +51308,10 @@ var Breadcrumb = (
     return Breadcrumb2;
   }()
 );
-function makeItemPoints(x, y2, itemWidth, itemHeight, head, tail) {
-  var points2 = [[head ? x : x - ARRAY_LENGTH, y2], [x + itemWidth, y2], [x + itemWidth, y2 + itemHeight], [head ? x : x - ARRAY_LENGTH, y2 + itemHeight]];
-  !tail && points2.splice(2, 0, [x + itemWidth + ARRAY_LENGTH, y2 + itemHeight / 2]);
-  !head && points2.push([x, y2 + itemHeight / 2]);
+function makeItemPoints(x, y, itemWidth, itemHeight, head, tail) {
+  var points2 = [[head ? x : x - ARRAY_LENGTH, y], [x + itemWidth, y], [x + itemWidth, y + itemHeight], [head ? x : x - ARRAY_LENGTH, y + itemHeight]];
+  !tail && points2.splice(2, 0, [x + itemWidth + ARRAY_LENGTH, y + itemHeight / 2]);
+  !head && points2.push([x, y + itemHeight / 2]);
   return points2;
 }
 function packEventData(el, seriesModel, itemNode) {
@@ -54472,8 +51646,8 @@ var TreemapView = (
         controller.on("zoom", bind$1(this._onZoom, this));
       }
       var rect = new BoundingRect$1(0, 0, api.getWidth(), api.getHeight());
-      controller.setPointerChecker(function(e2, x, y2) {
-        return rect.contain(x, y2);
+      controller.setPointerChecker(function(e2, x, y) {
+        return rect.contain(x, y);
       });
     };
     TreemapView2.prototype._clearController = function() {
@@ -54631,7 +51805,7 @@ var TreemapView = (
         targetNode: targetInfo.node
       });
     };
-    TreemapView2.prototype.findTarget = function(x, y2) {
+    TreemapView2.prototype.findTarget = function(x, y) {
       var targetInfo;
       var viewRoot = this.seriesModel.getViewRoot();
       viewRoot.eachNode({
@@ -54640,7 +51814,7 @@ var TreemapView = (
       }, function(node) {
         var bgEl = this._storage.background[node.getRawIndex()];
         if (bgEl) {
-          var point = bgEl.transformCoordToLocal(x, y2);
+          var point = bgEl.transformCoordToLocal(x, y);
           var shape = bgEl.shape;
           if (shape.x <= point[0] && point[0] <= shape.x + shape.width && shape.y <= point[1] && point[1] <= shape.y + shape.height) {
             targetInfo = {
@@ -54868,7 +52042,7 @@ function renderNode(seriesModel, thisStorage, oldStorage, reRoot, lastsForAnimat
       style.text = iconChar ? iconChar + " " + text : text;
     }
   }
-  function giveGraphic(storageName, Ctor, depth2, z2) {
+  function giveGraphic(storageName, Ctor, depth2, z) {
     var element = oldRawIndex != null && oldStorage[storageName][oldRawIndex];
     var lasts = lastsForAnimation[storageName];
     if (element) {
@@ -54877,7 +52051,7 @@ function renderNode(seriesModel, thisStorage, oldStorage, reRoot, lastsForAnimat
     } else if (!thisInvisible) {
       element = new Ctor();
       if (element instanceof Displayable) {
-        element.z2 = calculateZ2(depth2, z2);
+        element.z2 = calculateZ2(depth2, z);
       }
       prepareAnimationWhenNoOld(lasts, element);
     }
@@ -54973,8 +52147,8 @@ var VisualMapping = (
     VisualMapping2.mapVisual = function(visual, callback, context) {
       var isPrimary;
       var newVisual = isArray$1(visual) ? [] : isObject$3(visual) ? {} : (isPrimary = true, null);
-      VisualMapping2.eachVisual(visual, function(v4, key) {
-        var newVal = callback.call(context, v4, key);
+      VisualMapping2.eachVisual(visual, function(v, key) {
+        var newVal = callback.call(context, v, key);
         isPrimary ? newVisual = newVal : newVisual[key] = newVal;
       });
       return newVisual;
@@ -54982,7 +52156,7 @@ var VisualMapping = (
     VisualMapping2.retrieveVisuals = function(obj) {
       var ret = {};
       var hasVisual;
-      obj && each$c(VisualMapping2.visualHandlers, function(h2, visualType) {
+      obj && each$c(VisualMapping2.visualHandlers, function(h, visualType) {
         if (obj.hasOwnProperty(visualType)) {
           ret[visualType] = obj[visualType];
           hasVisual = true;
@@ -55163,9 +52337,9 @@ function preprocessForSpecifiedCategory(thisOption) {
   if (!isArray$1(visual)) {
     var visualArr_1 = [];
     if (isObject$3(visual)) {
-      each$c(visual, function(v4, cate) {
+      each$c(visual, function(v, cate) {
         var index2 = categoryMap[cate];
-        visualArr_1[index2 != null ? index2 : CATEGORY_DEFAULT_VISUAL_INDEX] = v4;
+        visualArr_1[index2 != null ? index2 : CATEGORY_DEFAULT_VISUAL_INDEX] = v;
       });
     } else {
       visualArr_1[CATEGORY_DEFAULT_VISUAL_INDEX] = visual;
@@ -55183,8 +52357,8 @@ function normalizeVisualRange(thisOption, isCategory2) {
   var visual = thisOption.visual;
   var visualArr = [];
   if (isObject$3(visual)) {
-    each$c(visual, function(v4) {
-      visualArr.push(v4);
+    each$c(visual, function(v) {
+      visualArr.push(v);
     });
   } else if (visual != null) {
     visualArr.push(visual);
@@ -55280,8 +52454,8 @@ var normalizers = {
   },
   fixed: noop
 };
-function littleThan(close, a2, b2) {
-  return close ? a2 <= b2 : a2 < b2;
+function littleThan(close, a, b) {
+  return close ? a <= b : a < b;
 }
 const VisualMapping$1 = VisualMapping;
 var ITEM_STYLE_NORMAL = "itemStyle";
@@ -55610,9 +52784,9 @@ function filterByThreshold(nodeModel, totalArea, sum2, orderBy, orderedChildren)
 }
 function sort$1(viewChildren, orderBy) {
   if (orderBy) {
-    viewChildren.sort(function(a2, b2) {
-      var diff2 = orderBy === "asc" ? a2.getValue() - b2.getValue() : b2.getValue() - a2.getValue();
-      return diff2 === 0 ? orderBy === "asc" ? a2.dataIndex - b2.dataIndex : b2.dataIndex - a2.dataIndex : diff2;
+    viewChildren.sort(function(a, b) {
+      var diff2 = orderBy === "asc" ? a.getValue() - b.getValue() : b.getValue() - a.getValue();
+      return diff2 === 0 ? orderBy === "asc" ? a.dataIndex - b.dataIndex : b.dataIndex - a.dataIndex : diff2;
     });
   }
   return viewChildren;
@@ -55847,11 +53021,11 @@ function categoryVisual(ecModel) {
     }
   });
 }
-function normalize$1(a2) {
-  if (!(a2 instanceof Array)) {
-    a2 = [a2, a2];
+function normalize$1(a) {
+  if (!(a instanceof Array)) {
+    a = [a, a];
   }
-  return a2;
+  return a;
 }
 function graphEdgeVisual(ecModel) {
   ecModel.eachSeriesByType("graph", function(seriesModel) {
@@ -56091,7 +53265,7 @@ function circularLayout(seriesModel, basedOn, draggingNode, pointer) {
   var graph = nodeData.graph;
   var cx = rect.width / 2 + rect.x;
   var cy = rect.height / 2 + rect.y;
-  var r2 = Math.min(rect.width, rect.height) / 2;
+  var r = Math.min(rect.width, rect.height) / 2;
   var count2 = nodeData.count();
   nodeData.setLayout({
     cx,
@@ -56102,14 +53276,14 @@ function circularLayout(seriesModel, basedOn, draggingNode, pointer) {
   }
   if (draggingNode) {
     var _a2 = coordSys.pointToData(pointer), tempX = _a2[0], tempY = _a2[1];
-    var v4 = [tempX - cx, tempY - cy];
-    normalize$3(v4, v4);
-    scale$2(v4, v4, r2);
-    draggingNode.setLayout([cx + v4[0], cy + v4[1]], true);
+    var v = [tempX - cx, tempY - cy];
+    normalize$3(v, v);
+    scale$2(v, v, r);
+    draggingNode.setLayout([cx + v[0], cy + v[1]], true);
     var circularRotateLabel = seriesModel.get(["circular", "rotateLabel"]);
     rotateNodeLabel(draggingNode, circularRotateLabel, cx, cy);
   }
-  _layoutNodesBasedOn[basedOn](seriesModel, graph, nodeData, r2, cx, cy, count2);
+  _layoutNodesBasedOn[basedOn](seriesModel, graph, nodeData, r, cx, cy, count2);
   graph.eachEdge(function(edge, index2) {
     var curveness = retrieve3(edge.getModel().get(["lineStyle", "curveness"]), getCurvenessForEdge(edge, seriesModel, index2), 0);
     var p1 = clone$3(edge.node1.getLayout());
@@ -56125,7 +53299,7 @@ function circularLayout(seriesModel, basedOn, draggingNode, pointer) {
   });
 }
 var _layoutNodesBasedOn = {
-  value: function(seriesModel, graph, nodeData, r2, cx, cy, count2) {
+  value: function(seriesModel, graph, nodeData, r, cx, cy, count2) {
     var angle = 0;
     var sum2 = nodeData.getSum("value");
     var unitAngle = Math.PI * 2 / (sum2 || count2);
@@ -56133,11 +53307,11 @@ var _layoutNodesBasedOn = {
       var value = node.getValue("value");
       var radianHalf = unitAngle * (sum2 ? value : 1) / 2;
       angle += radianHalf;
-      node.setLayout([r2 * Math.cos(angle) + cx, r2 * Math.sin(angle) + cy]);
+      node.setLayout([r * Math.cos(angle) + cx, r * Math.sin(angle) + cy]);
       angle += radianHalf;
     });
   },
-  symbolSize: function(seriesModel, graph, nodeData, r2, cx, cy, count2) {
+  symbolSize: function(seriesModel, graph, nodeData, r, cx, cy, count2) {
     var sumRadian = 0;
     _symbolRadiansHalf.length = count2;
     var nodeScale = getNodeGlobalScale(seriesModel);
@@ -56146,7 +53320,7 @@ var _layoutNodesBasedOn = {
       isNaN(symbolSize) && (symbolSize = 2);
       symbolSize < 0 && (symbolSize = 0);
       symbolSize *= nodeScale;
-      var symbolRadianHalf = Math.asin(symbolSize / 2 / r2);
+      var symbolRadianHalf = Math.asin(symbolSize / 2 / r);
       isNaN(symbolRadianHalf) && (symbolRadianHalf = PI$2 / 2);
       _symbolRadiansHalf[node.dataIndex] = symbolRadianHalf;
       sumRadian += symbolRadianHalf * 2;
@@ -56156,7 +53330,7 @@ var _layoutNodesBasedOn = {
     graph.eachNode(function(node) {
       var radianHalf = halfRemainRadian + _symbolRadiansHalf[node.dataIndex];
       angle += radianHalf;
-      (!node.getLayout() || !node.getLayout().fixed) && node.setLayout([r2 * Math.cos(angle) + cx, r2 * Math.sin(angle) + cy]);
+      (!node.getLayout() || !node.getLayout().fixed) && node.setLayout([r * Math.cos(angle) + cx, r * Math.sin(angle) + cy]);
       angle += radianHalf;
     });
   }
@@ -56263,14 +53437,14 @@ function forceLayout(inNodes, inEdges, opts) {
         var n1 = e2.n1;
         var n22 = e2.n2;
         sub(v12, n22.p, n1.p);
-        var d2 = len(v12) - e2.d;
-        var w2 = n22.w / (n1.w + n22.w);
-        if (isNaN(w2)) {
-          w2 = 0;
+        var d = len(v12) - e2.d;
+        var w = n22.w / (n1.w + n22.w);
+        if (isNaN(w)) {
+          w = 0;
         }
         normalize$3(v12, v12);
-        !n1.fixed && scaleAndAdd(n1.p, n1.p, v12, w2 * d2 * friction);
-        !n22.fixed && scaleAndAdd(n22.p, n22.p, v12, -(1 - w2) * d2 * friction);
+        !n1.fixed && scaleAndAdd(n1.p, n1.p, v12, w * d * friction);
+        !n22.fixed && scaleAndAdd(n22.p, n22.p, v12, -(1 - w) * d * friction);
       }
       for (var i2 = 0; i2 < nLen; i2++) {
         var n3 = nodes[i2];
@@ -56281,25 +53455,25 @@ function forceLayout(inNodes, inEdges, opts) {
       }
       for (var i2 = 0; i2 < nLen; i2++) {
         var n1 = nodes[i2];
-        for (var j2 = i2 + 1; j2 < nLen; j2++) {
-          var n22 = nodes[j2];
+        for (var j = i2 + 1; j < nLen; j++) {
+          var n22 = nodes[j];
           sub(v12, n22.p, n1.p);
-          var d2 = len(v12);
-          if (d2 === 0) {
+          var d = len(v12);
+          if (d === 0) {
             set$1(v12, Math.random() - 0.5, Math.random() - 0.5);
-            d2 = 1;
+            d = 1;
           }
-          var repFact = (n1.rep + n22.rep) / d2 / d2;
+          var repFact = (n1.rep + n22.rep) / d / d;
           !n1.fixed && scaleAndAdd(n1.pp, n1.pp, v12, repFact);
           !n22.fixed && scaleAndAdd(n22.pp, n22.pp, v12, -repFact);
         }
       }
-      var v4 = [];
+      var v = [];
       for (var i2 = 0; i2 < nLen; i2++) {
         var n3 = nodes[i2];
         if (!n3.fixed) {
-          sub(v4, n3.p, n3.pp);
-          scaleAndAdd(n3.p, n3.p, v4, friction);
+          sub(v, n3.p, n3.pp);
+          scaleAndAdd(n3.p, n3.p, v, friction);
           copy$1(n3.pp, n3.p);
         }
       }
@@ -56355,16 +53529,16 @@ function graphForceLayout(ecModel) {
       });
       var edges = edgeData.mapArray("value", function(value, idx) {
         var edge = graph_1.getEdgeByIndex(idx);
-        var d2 = linearMap$2(value, edgeDataExtent_1, edgeLengthArr_1);
-        if (isNaN(d2)) {
-          d2 = (edgeLengthArr_1[0] + edgeLengthArr_1[1]) / 2;
+        var d = linearMap$2(value, edgeDataExtent_1, edgeLengthArr_1);
+        if (isNaN(d)) {
+          d = (edgeLengthArr_1[0] + edgeLengthArr_1[1]) / 2;
         }
         var edgeModel = edge.getModel();
         var curveness = retrieve3(edge.getModel().get(["lineStyle", "curveness"]), -getCurvenessForEdge(edge, graphSeries, idx, true), 0);
         return {
           n1: nodes_1[edge.node1.dataIndex],
           n2: nodes_1[edge.node2.dataIndex],
-          d: d2,
+          d,
           curveness,
           ignoreForceLayout: edgeModel.get("ignoreForceLayout")
         };
@@ -56376,20 +53550,20 @@ function graphForceLayout(ecModel) {
         friction: forceModel.get("friction")
       });
       forceInstance.beforeStep(function(nodes, edges2) {
-        for (var i = 0, l2 = nodes.length; i < l2; i++) {
+        for (var i = 0, l = nodes.length; i < l; i++) {
           if (nodes[i].fixed) {
             copy$1(nodes[i].p, graph_1.getNodeByIndex(i).getLayout());
           }
         }
       });
       forceInstance.afterStep(function(nodes, edges2, stopped) {
-        for (var i = 0, l2 = nodes.length; i < l2; i++) {
+        for (var i = 0, l = nodes.length; i < l; i++) {
           if (!nodes[i].fixed) {
             graph_1.getNodeByIndex(i).setLayout(nodes[i].p);
           }
           preservedPoints_1[nodeData_1.getId(i)] = nodes[i].p;
         }
-        for (var i = 0, l2 = edges2.length; i < l2; i++) {
+        for (var i = 0, l = edges2.length; i < l; i++) {
           var e2 = edges2[i];
           var edge = graph_1.getEdgeByIndex(i);
           var p1 = e2.n1.p;
@@ -56758,8 +53932,8 @@ var Line = (
       var percent = line.shape.percent;
       var fromPos = line.pointAt(0);
       var toPos = line.pointAt(percent);
-      var d2 = sub([], toPos, fromPos);
-      normalize$3(d2, d2);
+      var d = sub([], toPos, fromPos);
+      normalize$3(d, d);
       function setSymbolRotation(symbol, percent2) {
         var specifiedRotation = symbol.__specifiedRotation;
         if (specifiedRotation == null) {
@@ -56826,16 +54000,16 @@ var Line = (
         }
         switch (label.__position) {
           case "end":
-            label.x = d2[0] * distanceX + toPos[0];
-            label.y = d2[1] * distanceY + toPos[1];
-            textAlign = d2[0] > 0.8 ? "left" : d2[0] < -0.8 ? "right" : "center";
-            textVerticalAlign = d2[1] > 0.8 ? "top" : d2[1] < -0.8 ? "bottom" : "middle";
+            label.x = d[0] * distanceX + toPos[0];
+            label.y = d[1] * distanceY + toPos[1];
+            textAlign = d[0] > 0.8 ? "left" : d[0] < -0.8 ? "right" : "center";
+            textVerticalAlign = d[1] > 0.8 ? "top" : d[1] < -0.8 ? "bottom" : "middle";
             break;
           case "start":
-            label.x = -d2[0] * distanceX + fromPos[0];
-            label.y = -d2[1] * distanceY + fromPos[1];
-            textAlign = d2[0] > 0.8 ? "right" : d2[0] < -0.8 ? "left" : "center";
-            textVerticalAlign = d2[1] > 0.8 ? "bottom" : d2[1] < -0.8 ? "top" : "middle";
+            label.x = -d[0] * distanceX + fromPos[0];
+            label.y = -d[1] * distanceY + fromPos[1];
+            textAlign = d[0] > 0.8 ? "right" : d[0] < -0.8 ? "left" : "center";
+            textVerticalAlign = d[1] > 0.8 ? "bottom" : d[1] < -0.8 ? "top" : "middle";
             break;
           case "insideStartTop":
           case "insideStart":
@@ -56985,8 +54159,8 @@ function makeSeriesScope$1(lineData) {
     labelStatesModels: getLabelStatesModels(hostModel)
   };
 }
-function isPointNaN(pt3) {
-  return isNaN(pt3[0]) || isNaN(pt3[1]);
+function isPointNaN(pt) {
+  return isNaN(pt[0]) || isNaN(pt[1]);
 }
 function lineNeedsDraw(pts) {
   return pts && !isPointNaN(pts[0]) && !isPointNaN(pts[1]);
@@ -57001,17 +54175,17 @@ function intersectCurveCircle(curvePoints, center2, radius) {
   var p0 = curvePoints[0];
   var p1 = curvePoints[1];
   var p2 = curvePoints[2];
-  var d2 = Infinity;
+  var d = Infinity;
   var t2;
   var radiusSquare = radius * radius;
   var interval = 0.1;
-  for (var _t2 = 0.1; _t2 <= 0.9; _t2 += 0.1) {
-    v1[0] = quadraticAt(p0[0], p1[0], p2[0], _t2);
-    v1[1] = quadraticAt(p0[1], p1[1], p2[1], _t2);
+  for (var _t = 0.1; _t <= 0.9; _t += 0.1) {
+    v1[0] = quadraticAt(p0[0], p1[0], p2[0], _t);
+    v1[1] = quadraticAt(p0[1], p1[1], p2[1], _t);
     var diff2 = mathAbs(v2DistSquare(v1, center2) - radiusSquare);
-    if (diff2 < d2) {
-      d2 = diff2;
-      t2 = _t2;
+    if (diff2 < d) {
+      d = diff2;
+      t2 = _t;
     }
   }
   for (var i = 0; i < 32; i++) {
@@ -57047,7 +54221,7 @@ function adjustEdge(graph, scale2) {
   var quadraticSubdivide$1 = quadraticSubdivide;
   var pts = [[], [], []];
   var pts2 = [[], []];
-  var v4 = [];
+  var v = [];
   scale2 /= 2;
   graph.eachEdge(function(edge, idx) {
     var linePoints = edge.getLayout();
@@ -57090,15 +54264,15 @@ function adjustEdge(graph, scale2) {
     } else {
       copy$1(pts2[0], originalPoints[0]);
       copy$1(pts2[1], originalPoints[1]);
-      sub(v4, pts2[1], pts2[0]);
-      normalize$3(v4, v4);
+      sub(v, pts2[1], pts2[0]);
+      normalize$3(v, v);
       if (fromSymbol && fromSymbol !== "none") {
         var symbolSize = getSymbolSize(edge.node1);
-        scaleAndAdd$1(pts2[0], pts2[0], v4, symbolSize * scale2);
+        scaleAndAdd$1(pts2[0], pts2[0], v, symbolSize * scale2);
       }
       if (toSymbol && toSymbol !== "none") {
         var symbolSize = getSymbolSize(edge.node2);
-        scaleAndAdd$1(pts2[1], pts2[1], v4, -symbolSize * scale2);
+        scaleAndAdd$1(pts2[1], pts2[1], v, -symbolSize * scale2);
       }
       copy$1(linePoints[0], pts2[0]);
       copy$1(linePoints[1], pts2[1]);
@@ -57250,10 +54424,10 @@ var GraphView = (
       var controller = this._controller;
       var controllerHost = this._controllerHost;
       var group = this.group;
-      controller.setPointerChecker(function(e2, x, y2) {
+      controller.setPointerChecker(function(e2, x, y) {
         var rect = group.getBoundingRect();
         rect.applyTransform(group.transform);
-        return rect.contain(x, y2) && !onIrrelevantElement(e2, api, seriesModel);
+        return rect.contain(x, y) && !onIrrelevantElement(e2, api, seriesModel);
       });
       if (!isViewCoordSys(seriesModel.coordinateSystem)) {
         controller.disable();
@@ -57546,9 +54720,9 @@ var GraphNode = (
           var sourceNode = sourceNodesQueue[nodeIteratorIndex];
           nodeIteratorIndex++;
           connectedNodesMap.set(sourceNode.dataIndex, true);
-          for (var j2 = 0; j2 < sourceNode.inEdges.length; j2++) {
-            connectedEdgesMap.set(sourceNode.inEdges[j2].dataIndex, true);
-            sourceNodesQueue.push(sourceNode.inEdges[j2].node1);
+          for (var j = 0; j < sourceNode.inEdges.length; j++) {
+            connectedEdgesMap.set(sourceNode.inEdges[j].dataIndex, true);
+            sourceNodesQueue.push(sourceNode.inEdges[j].node1);
           }
         }
         nodeIteratorIndex = 0;
@@ -57556,9 +54730,9 @@ var GraphNode = (
           var targetNode = targetNodesQueue[nodeIteratorIndex];
           nodeIteratorIndex++;
           connectedNodesMap.set(targetNode.dataIndex, true);
-          for (var j2 = 0; j2 < targetNode.outEdges.length; j2++) {
-            connectedEdgesMap.set(targetNode.outEdges[j2].dataIndex, true);
-            targetNodesQueue.push(targetNode.outEdges[j2].node2);
+          for (var j = 0; j < targetNode.outEdges.length; j++) {
+            connectedEdgesMap.set(targetNode.outEdges[j].dataIndex, true);
+            targetNodesQueue.push(targetNode.outEdges[j].node2);
           }
         }
       }
@@ -57604,9 +54778,9 @@ var GraphEdge = (
         var sourceNode = sourceNodes[nodeIteratorIndex];
         nodeIteratorIndex++;
         connectedNodesMap.set(sourceNode.dataIndex, true);
-        for (var j2 = 0; j2 < sourceNode.inEdges.length; j2++) {
-          connectedEdgesMap.set(sourceNode.inEdges[j2].dataIndex, true);
-          sourceNodes.push(sourceNode.inEdges[j2].node1);
+        for (var j = 0; j < sourceNode.inEdges.length; j++) {
+          connectedEdgesMap.set(sourceNode.inEdges[j].dataIndex, true);
+          sourceNodes.push(sourceNode.inEdges[j].node1);
         }
       }
       nodeIteratorIndex = 0;
@@ -57614,9 +54788,9 @@ var GraphEdge = (
         var targetNode = targetNodes[nodeIteratorIndex];
         nodeIteratorIndex++;
         connectedNodesMap.set(targetNode.dataIndex, true);
-        for (var j2 = 0; j2 < targetNode.outEdges.length; j2++) {
-          connectedEdgesMap.set(targetNode.outEdges[j2].dataIndex, true);
-          targetNodes.push(targetNode.outEdges[j2].node2);
+        for (var j = 0; j < targetNode.outEdges.length; j++) {
+          connectedEdgesMap.set(targetNode.outEdges[j].dataIndex, true);
+          targetNodes.push(targetNode.outEdges[j].node2);
         }
       }
       return {
@@ -58002,17 +55176,17 @@ var PointerPath = (
     PointerPath2.prototype.buildPath = function(ctx, shape) {
       var mathCos2 = Math.cos;
       var mathSin2 = Math.sin;
-      var r2 = shape.r;
+      var r = shape.r;
       var width = shape.width;
       var angle = shape.angle;
-      var x = shape.x - mathCos2(angle) * width * (width >= r2 / 3 ? 1 : 2);
-      var y2 = shape.y - mathSin2(angle) * width * (width >= r2 / 3 ? 1 : 2);
+      var x = shape.x - mathCos2(angle) * width * (width >= r / 3 ? 1 : 2);
+      var y = shape.y - mathSin2(angle) * width * (width >= r / 3 ? 1 : 2);
       angle = shape.angle - Math.PI / 2;
-      ctx.moveTo(x, y2);
+      ctx.moveTo(x, y);
       ctx.lineTo(shape.x + mathCos2(angle) * width, shape.y + mathSin2(angle) * width);
-      ctx.lineTo(shape.x + mathCos2(shape.angle) * r2, shape.y + mathSin2(shape.angle) * r2);
+      ctx.lineTo(shape.x + mathCos2(shape.angle) * r, shape.y + mathSin2(shape.angle) * r);
       ctx.lineTo(shape.x - mathCos2(angle) * width, shape.y - mathSin2(angle) * width);
-      ctx.lineTo(x, y2);
+      ctx.lineTo(x, y);
     };
     return PointerPath2;
   }(Path$1)
@@ -58024,11 +55198,11 @@ function parsePosition(seriesModel, api) {
   var size2 = Math.min(width, height);
   var cx = parsePercent(center2[0], api.getWidth());
   var cy = parsePercent(center2[1], api.getHeight());
-  var r2 = parsePercent(seriesModel.get("radius"), size2 / 2);
+  var r = parsePercent(seriesModel.get("radius"), size2 / 2);
   return {
     cx,
     cy,
-    r: r2
+    r
   };
 }
 function formatLabel(value, labelFormatter) {
@@ -58129,7 +55303,7 @@ var GaugeView = (
       var group = this.group;
       var cx = posInfo.cx;
       var cy = posInfo.cy;
-      var r2 = posInfo.r;
+      var r = posInfo.r;
       var minVal = +seriesModel.get("min");
       var maxVal = +seriesModel.get("max");
       var splitLineModel = seriesModel.getModel("splitLine");
@@ -58137,8 +55311,8 @@ var GaugeView = (
       var labelModel = seriesModel.getModel("axisLabel");
       var splitNumber = seriesModel.get("splitNumber");
       var subSplitNumber = tickModel.get("splitNumber");
-      var splitLineLen = parsePercent(splitLineModel.get("length"), r2);
-      var tickLen = parsePercent(tickModel.get("length"), r2);
+      var splitLineLen = parsePercent(splitLineModel.get("length"), r);
+      var tickLen = parsePercent(tickModel.get("length"), r);
       var angle = startAngle;
       var step = (endAngle - startAngle) / splitNumber;
       var subStep = step / subSplitNumber;
@@ -58154,10 +55328,10 @@ var GaugeView = (
           var distance2 = splitLineDistance ? splitLineDistance + axisLineWidth : axisLineWidth;
           var splitLine = new Line$2({
             shape: {
-              x1: unitX * (r2 - distance2) + cx,
-              y1: unitY * (r2 - distance2) + cy,
-              x2: unitX * (r2 - splitLineLen - distance2) + cx,
-              y2: unitY * (r2 - splitLineLen - distance2) + cy
+              x1: unitX * (r - distance2) + cx,
+              y1: unitY * (r - distance2) + cy,
+              x2: unitX * (r - splitLineLen - distance2) + cx,
+              y2: unitY * (r - splitLineLen - distance2) + cy
             },
             style: splitLineStyle,
             silent: true
@@ -58173,8 +55347,8 @@ var GaugeView = (
           var distance2 = labelModel.get("distance") + splitLineDistance;
           var label = formatLabel(round$3(i / splitNumber * (maxVal - minVal) + minVal), labelModel.get("formatter"));
           var autoColor = getColor2(i / splitNumber);
-          var textStyleX = unitX * (r2 - splitLineLen - distance2) + cx;
-          var textStyleY = unitY * (r2 - splitLineLen - distance2) + cy;
+          var textStyleX = unitX * (r - splitLineLen - distance2) + cx;
+          var textStyleY = unitY * (r - splitLineLen - distance2) + cy;
           var rotateType = labelModel.get("rotate");
           var rotate2 = 0;
           if (rotateType === "radial") {
@@ -58221,22 +55395,22 @@ var GaugeView = (
         if (tickModel.get("show") && i !== splitNumber) {
           var distance2 = tickModel.get("distance");
           distance2 = distance2 ? distance2 + axisLineWidth : axisLineWidth;
-          for (var j2 = 0; j2 <= subSplitNumber; j2++) {
+          for (var j = 0; j <= subSplitNumber; j++) {
             unitX = Math.cos(angle);
             unitY = Math.sin(angle);
             var tickLine = new Line$2({
               shape: {
-                x1: unitX * (r2 - distance2) + cx,
-                y1: unitY * (r2 - distance2) + cy,
-                x2: unitX * (r2 - tickLen - distance2) + cx,
-                y2: unitY * (r2 - tickLen - distance2) + cy
+                x1: unitX * (r - distance2) + cx,
+                y1: unitY * (r - distance2) + cy,
+                x2: unitX * (r - tickLen - distance2) + cx,
+                y2: unitY * (r - tickLen - distance2) + cy
               },
               silent: true,
               style: tickLineStyle
             });
             if (tickLineStyle.stroke === "auto") {
               tickLine.setStyle({
-                stroke: getColor2((i + j2 / subSplitNumber) / splitNumber)
+                stroke: getColor2((i + j / subSplitNumber) / splitNumber)
               });
             }
             group.add(tickLine);
@@ -58297,7 +55471,7 @@ var GaugeView = (
         var isOverlap = progressModel.get("overlap");
         var progressWidth = isOverlap ? progressModel.get("width") : axisLineWidth / data.count();
         var r0 = isOverlap ? posInfo.r - progressWidth : posInfo.r - (idx + 1) * progressWidth;
-        var r2 = isOverlap ? posInfo.r : posInfo.r - idx * progressWidth;
+        var r = isOverlap ? posInfo.r : posInfo.r - idx * progressWidth;
         var progress = new ProgressPath({
           shape: {
             startAngle,
@@ -58306,7 +55480,7 @@ var GaugeView = (
             cy: posInfo.cy,
             clockwise,
             r0,
-            r: r2
+            r
           }
         });
         isOverlap && (progress.z2 = linearMap$2(data.get(valueDim, idx), [minVal, maxVal], [100, 0], true));
@@ -58922,8 +56096,8 @@ function getSortedIndices(data, sort2) {
   if (isFunction(sort2)) {
     indices.sort(sort2);
   } else if (sort2 !== "none") {
-    indices.sort(function(a2, b2) {
-      return isAscending ? valueArr[a2] - valueArr[b2] : valueArr[b2] - valueArr[a2];
+    indices.sort(function(a, b) {
+      return isAscending ? valueArr[a] - valueArr[b] : valueArr[b] - valueArr[a];
     });
   }
   return indices;
@@ -59089,7 +56263,7 @@ function funnelLayout(ecModel, api) {
     var viewHeight = viewRect2.height;
     var indices = getSortedIndices(data, sort2);
     var x = viewRect2.x;
-    var y2 = viewRect2.y;
+    var y = viewRect2.y;
     var sizeExtent = orient === "horizontal" ? [parsePercent(seriesModel.get("minSize"), viewHeight), parsePercent(seriesModel.get("maxSize"), viewHeight)] : [parsePercent(seriesModel.get("minSize"), viewWidth), parsePercent(seriesModel.get("maxSize"), viewWidth)];
     var dataExtent = data.getDataExtent(valueDim);
     var min3 = seriesModel.get("min");
@@ -59111,13 +56285,13 @@ function funnelLayout(ecModel, api) {
         var y0 = void 0;
         switch (funnelAlign) {
           case "top":
-            y0 = y2;
+            y0 = y;
             break;
           case "center":
-            y0 = y2 + (viewHeight - itemHeight) / 2;
+            y0 = y + (viewHeight - itemHeight) / 2;
             break;
           case "bottom":
-            y0 = y2 + (viewHeight - itemHeight);
+            y0 = y + (viewHeight - itemHeight);
             break;
         }
         return [[offset, y0], [offset, y0 + itemHeight]];
@@ -59144,7 +56318,7 @@ function funnelLayout(ecModel, api) {
       if (orient === "horizontal") {
         x += viewWidth;
       } else {
-        y2 += viewHeight;
+        y += viewHeight;
       }
       indices = indices.reverse();
     }
@@ -59178,9 +56352,9 @@ function funnelLayout(ecModel, api) {
             height = -height;
           }
         }
-        var start2 = getLinePoints(idx, y2);
-        var end2 = getLinePoints(nextIdx, y2 + height);
-        y2 += height + gap;
+        var start2 = getLinePoints(idx, y);
+        var end2 = getLinePoints(nextIdx, y + height);
+        y += height + gap;
         data.setItemLayout(idx, {
           points: start2.concat(end2.slice().reverse())
         });
@@ -59874,8 +57048,8 @@ var Parallel = (
         } else {
           activeState = "active";
           var values = data.getValues(dataDimensions, dataIndex);
-          for (var j2 = 0, lenj = dimensions.length; j2 < lenj; j2++) {
-            var state = axisModels[j2].getActiveState(values[j2]);
+          for (var j = 0, lenj = dimensions.length; j < lenj; j++) {
+            var state = axisModels[j].getActiveState(values[j]);
             if (state === "inactive") {
               activeState = "inactive";
               break;
@@ -59889,8 +57063,8 @@ var Parallel = (
       var dimensions = this.dimensions;
       var axesMap = this._axesMap;
       var hasActiveSet = false;
-      for (var j2 = 0, lenj = dimensions.length; j2 < lenj; j2++) {
-        if (axesMap.get(dimensions[j2]).model.getActiveState() !== "normal") {
+      for (var j = 0, lenj = dimensions.length; j < lenj; j++) {
+        if (axesMap.get(dimensions[j]).model.getActiveState() !== "normal") {
           hasActiveSet = true;
         }
       }
@@ -60252,11 +57426,11 @@ function updateCoverShape(controller, cover) {
   getCoverRenderer(cover).updateCoverShape(controller, cover, brushOption.range, brushOption);
 }
 function updateZ$1(cover, brushOption) {
-  var z2 = brushOption.z;
-  z2 == null && (z2 = COVER_Z);
+  var z = brushOption.z;
+  z == null && (z = COVER_Z);
   cover.traverse(function(el) {
-    el.z = z2;
-    el.z2 = z2;
+    el.z = z;
+    el.z2 = z;
   });
 }
 function updateCoverAfterCreation(controller, cover) {
@@ -60362,18 +57536,18 @@ function updateBaseRect(controller, cover, localRange, brushOption) {
   var lineWidth = brushOption.brushStyle.lineWidth || 0;
   var handleSize = mathMax$1(lineWidth, MIN_RESIZE_LINE_WIDTH);
   var x = localRange[0][0];
-  var y2 = localRange[1][0];
+  var y = localRange[1][0];
   var xa = x - lineWidth / 2;
-  var ya = y2 - lineWidth / 2;
+  var ya = y - lineWidth / 2;
   var x2 = localRange[0][1];
-  var y22 = localRange[1][1];
+  var y2 = localRange[1][1];
   var x2a = x2 - handleSize + lineWidth / 2;
-  var y2a = y22 - handleSize + lineWidth / 2;
+  var y2a = y2 - handleSize + lineWidth / 2;
   var width = x2 - x;
-  var height = y22 - y2;
+  var height = y2 - y;
   var widtha = width + lineWidth;
   var heighta = height + lineWidth;
-  updateRectShape(controller, cover, "main", x, y2, width, height);
+  updateRectShape(controller, cover, "main", x, y, width, height);
   if (brushOption.transformable) {
     updateRectShape(controller, cover, "w", xa, ya, handleSize, heighta);
     updateRectShape(controller, cover, "e", x2a, ya, handleSize, heighta);
@@ -60404,18 +57578,18 @@ function updateCommon$1(controller, cover) {
     });
   });
 }
-function updateRectShape(controller, cover, name, x, y2, w2, h2) {
+function updateRectShape(controller, cover, name, x, y, w, h) {
   var el = cover.childOfName(name);
-  el && el.setShape(pointsToRect(clipByPanel(controller, cover, [[x, y2], [x + w2, y2 + h2]])));
+  el && el.setShape(pointsToRect(clipByPanel(controller, cover, [[x, y], [x + w, y + h]])));
 }
 function makeStyle(brushOption) {
   return defaults({
     strokeNoScale: true
   }, brushOption.brushStyle);
 }
-function formatRectRange(x, y2, x2, y22) {
-  var min3 = [mathMin$1(x, x2), mathMin$1(y2, y22)];
-  var max3 = [mathMax$1(x, x2), mathMax$1(y2, y22)];
+function formatRectRange(x, y, x2, y2) {
+  var min3 = [mathMin$1(x, x2), mathMin$1(y, y2)];
+  var max3 = [mathMax$1(x, x2), mathMax$1(y, y2)];
   return [
     [min3[0], max3[0]],
     [min3[1], max3[1]]
@@ -60518,8 +57692,8 @@ function preventDefault(e2) {
   var rawE = e2.event;
   rawE.preventDefault && rawE.preventDefault();
 }
-function mainShapeContain(cover, x, y2) {
-  return cover.childOfName("main").contain(x, y2);
+function mainShapeContain(cover, x, y) {
+  return cover.childOfName("main").contain(x, y);
 }
 function updateCoverByMouse(controller, e2, localCursorPoint, isEnd) {
   var creatingCover = controller._creatingCover;
@@ -60585,8 +57759,8 @@ var pointerHandlers = {
   },
   mousemove: function(e2) {
     var x = e2.offsetX;
-    var y2 = e2.offsetY;
-    var localCursorPoint = this.group.transformCoordToLocal(x, y2);
+    var y = e2.offsetY;
+    var localCursorPoint = this.group.transformCoordToLocal(x, y);
     resetCursor(this, e2, localCursorPoint);
     if (this._dragging) {
       preventDefault(e2);
@@ -60602,8 +57776,8 @@ function handleDragEnd(controller, e2) {
   if (controller._dragging) {
     preventDefault(e2);
     var x = e2.offsetX;
-    var y2 = e2.offsetY;
-    var localCursorPoint = controller.group.transformCoordToLocal(x, y2);
+    var y = e2.offsetY;
+    var localCursorPoint = controller.group.transformCoordToLocal(x, y);
     var eventParams = updateCoverByMouse(controller, e2, localCursorPoint, true);
     controller._dragging = false;
     controller._track = [];
@@ -60611,9 +57785,9 @@ function handleDragEnd(controller, e2) {
     eventParams && trigger(controller, eventParams);
   }
 }
-function isOutsideZrArea(controller, x, y2) {
+function isOutsideZrArea(controller, x, y) {
   var zr = controller._zr;
-  return x < 0 || x > zr.getWidth() || y2 < 0 || y2 > zr.getHeight();
+  return x < 0 || x > zr.getWidth() || y < 0 || y > zr.getHeight();
 }
 var coverRenderers = {
   lineX: getLineRenderer(0),
@@ -61445,8 +58619,8 @@ function adjustNodeWithNodeAlign(nodes, nodeAlign, orient, maxDepth) {
         node.setLayout({
           skNodeHeight: nodeHeight
         }, true);
-        for (var j2 = 0; j2 < node.inEdges.length; j2++) {
-          var edge = node.inEdges[j2];
+        for (var j = 0; j < node.inEdges.length; j++) {
+          var edge = node.inEdges[j];
           if (nextSourceNode.indexOf(edge.node1) < 0) {
             nextSourceNode.push(edge.node1);
           }
@@ -61504,8 +58678,8 @@ function prepareNodesByBreadth(nodes, orient) {
   var groupResult = groupData(nodes, function(node) {
     return node.getLayout()[keyAttr];
   });
-  groupResult.keys.sort(function(a2, b2) {
-    return a2 - b2;
+  groupResult.keys.sort(function(a, b) {
+    return a - b;
   });
   each$f(groupResult.keys, function(key) {
     nodesByBreadth.push(groupResult.buckets.get(key));
@@ -61555,8 +58729,8 @@ function initializeNodeDepth(nodesByBreadth, edges, height, width, nodeGap, orie
 function resolveCollisions(nodesByBreadth, nodeGap, height, width, orient) {
   var keyAttr = orient === "vertical" ? "x" : "y";
   each$f(nodesByBreadth, function(nodes) {
-    nodes.sort(function(a2, b2) {
-      return a2.getLayout()[keyAttr] - b2.getLayout()[keyAttr];
+    nodes.sort(function(a, b) {
+      return a.getLayout()[keyAttr] - b.getLayout()[keyAttr];
     });
     var nodeX;
     var node;
@@ -61607,18 +58781,18 @@ function relaxRightToLeft(nodesByBreadth, alpha, orient) {
   each$f(nodesByBreadth.slice().reverse(), function(nodes) {
     each$f(nodes, function(node) {
       if (node.outEdges.length) {
-        var y2 = sum(node.outEdges, weightedTarget, orient) / sum(node.outEdges, getEdgeValue);
-        if (isNaN(y2)) {
+        var y = sum(node.outEdges, weightedTarget, orient) / sum(node.outEdges, getEdgeValue);
+        if (isNaN(y)) {
           var len2 = node.outEdges.length;
-          y2 = len2 ? sum(node.outEdges, centerTarget, orient) / len2 : 0;
+          y = len2 ? sum(node.outEdges, centerTarget, orient) / len2 : 0;
         }
         if (orient === "vertical") {
-          var nodeX = node.getLayout().x + (y2 - center(node, orient)) * alpha;
+          var nodeX = node.getLayout().x + (y - center(node, orient)) * alpha;
           node.setLayout({
             x: nodeX
           }, true);
         } else {
-          var nodeY = node.getLayout().y + (y2 - center(node, orient)) * alpha;
+          var nodeY = node.getLayout().y + (y - center(node, orient)) * alpha;
           node.setLayout({
             y: nodeY
           }, true);
@@ -61661,18 +58835,18 @@ function relaxLeftToRight(nodesByBreadth, alpha, orient) {
   each$f(nodesByBreadth, function(nodes) {
     each$f(nodes, function(node) {
       if (node.inEdges.length) {
-        var y2 = sum(node.inEdges, weightedSource, orient) / sum(node.inEdges, getEdgeValue);
-        if (isNaN(y2)) {
+        var y = sum(node.inEdges, weightedSource, orient) / sum(node.inEdges, getEdgeValue);
+        if (isNaN(y)) {
           var len2 = node.inEdges.length;
-          y2 = len2 ? sum(node.inEdges, centerSource, orient) / len2 : 0;
+          y = len2 ? sum(node.inEdges, centerSource, orient) / len2 : 0;
         }
         if (orient === "vertical") {
-          var nodeX = node.getLayout().x + (y2 - center(node, orient)) * alpha;
+          var nodeX = node.getLayout().x + (y - center(node, orient)) * alpha;
           node.setLayout({
             x: nodeX
           }, true);
         } else {
-          var nodeY = node.getLayout().y + (y2 - center(node, orient)) * alpha;
+          var nodeY = node.getLayout().y + (y - center(node, orient)) * alpha;
           node.setLayout({
             y: nodeY
           }, true);
@@ -61684,11 +58858,11 @@ function relaxLeftToRight(nodesByBreadth, alpha, orient) {
 function computeEdgeDepths(nodes, orient) {
   var keyAttr = orient === "vertical" ? "x" : "y";
   each$f(nodes, function(node) {
-    node.outEdges.sort(function(a2, b2) {
-      return a2.node2.getLayout()[keyAttr] - b2.node2.getLayout()[keyAttr];
+    node.outEdges.sort(function(a, b) {
+      return a.node2.getLayout()[keyAttr] - b.node2.getLayout()[keyAttr];
     });
-    node.inEdges.sort(function(a2, b2) {
-      return a2.node1.getLayout()[keyAttr] - b2.node1.getLayout()[keyAttr];
+    node.inEdges.sort(function(a, b) {
+      return a.node1.getLayout()[keyAttr] - b.node1.getLayout()[keyAttr];
     });
   });
   each$f(nodes, function(node) {
@@ -62189,8 +59363,8 @@ function prepareBoxplotData(rawData, opt) {
       value: i
     }) : isString(itemNameFormatter) ? itemNameFormatter.replace("{value}", i + "") : i + "";
     boxData.push([itemName, low, Q1, Q2, Q3, high]);
-    for (var j2 = 0; j2 < ascList.length; j2++) {
-      var dataItem = ascList[j2];
+    for (var j = 0; j < ascList.length; j++) {
+      var dataItem = ascList[j];
       if (dataItem < low || dataItem > high) {
         var outlier = [itemName, dataItem];
         outliers.push(outlier);
@@ -63404,7 +60578,7 @@ var LargeLinesPath = (
         this.notClear = true;
       }
     };
-    LargeLinesPath2.prototype.findDataIndex = function(x, y2) {
+    LargeLinesPath2.prototype.findDataIndex = function(x, y) {
       var shape = this.shape;
       var segs = shape.segs;
       var curveness = shape.curveness;
@@ -63419,7 +60593,7 @@ var LargeLinesPath = (
             for (var k = 1; k < count2; k++) {
               var x1 = segs[i++];
               var y1 = segs[i++];
-              if (containStroke$4(x0, y0, x1, y1, lineWidth, x, y2)) {
+              if (containStroke$4(x0, y0, x1, y1, lineWidth, x, y)) {
                 return dataIndex;
               }
             }
@@ -63435,12 +60609,12 @@ var LargeLinesPath = (
           var y1 = segs[i++];
           if (curveness > 0) {
             var x2 = (x0 + x1) / 2 - (y0 - y1) * curveness;
-            var y22 = (y0 + y1) / 2 - (x1 - x0) * curveness;
-            if (containStroke$2(x0, y0, x2, y22, x1, y1, lineWidth, x, y2)) {
+            var y2 = (y0 + y1) / 2 - (x1 - x0) * curveness;
+            if (containStroke$2(x0, y0, x2, y2, x1, y1, lineWidth, x, y)) {
               return dataIndex;
             }
           } else {
-            if (containStroke$4(x0, y0, x1, y1, lineWidth, x, y2)) {
+            if (containStroke$4(x0, y0, x1, y1, lineWidth, x, y)) {
               return dataIndex;
             }
           }
@@ -63449,13 +60623,13 @@ var LargeLinesPath = (
       }
       return -1;
     };
-    LargeLinesPath2.prototype.contain = function(x, y2) {
-      var localPos = this.transformCoordToLocal(x, y2);
+    LargeLinesPath2.prototype.contain = function(x, y) {
+      var localPos = this.transformCoordToLocal(x, y);
       var rect = this.getBoundingRect();
       x = localPos[0];
-      y2 = localPos[1];
-      if (rect.contain(x, y2)) {
-        var dataIdx = this.hoverDataIdx = this.findDataIndex(x, y2);
+      y = localPos[1];
+      if (rect.contain(x, y)) {
+        var dataIdx = this.hoverDataIdx = this.findDataIndex(x, y);
         return dataIdx >= 0;
       }
       this.hoverDataIdx = -1;
@@ -63472,11 +60646,11 @@ var LargeLinesPath = (
         var maxY = -Infinity;
         for (var i = 0; i < points2.length; ) {
           var x = points2[i++];
-          var y2 = points2[i++];
+          var y = points2[i++];
           minX = Math.min(x, minX);
           maxX = Math.max(x, maxX);
-          minY = Math.min(y2, minY);
-          maxY = Math.max(y2, maxY);
+          minY = Math.min(y, minY);
+          maxY = Math.max(y, maxY);
         }
         rect = this._rect = new BoundingRect$1(minX, minY, maxX, maxY);
       }
@@ -63600,16 +60774,16 @@ var linesLayout = {
             points2 = new Float32Array(segCount * 4);
           }
           var offset = 0;
-          var pt3 = [];
+          var pt = [];
           for (var i = params.start; i < params.end; i++) {
             var len2 = seriesModel.getLineCoords(i, lineCoords);
             if (isPolyline) {
               points2[offset++] = len2;
             }
             for (var k = 0; k < len2; k++) {
-              pt3 = coordSys.dataToPoint(lineCoords[k], false, pt3);
-              points2[offset++] = pt3[0];
-              points2[offset++] = pt3[1];
+              pt = coordSys.dataToPoint(lineCoords[k], false, pt);
+              points2[offset++] = pt[0];
+              points2[offset++] = pt[1];
             }
           }
           lineData.setLayout("linesPoints", points2);
@@ -63619,8 +60793,8 @@ var linesLayout = {
             var len2 = seriesModel.getLineCoords(i, lineCoords);
             var pts = [];
             if (isPolyline) {
-              for (var j2 = 0; j2 < len2; j2++) {
-                pts.push(coordSys.dataToPoint(lineCoords[j2]));
+              for (var j = 0; j < len2; j++) {
+                pts.push(coordSys.dataToPoint(lineCoords[j]));
               }
             } else {
               pts[0] = coordSys.dataToPoint(lineCoords[0]);
@@ -63889,9 +61063,9 @@ var LinesSeriesModel = (
           coordsOffsetAndLenStorage[offsetCursor++] = count2;
           for (var k = 0; k < count2; k++) {
             var x = data[i++];
-            var y2 = data[i++];
+            var y = data[i++];
             coordsStorage[coordsCursor++] = x;
-            coordsStorage[coordsCursor++] = y2;
+            coordsStorage[coordsCursor++] = y;
             if (i > len2) {
               {
                 throw new Error("Invalid data format.");
@@ -64013,11 +61187,11 @@ var LinesSeriesModel = (
   }(SeriesModel$1)
 );
 const LinesSeriesModel$1 = LinesSeriesModel;
-function normalize(a2) {
-  if (!(a2 instanceof Array)) {
-    a2 = [a2, a2];
+function normalize(a) {
+  if (!(a instanceof Array)) {
+    a = [a, a];
   }
-  return a2;
+  return a;
 }
 var linesVisual = {
   seriesType: "lines",
@@ -64070,7 +61244,7 @@ var HeatmapLayer = (
       var brush2 = this._getBrush();
       var gradientInRange = this._getGradient(colorFunc, "inRange");
       var gradientOutOfRange = this._getGradient(colorFunc, "outOfRange");
-      var r2 = this.pointSize + this.blurSize;
+      var r = this.pointSize + this.blurSize;
       var canvas = this.canvas;
       var ctx = canvas.getContext("2d");
       var len2 = data.length;
@@ -64079,11 +61253,11 @@ var HeatmapLayer = (
       for (var i = 0; i < len2; ++i) {
         var p2 = data[i];
         var x = p2[0];
-        var y2 = p2[1];
+        var y = p2[1];
         var value = p2[2];
         var alpha = normalize2(value);
         ctx.globalAlpha = alpha;
-        ctx.drawImage(brush2, x - r2, y2 - r2);
+        ctx.drawImage(brush2, x - r, y - r);
       }
       if (!canvas.width || !canvas.height) {
         return canvas;
@@ -64114,17 +61288,17 @@ var HeatmapLayer = (
     };
     HeatmapLayer2.prototype._getBrush = function() {
       var brushCanvas = this._brushCanvas || (this._brushCanvas = platformApi.createCanvas());
-      var r2 = this.pointSize + this.blurSize;
-      var d2 = r2 * 2;
-      brushCanvas.width = d2;
-      brushCanvas.height = d2;
+      var r = this.pointSize + this.blurSize;
+      var d = r * 2;
+      brushCanvas.width = d;
+      brushCanvas.height = d;
       var ctx = brushCanvas.getContext("2d");
-      ctx.clearRect(0, 0, d2, d2);
-      ctx.shadowOffsetX = d2;
+      ctx.clearRect(0, 0, d, d);
+      ctx.shadowOffsetX = d;
       ctx.shadowBlur = this.blurSize;
       ctx.shadowColor = "#000";
       ctx.beginPath();
-      ctx.arc(-r2, r2, this.pointSize, 0, Math.PI * 2, true);
+      ctx.arc(-r, r, this.pointSize, 0, Math.PI * 2, true);
       ctx.closePath();
       ctx.fill();
       return brushCanvas;
@@ -64353,18 +61527,18 @@ var HeatmapView = (
       var roamTransform = geo.getRoamTransform();
       rect.applyTransform(roamTransform);
       var x = Math.max(rect.x, 0);
-      var y2 = Math.max(rect.y, 0);
+      var y = Math.max(rect.y, 0);
       var x2 = Math.min(rect.width + rect.x, api.getWidth());
-      var y22 = Math.min(rect.height + rect.y, api.getHeight());
+      var y2 = Math.min(rect.height + rect.y, api.getHeight());
       var width = x2 - x;
-      var height = y22 - y2;
+      var height = y2 - y;
       var dims = [data.mapDimension("lng"), data.mapDimension("lat"), data.mapDimension("value")];
       var points2 = data.mapArray(dims, function(lng, lat, value) {
-        var pt3 = geo.dataToPoint([lng, lat]);
-        pt3[0] -= x;
-        pt3[1] -= y2;
-        pt3.push(value);
-        return pt3;
+        var pt = geo.dataToPoint([lng, lat]);
+        pt[0] -= x;
+        pt[1] -= y;
+        pt.push(value);
+        return pt;
       });
       var dataExtent = visualMapModel.getExtent();
       var isInRange = visualMapModel.type === "visualMap.continuous" ? getIsInContinuousRange(dataExtent, visualMapModel.option.range) : getIsInPiecewiseRange(dataExtent, visualMapModel.getPieceList(), visualMapModel.option.selected);
@@ -64377,7 +61551,7 @@ var HeatmapView = (
           width,
           height,
           x,
-          y: y2,
+          y,
           image: hmLayer.canvas
         },
         silent: true
@@ -65070,15 +62244,15 @@ var ThemeRiverView = (
         var points1 = [];
         var style;
         var indices = layersSeries[idx].indices;
-        var j2 = 0;
-        for (; j2 < indices.length; j2++) {
-          var layout2 = data.getItemLayout(indices[j2]);
+        var j = 0;
+        for (; j < indices.length; j++) {
+          var layout2 = data.getItemLayout(indices[j]);
           var x = layout2.x;
           var y0 = layout2.y0;
-          var y2 = layout2.y;
+          var y = layout2.y;
           points0.push(x, y0);
-          points1.push(x, y0 + y2);
-          style = data.getItemVisual(indices[j2], "style");
+          points1.push(x, y0 + y);
+          style = data.getItemVisual(indices[j], "style");
         }
         var polygon;
         var textLayout = data.getItemLayout(indices[0]);
@@ -65118,8 +62292,8 @@ var ThemeRiverView = (
           saveOldStyle(polygon);
         }
         setLabelStyle(polygon, getLabelStatesModels(seriesModel), {
-          labelDataIndex: indices[j2 - 1],
-          defaultText: data.getName(indices[j2 - 1]),
+          labelDataIndex: indices[j - 1],
+          defaultText: data.getName(indices[j - 1]),
           inheritColor: style.fill
         }, {
           normal: {
@@ -65200,8 +62374,8 @@ var ThemeRiverSeriesModel = (
       var layerNum = layerData.length;
       for (var k = 0; k < layerNum; ++k) {
         var name_1 = layerData[k].name;
-        for (var j2 = 0; j2 < layerData[k].dataList.length; ++j2) {
-          var timeValue = layerData[k].dataList[j2][0] + "";
+        for (var j = 0; j < layerData[k].dataList.length; ++j) {
+          var timeValue = layerData[k].dataList[j][0] + "";
           timeValueKeys[timeValue] = k;
         }
         for (var timeValue in timeValueKeys) {
@@ -65289,13 +62463,13 @@ var ThemeRiverSeriesModel = (
         var minDist = Number.MAX_VALUE;
         var nearestIdx = -1;
         var pointNum = layerSeries[i].indices.length;
-        for (var j2 = 0; j2 < pointNum; ++j2) {
-          var theValue = data.get(dim[0], layerSeries[i].indices[j2]);
+        for (var j = 0; j < pointNum; ++j) {
+          var theValue = data.get(dim[0], layerSeries[i].indices[j]);
           var dist2 = Math.abs(theValue - value);
           if (dist2 <= minDist) {
             nestestValue = theValue;
             minDist = dist2;
-            nearestIdx = layerSeries[i].indices[j2];
+            nearestIdx = layerSeries[i].indices[j];
           }
         }
         indices.push(nearestIdx);
@@ -65376,9 +62550,9 @@ function doThemeRiverLayout(data, seriesModel, height) {
   var valueDim = data.mapDimension("value");
   var layerPoints = map$1(layerSeries, function(singleLayer) {
     return map$1(singleLayer.indices, function(idx) {
-      var pt3 = coordSys.dataToPoint(data.get(timeDim, idx));
-      pt3[1] = data.get(valueDim, idx);
-      return pt3;
+      var pt = coordSys.dataToPoint(data.get(timeDim, idx));
+      pt[1] = data.get(valueDim, idx);
+      return pt;
     });
   });
   var base2 = computeBaseline(layerPoints);
@@ -65387,21 +62561,21 @@ function doThemeRiverLayout(data, seriesModel, height) {
   var n2 = layerSeries.length;
   var m2 = layerSeries[0].indices.length;
   var baseY0;
-  for (var j2 = 0; j2 < m2; ++j2) {
-    baseY0 = baseLine[j2] * ky;
-    data.setItemLayout(layerSeries[0].indices[j2], {
+  for (var j = 0; j < m2; ++j) {
+    baseY0 = baseLine[j] * ky;
+    data.setItemLayout(layerSeries[0].indices[j], {
       layerIndex: 0,
-      x: layerPoints[0][j2][0],
+      x: layerPoints[0][j][0],
       y0: baseY0,
-      y: layerPoints[0][j2][1] * ky
+      y: layerPoints[0][j][1] * ky
     });
     for (var i = 1; i < n2; ++i) {
-      baseY0 += layerPoints[i - 1][j2][1] * ky;
-      data.setItemLayout(layerSeries[i].indices[j2], {
+      baseY0 += layerPoints[i - 1][j][1] * ky;
+      data.setItemLayout(layerSeries[i].indices[j], {
         layerIndex: i,
-        x: layerPoints[i][j2][0],
+        x: layerPoints[i][j][0],
         y0: baseY0,
-        y: layerPoints[i][j2][1] * ky
+        y: layerPoints[i][j][1] * ky
       });
     }
   }
@@ -65414,8 +62588,8 @@ function computeBaseline(data) {
   var max3 = 0;
   for (var i = 0; i < pointNum; ++i) {
     var temp = 0;
-    for (var j2 = 0; j2 < layerNum; ++j2) {
-      temp += data[j2][i][1];
+    for (var j = 0; j < layerNum; ++j) {
+      temp += data[j][i][1];
     }
     if (temp > max3) {
       max3 = temp;
@@ -65426,8 +62600,8 @@ function computeBaseline(data) {
     y0[k] = (max3 - sums[k]) / 2;
   }
   max3 = 0;
-  for (var l2 = 0; l2 < pointNum; ++l2) {
-    var sum2 = sums[l2] + y0[l2];
+  for (var l = 0; l < pointNum; ++l) {
+    var sum2 = sums[l] + y0[l];
     if (sum2 > max3) {
       max3 = sum2;
     }
@@ -65555,7 +62729,7 @@ var SunburstPiece = (
           outsideFill: labelStateModel.get("color") === "inherit" ? labelColor : null,
           inside: labelPosition !== "outside"
         };
-        var r2;
+        var r;
         var labelPadding = getLabelAttr(labelStateModel, "distance") || 0;
         var textAlign = getLabelAttr(labelStateModel, "align");
         var rotateType = getLabelAttr(labelStateModel, "rotate");
@@ -65564,28 +62738,28 @@ var SunburstPiece = (
         var midAngleNormal = normalizeRadian(rotateType === "tangential" ? Math.PI / 2 - midAngle : midAngle);
         var needsFlip = midAngleNormal > flipStartAngle && !isRadianAroundZero(midAngleNormal - flipStartAngle) && midAngleNormal < flipEndAngle;
         if (labelPosition === "outside") {
-          r2 = layout2.r + labelPadding;
+          r = layout2.r + labelPadding;
           textAlign = needsFlip ? "right" : "left";
         } else {
           if (!textAlign || textAlign === "center") {
             if (angle === 2 * Math.PI && layout2.r0 === 0) {
-              r2 = 0;
+              r = 0;
             } else {
-              r2 = (layout2.r + layout2.r0) / 2;
+              r = (layout2.r + layout2.r0) / 2;
             }
             textAlign = "center";
           } else if (textAlign === "left") {
-            r2 = layout2.r0 + labelPadding;
+            r = layout2.r0 + labelPadding;
             textAlign = needsFlip ? "right" : "left";
           } else if (textAlign === "right") {
-            r2 = layout2.r - labelPadding;
+            r = layout2.r - labelPadding;
             textAlign = needsFlip ? "left" : "right";
           }
         }
         state.style.align = textAlign;
         state.style.verticalAlign = getLabelAttr(labelStateModel, "verticalAlign") || "middle";
-        state.x = r2 * dx + layout2.cx;
-        state.y = r2 * dy + layout2.cy;
+        state.x = r * dx + layout2.cx;
+        state.y = r * dy + layout2.cy;
         var rotate2 = 0;
         if (rotateType === "radial") {
           rotate2 = normalizeRadian(-midAngle) + (needsFlip ? Math.PI : 0);
@@ -65969,7 +63143,7 @@ function sunburstLayout(seriesType2, ecModel, api) {
     var cx = parsePercent(center2[0], width);
     var cy = parsePercent(center2[1], height);
     var r0 = parsePercent(radius[0], size2 / 2);
-    var r2 = parsePercent(radius[1], size2 / 2);
+    var r = parsePercent(radius[1], size2 / 2);
     var startAngle = -seriesModel.get("startAngle") * RADIAN;
     var minAngle = seriesModel.get("minAngle") * RADIAN;
     var virtualRoot = seriesModel.getData().tree.root;
@@ -65987,7 +63161,7 @@ function sunburstLayout(seriesType2, ecModel, api) {
     var unitRadian = Math.PI / (sum2 || validDataCount) * 2;
     var renderRollupNode = treeRoot.depth > 0;
     var levels = treeRoot.height - (renderRollupNode ? -1 : 1);
-    var rPerLevel = (r2 - r0) / (levels || 1);
+    var rPerLevel = (r - r0) / (levels || 1);
     var clockwise = seriesModel.get("clockwise");
     var stillShowZeroSum = seriesModel.get("stillShowZeroSum");
     var dir3 = clockwise ? 1 : -1;
@@ -66080,17 +63254,17 @@ function sort(children, sortOrder) {
         index: idx
       };
     });
-    sortTargets.sort(function(a2, b2) {
-      return sortOrder(a2.params, b2.params);
+    sortTargets.sort(function(a, b) {
+      return sortOrder(a.params, b.params);
     });
     return map$1(sortTargets, function(target) {
       return children[target.index];
     });
   } else {
     var isAsc_1 = sortOrder === "asc";
-    return children.sort(function(a2, b2) {
-      var diff2 = (a2.getValue() - b2.getValue()) * (isAsc_1 ? 1 : -1);
-      return diff2 === 0 ? (a2.dataIndex - b2.dataIndex) * (isAsc_1 ? -1 : 1) : diff2;
+    return children.sort(function(a, b) {
+      var diff2 = (a.getValue() - b.getValue()) * (isAsc_1 ? 1 : -1);
+      return diff2 === 0 ? (a.dataIndex - b.dataIndex) * (isAsc_1 ? -1 : 1) : diff2;
     });
   }
 }
@@ -66883,8 +64057,8 @@ function applyKeyframeAnimation(el, animationOpts, animatableModel) {
     }
     var animator;
     var endFrameIsSet = false;
-    keyframes.sort(function(a2, b2) {
-      return a2.percent - b2.percent;
+    keyframes.sort(function(a, b) {
+      return a.percent - b.percent;
     });
     each$f(keyframes, function(kf) {
       var animators = el.animators;
@@ -67865,11 +65039,11 @@ function getHandleTransProps(trans) {
   };
 }
 function updateMandatoryProps(group, axisPointerModel, silent) {
-  var z2 = axisPointerModel.get("z");
+  var z = axisPointerModel.get("z");
   var zlevel = axisPointerModel.get("zlevel");
   group && group.traverse(function(el) {
     if (el.type !== "group") {
-      z2 != null && (el.z = z2);
+      z != null && (el.z = z);
       zlevel != null && (el.zlevel = zlevel);
       el.silent = silent;
     }
@@ -68002,12 +65176,12 @@ function makeRectShape(xy, wh, xDimIndex) {
     height: wh[1 - xDimIndex]
   };
 }
-function makeSectorShape(cx, cy, r0, r2, startAngle, endAngle) {
+function makeSectorShape(cx, cy, r0, r, startAngle, endAngle) {
   return {
     cx,
     cy,
     r0,
-    r: r2,
+    r,
     startAngle,
     endAngle,
     clockwise: true
@@ -68703,12 +65877,12 @@ function getLabelPosition(value, axisModel, axisPointerModel, polar, labelMargin
     align = labelLayout2.textAlign;
     verticalAlign = labelLayout2.textVerticalAlign;
   } else {
-    var r2 = radiusExtent[1];
-    position2 = polar.coordToPoint([r2 + labelMargin, coord]);
+    var r = radiusExtent[1];
+    position2 = polar.coordToPoint([r + labelMargin, coord]);
     var cx = polar.cx;
     var cy = polar.cy;
-    align = Math.abs(position2[0] - cx) / r2 < 0.3 ? "center" : position2[0] > cx ? "left" : "right";
-    verticalAlign = Math.abs(position2[1] - cy) / r2 < 0.3 ? "middle" : position2[1] > cy ? "top" : "bottom";
+    align = Math.abs(position2[0] - cx) / r < 0.3 ? "center" : position2[0] > cx ? "left" : "right";
+    verticalAlign = Math.abs(position2[1] - cy) / r < 0.3 ? "middle" : position2[1] > cy ? "top" : "bottom";
   }
   return {
     position: position2,
@@ -68968,8 +66142,8 @@ var Polar = (
       var radius = coord[0];
       var radian = coord[1] / 180 * Math.PI;
       var x = Math.cos(radian) * radius + this.cx;
-      var y2 = -Math.sin(radian) * radius + this.cy;
-      return [x, y2];
+      var y = -Math.sin(radian) * radius + this.cy;
+      return [x, y];
     };
     Polar2.prototype.getArea = function() {
       var angleAxis = this.getAngleAxis();
@@ -68987,13 +66161,13 @@ var Polar = (
         startAngle: -angleExtent[0] * RADIAN2,
         endAngle: -angleExtent[1] * RADIAN2,
         clockwise: angleAxis.inverse,
-        contain: function(x, y2) {
+        contain: function(x, y) {
           var dx = x - this.cx;
-          var dy = y2 - this.cy;
+          var dy = y - this.cy;
           var d2 = dx * dx + dy * dy;
-          var r2 = this.r;
+          var r = this.r;
           var r0 = this.r0;
-          return r2 !== r0 && d2 - EPSILON2 <= r2 * r2 && d2 + EPSILON2 >= r0 * r0;
+          return r !== r0 && d2 - EPSILON2 <= r * r && d2 + EPSILON2 >= r0 * r0;
         }
       };
     };
@@ -69255,12 +66429,12 @@ var angelAxisElementsBuilders = {
     each$f(labels, function(labelItem, idx) {
       var labelModel = commonLabelModel;
       var tickValue = labelItem.tickValue;
-      var r2 = radiusExtent[getRadiusIdx(polar)];
-      var p2 = polar.coordToPoint([r2 + labelMargin, labelItem.coord]);
+      var r = radiusExtent[getRadiusIdx(polar)];
+      var p2 = polar.coordToPoint([r + labelMargin, labelItem.coord]);
       var cx = polar.cx;
       var cy = polar.cy;
-      var labelTextAlign = Math.abs(p2[0] - cx) / r2 < 0.3 ? "center" : p2[0] > cx ? "left" : "right";
-      var labelTextVerticalAlign = Math.abs(p2[1] - cy) / r2 < 0.3 ? "middle" : p2[1] > cy ? "top" : "bottom";
+      var labelTextAlign = Math.abs(p2[0] - cx) / r < 0.3 ? "center" : p2[0] > cx ? "left" : "right";
+      var labelTextVerticalAlign = Math.abs(p2[1] - cy) / r < 0.3 ? "middle" : p2[1] > cy ? "top" : "bottom";
       if (rawCategoryData && rawCategoryData[tickValue]) {
         var rawCategoryItem = rawCategoryData[tickValue];
         if (isObject$3(rawCategoryItem) && rawCategoryItem.textStyle) {
@@ -69585,7 +66759,7 @@ function barLayoutPolar(seriesType2, ecModel, api) {
         baseCoord = lastStackCoords[stackId][baseValue][sign];
       }
       var r0 = void 0;
-      var r2 = void 0;
+      var r = void 0;
       var startAngle = void 0;
       var endAngle = void 0;
       if (valueAxis2.dim === "radius") {
@@ -69595,10 +66769,10 @@ function barLayoutPolar(seriesType2, ecModel, api) {
           radiusSpan = (radiusSpan < 0 ? -1 : 1) * barMinHeight;
         }
         r0 = baseCoord;
-        r2 = baseCoord + radiusSpan;
+        r = baseCoord + radiusSpan;
         startAngle = angle - columnOffset;
         endAngle = startAngle - columnWidth;
-        stacked && (lastStackCoords[stackId][baseValue][sign] = r2);
+        stacked && (lastStackCoords[stackId][baseValue][sign] = r);
       } else {
         var angleSpan = valueAxis2.dataToCoord(value, clampLayout) - valueAxisStart;
         var radius = baseAxis.dataToCoord(baseValue);
@@ -69606,7 +66780,7 @@ function barLayoutPolar(seriesType2, ecModel, api) {
           angleSpan = (angleSpan < 0 ? -1 : 1) * barMinAngle;
         }
         r0 = radius + columnOffset;
-        r2 = r0 + columnWidth;
+        r = r0 + columnWidth;
         startAngle = baseCoord;
         endAngle = baseCoord + angleSpan;
         stacked && (lastStackCoords[stackId][baseValue][sign] = endAngle);
@@ -69615,7 +66789,7 @@ function barLayoutPolar(seriesType2, ecModel, api) {
         cx,
         cy,
         r0,
-        r: r2,
+        r,
         // Consider that positive angle is anti-clockwise,
         // while positive radian of sector is clockwise
         startAngle: -startAngle * Math.PI / 180,
@@ -69775,11 +66949,11 @@ function layout$1(axisModel, opt) {
     }
   };
   layout2.position = [orient === "vertical" ? positionMap.vertical[axisPosition] : rectBound[0], orient === "horizontal" ? positionMap.horizontal[axisPosition] : rectBound[3]];
-  var r2 = {
+  var r = {
     horizontal: 0,
     vertical: 1
   };
-  layout2.rotation = Math.PI / 2 * r2[orient];
+  layout2.rotation = Math.PI / 2 * r[orient];
   var directionMap = {
     top: -1,
     bottom: 1,
@@ -70087,14 +67261,14 @@ var Single = (
     Single2.prototype.dataToPoint = function(val) {
       var axis = this.getAxis();
       var rect = this.getRect();
-      var pt3 = [];
+      var pt = [];
       var idx = axis.orient === "horizontal" ? 0 : 1;
       if (val instanceof Array) {
         val = val[0];
       }
-      pt3[idx] = axis.toGlobalCoord(axis.dataToCoord(+val));
-      pt3[1 - idx] = idx === 0 ? rect.y + rect.height / 2 : rect.x + rect.width / 2;
-      return pt3;
+      pt[idx] = axis.toGlobalCoord(axis.dataToCoord(+val));
+      pt[1 - idx] = idx === 0 ? rect.y + rect.height / 2 : rect.x + rect.width / 2;
+      return pt;
     };
     Single2.prototype.convertToPixel = function(ecModel, finder, value) {
       var coordSys = getCoordSys$1(finder);
@@ -70432,11 +67606,11 @@ var CalendarView = (
       show && this._drawSplitline(self2._getEdgesPoints(self2._blpoints, lineWidth, orient), lineStyleModel, group);
     };
     CalendarView2.prototype._getEdgesPoints = function(points2, lineWidth, orient) {
-      var rs2 = [points2[0].slice(), points2[points2.length - 1].slice()];
+      var rs = [points2[0].slice(), points2[points2.length - 1].slice()];
       var idx = orient === "horizontal" ? 0 : 1;
-      rs2[0][idx] = rs2[0][idx] - lineWidth / 2;
-      rs2[1][idx] = rs2[1][idx] + lineWidth / 2;
-      return rs2;
+      rs[0][idx] = rs[0][idx] - lineWidth / 2;
+      rs[1][idx] = rs[1][idx] + lineWidth / 2;
+      return rs;
     };
     CalendarView2.prototype._drawSplitline = function(points2, lineStyle, group) {
       var poyline = new Polyline$2({
@@ -70471,10 +67645,10 @@ var CalendarView = (
     };
     CalendarView2.prototype._yearTextPositionControl = function(textEl, point, orient, position2, margin) {
       var x = point[0];
-      var y2 = point[1];
+      var y = point[1];
       var aligns = ["center", "bottom"];
       if (position2 === "bottom") {
-        y2 += margin;
+        y += margin;
         aligns = ["center", "top"];
       } else if (position2 === "left") {
         x -= margin;
@@ -70482,7 +67656,7 @@ var CalendarView = (
         x += margin;
         aligns = ["center", "top"];
       } else {
-        y2 -= margin;
+        y -= margin;
       }
       var rotate2 = 0;
       if (position2 === "left" || position2 === "right") {
@@ -70491,7 +67665,7 @@ var CalendarView = (
       return {
         rotation: rotate2,
         x,
-        y: y2,
+        y,
         style: {
           align: aligns[0],
           verticalAlign: aligns[1]
@@ -70543,9 +67717,9 @@ var CalendarView = (
       var align = "left";
       var vAlign = "top";
       var x = point[0];
-      var y2 = point[1];
+      var y = point[1];
       if (orient === "horizontal") {
-        y2 = y2 + margin;
+        y = y + margin;
         if (isCenter) {
           align = "center";
         }
@@ -70563,7 +67737,7 @@ var CalendarView = (
       }
       return {
         x,
-        y: y2,
+        y,
         align,
         verticalAlign: vAlign
       };
@@ -70620,18 +67794,18 @@ var CalendarView = (
       var align = "center";
       var vAlign = "middle";
       var x = point[0];
-      var y2 = point[1];
+      var y = point[1];
       var isStart = position2 === "start";
       if (orient === "horizontal") {
         x = x + margin + (isStart ? 1 : -1) * cellSize[0] / 2;
         align = isStart ? "right" : "left";
       } else {
-        y2 = y2 + margin + (isStart ? 1 : -1) * cellSize[1] / 2;
+        y = y + margin + (isStart ? 1 : -1) * cellSize[1] / 2;
         vAlign = isStart ? "bottom" : "top";
       }
       return {
         x,
-        y: y2,
+        y,
         align,
         verticalAlign: vAlign
       };
@@ -70722,20 +67896,20 @@ var Calendar = (
     };
     Calendar2.prototype.getDateInfo = function(date) {
       date = parseDate(date);
-      var y2 = date.getFullYear();
+      var y = date.getFullYear();
       var m2 = date.getMonth() + 1;
       var mStr = m2 < 10 ? "0" + m2 : "" + m2;
-      var d2 = date.getDate();
-      var dStr = d2 < 10 ? "0" + d2 : "" + d2;
+      var d = date.getDate();
+      var dStr = d < 10 ? "0" + d : "" + d;
       var day = date.getDay();
       day = Math.abs((day + 7 - this.getFirstDayOfWeek()) % 7);
       return {
-        y: y2 + "",
+        y: y + "",
         m: mStr,
         d: dStr,
         day,
         time: date.getTime(),
-        formatedDate: y2 + "-" + mStr + "-" + dStr,
+        formatedDate: y + "-" + mStr + "-" + dStr,
         date
       };
     };
@@ -71759,8 +68933,8 @@ var DataZoomModel = (
       for (var i = 0; i < axisDimList.length; i++) {
         var axisDim = axisDimList[i];
         var axisInfo = this._targetAxisInfoMap.get(axisDim);
-        for (var j2 = 0; j2 < axisInfo.indexList.length; j2++) {
-          var proxy = this.getAxisProxy(axisDim, axisInfo.indexList[j2]);
+        for (var j = 0; j < axisInfo.indexList.length; j++) {
+          var proxy = this.getAxisProxy(axisDim, axisInfo.indexList[j]);
           if (proxy.hostedBy(this)) {
             return proxy;
           }
@@ -72755,8 +69929,8 @@ function assembleSeriesWithCategoryAxis(groups) {
     var lines = [headers.join(ITEM_SPLITER)];
     for (var i = 0; i < columns[0].length; i++) {
       var items = [];
-      for (var j2 = 0; j2 < columns.length; j2++) {
-        items.push(columns[j2][i]);
+      for (var j = 0; j < columns.length; j++) {
+        items.push(columns[j][i]);
       }
       lines.push(items.join(ITEM_SPLITER));
     }
@@ -72813,8 +69987,8 @@ function parseTSVContents(tsv) {
   for (var i = 0; i < tsvLines.length; i++) {
     var items = trim(tsvLines[i]).split(itemSplitRegex);
     categories.push(items.shift());
-    for (var j2 = 0; j2 < items.length; j2++) {
-      series[j2] && (series[j2].data[i] = items[j2]);
+    for (var j = 0; j < items.length; j++) {
+      series[j] && (series[j].data[i] = items[j]);
     }
   }
   return {
@@ -72847,8 +70021,8 @@ function parseListContents(str) {
     } else {
       value = data[i] = [];
     }
-    for (var j2 = 0; j2 < items.length; j2++) {
-      value.push(+items[j2]);
+    for (var j = 0; j < items.length; j++) {
+      value.push(+items[j]);
     }
     if (value.length === 1) {
       hasName ? data[i].value = value[0] : data[i] = value[0];
@@ -73233,8 +70407,8 @@ var BrushTargetManager = (
             return targetInfo;
           }
         } else {
-          for (var j2 = 0; j2 < targetInfoMatchers.length; j2++) {
-            if (targetInfoMatchers[j2](foundCpts, targetInfo)) {
+          for (var j = 0; j < targetInfoMatchers.length; j++) {
+            if (targetInfoMatchers[j](foundCpts, targetInfo)) {
               return targetInfo;
             }
           }
@@ -73773,9 +70947,9 @@ function assembleTransition(duration, onlyFade) {
   }
   return CSS_TRANSITION_VENDOR + ":" + transitionText;
 }
-function assembleTransform(x, y2, toString) {
+function assembleTransform(x, y, toString) {
   var x0 = x.toFixed(0) + "px";
-  var y0 = y2.toFixed(0) + "px";
+  var y0 = y.toFixed(0) + "px";
   if (!env.transformSupported) {
     return toString ? "top:" + y0 + ";left:" + x0 + ";" : [["top", y0], ["left", x0]];
   }
@@ -74098,18 +71272,18 @@ var TooltipRichContent = (
       var shadowOuterSize = calcShadowOuterSize(el.style);
       return [bounding.width + shadowOuterSize.left + shadowOuterSize.right, bounding.height + shadowOuterSize.top + shadowOuterSize.bottom];
     };
-    TooltipRichContent2.prototype.moveTo = function(x, y2) {
+    TooltipRichContent2.prototype.moveTo = function(x, y) {
       var el = this.el;
       if (el) {
         var styleCoord = this._styleCoord;
-        makeStyleCoord(styleCoord, this._zr, x, y2);
+        makeStyleCoord(styleCoord, this._zr, x, y);
         x = styleCoord[0];
-        y2 = styleCoord[1];
+        y = styleCoord[1];
         var style = el.style;
         var borderWidth = mathMaxWith0(style.borderWidth || 0);
         var shadowOuterSize = calcShadowOuterSize(style);
         el.x = x + borderWidth + shadowOuterSize.left;
-        el.y = y2 + borderWidth + shadowOuterSize.top;
+        el.y = y + borderWidth + shadowOuterSize.top;
         el.markRedraw();
       }
     };
@@ -74553,7 +71727,7 @@ var TooltipView = (
         from: this.uid
       });
     };
-    TooltipView2.prototype._showTooltipContent = function(tooltipModel, defaultHtml, params, asyncTicket, x, y2, positionExpr, el, markupStyleCreator) {
+    TooltipView2.prototype._showTooltipContent = function(tooltipModel, defaultHtml, params, asyncTicket, x, y, positionExpr, el, markupStyleCreator) {
       this._ticket = "";
       if (!tooltipModel.get("showContent") || !tooltipModel.get("show")) {
         return;
@@ -74563,7 +71737,7 @@ var TooltipView = (
       var formatter = tooltipModel.get("formatter");
       positionExpr = positionExpr || tooltipModel.get("position");
       var html = defaultHtml;
-      var nearPoint = this._getNearestPoint([x, y2], params, tooltipModel.get("trigger"), tooltipModel.get("borderColor"));
+      var nearPoint = this._getNearestPoint([x, y], params, tooltipModel.get("trigger"), tooltipModel.get("borderColor"));
       var nearPointColor = nearPoint.color;
       if (formatter) {
         if (isString(formatter)) {
@@ -74579,7 +71753,7 @@ var TooltipView = (
           var callback = bind$1(function(cbTicket, html2) {
             if (cbTicket === this._ticket) {
               tooltipContent.setContent(html2, markupStyleCreator, tooltipModel, nearPointColor, positionExpr);
-              this._updatePosition(tooltipModel, positionExpr, x, y2, tooltipContent, params, el);
+              this._updatePosition(tooltipModel, positionExpr, x, y, tooltipContent, params, el);
             }
           }, this);
           this._ticket = asyncTicket;
@@ -74590,7 +71764,7 @@ var TooltipView = (
       }
       tooltipContent.setContent(html, markupStyleCreator, tooltipModel, nearPointColor, positionExpr);
       tooltipContent.show(tooltipModel, nearPointColor);
-      this._updatePosition(tooltipModel, positionExpr, x, y2, tooltipContent, params, el);
+      this._updatePosition(tooltipModel, positionExpr, x, y, tooltipContent, params, el);
     };
     TooltipView2.prototype._getNearestPoint = function(point, tooltipDataParams, trigger2, borderColor) {
       if (trigger2 === "axis" || isArray$1(tooltipDataParams)) {
@@ -74604,7 +71778,7 @@ var TooltipView = (
         };
       }
     };
-    TooltipView2.prototype._updatePosition = function(tooltipModel, positionExpr, x, y2, content, params, el) {
+    TooltipView2.prototype._updatePosition = function(tooltipModel, positionExpr, x, y, content, params, el) {
       var viewWidth = this._api.getWidth();
       var viewHeight = this._api.getHeight();
       positionExpr = positionExpr || tooltipModel.get("position");
@@ -74614,14 +71788,14 @@ var TooltipView = (
       var rect = el && el.getBoundingRect().clone();
       el && rect.applyTransform(el.transform);
       if (isFunction(positionExpr)) {
-        positionExpr = positionExpr([x, y2], params, content.el, rect, {
+        positionExpr = positionExpr([x, y], params, content.el, rect, {
           viewSize: [viewWidth, viewHeight],
           contentSize: contentSize.slice()
         });
       }
       if (isArray$1(positionExpr)) {
         x = parsePercent(positionExpr[0], viewWidth);
-        y2 = parsePercent(positionExpr[1], viewHeight);
+        y = parsePercent(positionExpr[1], viewHeight);
       } else if (isObject$3(positionExpr)) {
         var boxLayoutPosition = positionExpr;
         boxLayoutPosition.width = contentSize[0];
@@ -74631,26 +71805,26 @@ var TooltipView = (
           height: viewHeight
         });
         x = layoutRect.x;
-        y2 = layoutRect.y;
+        y = layoutRect.y;
         align = null;
         vAlign = null;
       } else if (isString(positionExpr) && el) {
         var pos = calcTooltipPosition(positionExpr, rect, contentSize, tooltipModel.get("borderWidth"));
         x = pos[0];
-        y2 = pos[1];
+        y = pos[1];
       } else {
-        var pos = refixTooltipPosition(x, y2, content, viewWidth, viewHeight, align ? null : 20, vAlign ? null : 20);
+        var pos = refixTooltipPosition(x, y, content, viewWidth, viewHeight, align ? null : 20, vAlign ? null : 20);
         x = pos[0];
-        y2 = pos[1];
+        y = pos[1];
       }
       align && (x -= isCenterAlign(align) ? contentSize[0] / 2 : align === "right" ? contentSize[0] : 0);
-      vAlign && (y2 -= isCenterAlign(vAlign) ? contentSize[1] / 2 : vAlign === "bottom" ? contentSize[1] : 0);
+      vAlign && (y -= isCenterAlign(vAlign) ? contentSize[1] / 2 : vAlign === "bottom" ? contentSize[1] : 0);
       if (shouldTooltipConfine(tooltipModel)) {
-        var pos = confineTooltipPosition(x, y2, content, viewWidth, viewHeight);
+        var pos = confineTooltipPosition(x, y, content, viewWidth, viewHeight);
         x = pos[0];
-        y2 = pos[1];
+        y = pos[1];
       }
-      content.moveTo(x, y2);
+      content.moveTo(x, y);
     };
     TooltipView2.prototype._updateContentNotChangedOnAxis = function(dataByCoordSys, cbParamsList) {
       var lastCoordSys = this._lastDataByCoordSys;
@@ -74666,8 +71840,8 @@ var TooltipView = (
           var lastIndices = lastItem.seriesDataIndices || [];
           var newIndices = thisItem.seriesDataIndices || [];
           contentNotChanged = contentNotChanged && lastItem.value === thisItem.value && lastItem.axisType === thisItem.axisType && lastItem.axisId === thisItem.axisId && lastIndices.length === newIndices.length;
-          contentNotChanged && each$f(lastIndices, function(lastIdxItem, j2) {
-            var newIdxItem = newIndices[j2];
+          contentNotChanged && each$f(lastIndices, function(lastIdxItem, j) {
+            var newIdxItem = newIndices[j];
             contentNotChanged = contentNotChanged && lastIdxItem.seriesIndex === newIdxItem.seriesIndex && lastIdxItem.dataIndex === newIdxItem.dataIndex;
           });
           lastCbParamsList && each$f(lastItem.seriesDataIndices, function(idxItem) {
@@ -74733,7 +71907,7 @@ function buildTooltipModel(modelCascade, globalTooltipModel, defaultTooltipOptio
 function makeDispatchAction(payload, api) {
   return payload.dispatchAction || bind$1(api.dispatchAction, api);
 }
-function refixTooltipPosition(x, y2, content, viewWidth, viewHeight, gapH, gapV) {
+function refixTooltipPosition(x, y, content, viewWidth, viewHeight, gapH, gapV) {
   var size2 = content.getSize();
   var width = size2[0];
   var height = size2[1];
@@ -74745,54 +71919,54 @@ function refixTooltipPosition(x, y2, content, viewWidth, viewHeight, gapH, gapV)
     }
   }
   if (gapV != null) {
-    if (y2 + height + gapV > viewHeight) {
-      y2 -= height + gapV;
+    if (y + height + gapV > viewHeight) {
+      y -= height + gapV;
     } else {
-      y2 += gapV;
+      y += gapV;
     }
   }
-  return [x, y2];
+  return [x, y];
 }
-function confineTooltipPosition(x, y2, content, viewWidth, viewHeight) {
+function confineTooltipPosition(x, y, content, viewWidth, viewHeight) {
   var size2 = content.getSize();
   var width = size2[0];
   var height = size2[1];
   x = Math.min(x + width, viewWidth) - width;
-  y2 = Math.min(y2 + height, viewHeight) - height;
+  y = Math.min(y + height, viewHeight) - height;
   x = Math.max(x, 0);
-  y2 = Math.max(y2, 0);
-  return [x, y2];
+  y = Math.max(y, 0);
+  return [x, y];
 }
 function calcTooltipPosition(position2, rect, contentSize, borderWidth) {
   var domWidth = contentSize[0];
   var domHeight = contentSize[1];
   var offset = Math.ceil(Math.SQRT2 * borderWidth) + 8;
   var x = 0;
-  var y2 = 0;
+  var y = 0;
   var rectWidth = rect.width;
   var rectHeight = rect.height;
   switch (position2) {
     case "inside":
       x = rect.x + rectWidth / 2 - domWidth / 2;
-      y2 = rect.y + rectHeight / 2 - domHeight / 2;
+      y = rect.y + rectHeight / 2 - domHeight / 2;
       break;
     case "top":
       x = rect.x + rectWidth / 2 - domWidth / 2;
-      y2 = rect.y - domHeight - offset;
+      y = rect.y - domHeight - offset;
       break;
     case "bottom":
       x = rect.x + rectWidth / 2 - domWidth / 2;
-      y2 = rect.y + rectHeight + offset;
+      y = rect.y + rectHeight + offset;
       break;
     case "left":
       x = rect.x - domWidth - offset;
-      y2 = rect.y + rectHeight / 2 - domHeight / 2;
+      y = rect.y + rectHeight / 2 - domHeight / 2;
       break;
     case "right":
       x = rect.x + rectWidth + offset;
-      y2 = rect.y + rectHeight / 2 - domHeight / 2;
+      y = rect.y + rectHeight / 2 - domHeight / 2;
   }
-  return [x, y2];
+  return [x, y];
 }
 function isCenterAlign(align) {
   return align === "center" || align === "middle";
@@ -75045,11 +72219,11 @@ var selector = {
         return false;
       }
       var x = itemLayout.x;
-      var y2 = itemLayout.y;
+      var y = itemLayout.y;
       var width = itemLayout.width;
       var height = itemLayout.height;
       var p2 = points2[0];
-      if (contain(points2, x, y2) || contain(points2, x + width, y2) || contain(points2, x, y2 + height) || contain(points2, x + width, y2 + height) || BoundingRect$1.create(itemLayout).contain(p2[0], p2[1]) || linePolygonIntersect(x, y2, x + width, y2, points2) || linePolygonIntersect(x, y2, x, y2 + height, points2) || linePolygonIntersect(x + width, y2, x + width, y2 + height, points2) || linePolygonIntersect(x, y2 + height, x + width, y2 + height, points2)) {
+      if (contain(points2, x, y) || contain(points2, x + width, y) || contain(points2, x, y + height) || contain(points2, x + width, y + height) || BoundingRect$1.create(itemLayout).contain(p2[0], p2[1]) || linePolygonIntersect(x, y, x + width, y, points2) || linePolygonIntersect(x, y, x, y + height, points2) || linePolygonIntersect(x + width, y, x + width, y + height, points2) || linePolygonIntersect(x, y + height, x + width, y + height, points2)) {
         return true;
       }
     }
@@ -76259,16 +73433,16 @@ var SliderTimelineView = (
       var data = timelineModel.getData();
       var currentIndex = timelineModel.getCurrentIndex();
       var pointerModel = data.getItemModel(currentIndex).getModel("checkpointStyle");
-      var me2 = this;
+      var me = this;
       var callback = {
         onCreate: function(pointer) {
           pointer.draggable = true;
-          pointer.drift = bind$1(me2._handlePointerDrag, me2);
-          pointer.ondragend = bind$1(me2._handlePointerDragend, me2);
-          pointerMoveTo(pointer, me2._progressLine, currentIndex, axis, timelineModel, true);
+          pointer.drift = bind$1(me._handlePointerDrag, me);
+          pointer.ondragend = bind$1(me._handlePointerDragend, me);
+          pointerMoveTo(pointer, me._progressLine, currentIndex, axis, timelineModel, true);
         },
         onUpdate: function(pointer) {
-          pointerMoveTo(pointer, me2._progressLine, currentIndex, axis, timelineModel);
+          pointerMoveTo(pointer, me._progressLine, currentIndex, axis, timelineModel);
         }
       };
       this._currentPointer = giveSymbol(pointerModel, pointerModel, this._mainGroup, {}, this._currentPointer, callback);
@@ -76328,9 +73502,9 @@ var SliderTimelineView = (
       var axis = this._axis;
       data.each(["value"], function(value, dataIndex) {
         var coord = axis.dataToCoord(value);
-        var d2 = Math.abs(coord - axisCoord);
-        if (d2 < dist2) {
-          dist2 = d2;
+        var d = Math.abs(coord - axisCoord);
+        if (d < dist2) {
+          dist2 = d;
           targetDataIndex = dataIndex;
         }
       });
@@ -76923,8 +74097,8 @@ function updateMarkerLayout(mpData, seriesModel, api) {
       point = seriesModel.getMarkerPosition(mpData.getValues(mpData.dimensions, idx));
     } else if (coordSys) {
       var x = mpData.get(coordSys.dimensions[0], idx);
-      var y2 = mpData.get(coordSys.dimensions[1], idx);
-      point = coordSys.dataToPoint([x, y2]);
+      var y = mpData.get(coordSys.dimensions[1], idx);
+      point = coordSys.dataToPoint([x, y]);
     }
     if (!isNaN(xPx)) {
       point[0] = xPx;
@@ -77181,8 +74355,8 @@ function updateSingleMarkerEndLayout(data, idx, isFrom, seriesModel, api) {
     } else {
       var dims = coordSys.dimensions;
       var x = data.get(dims[0], idx);
-      var y2 = data.get(dims[1], idx);
-      point = coordSys.dataToPoint([x, y2]);
+      var y = data.get(dims[1], idx);
+      point = coordSys.dataToPoint([x, y]);
     }
     if (isCoordinateSystemType(coordSys, "cartesian2d")) {
       var xAxis = coordSys.getAxis("x");
@@ -77489,19 +74663,19 @@ function getSingleMarkerEndPoint(data, idx, dims, seriesModel, api) {
       point = seriesModel.getMarkerPosition(pointValue, dims, true);
     } else {
       var x = data.get(dims[0], idx);
-      var y2 = data.get(dims[1], idx);
-      var pt3 = [x, y2];
-      coordSys.clampData && coordSys.clampData(pt3, pt3);
-      point = coordSys.dataToPoint(pt3, true);
+      var y = data.get(dims[1], idx);
+      var pt = [x, y];
+      coordSys.clampData && coordSys.clampData(pt, pt);
+      point = coordSys.dataToPoint(pt, true);
     }
     if (isCoordinateSystemType(coordSys, "cartesian2d")) {
       var xAxis = coordSys.getAxis("x");
       var yAxis = coordSys.getAxis("y");
       var x = data.get(dims[0], idx);
-      var y2 = data.get(dims[1], idx);
+      var y = data.get(dims[1], idx);
       if (isInfinity(x)) {
         point[0] = xAxis.toGlobalCoord(xAxis.getExtent()[dims[0] === "x0" ? 0 : 1]);
-      } else if (isInfinity(y2)) {
+      } else if (isInfinity(y)) {
         point[1] = yAxis.toGlobalCoord(yAxis.getExtent()[dims[1] === "y0" ? 0 : 1]);
       }
     }
@@ -78022,9 +75196,9 @@ var LegendView = (
       each$3(legendModel.getData(), function(legendItemModel, dataIndex) {
         var name = legendItemModel.get("name");
         if (!this.newlineDisabled && (name === "" || name === "\n")) {
-          var g2 = new Group$1();
-          g2.newline = true;
-          contentGroup.add(g2);
+          var g = new Group$1();
+          g.newline = true;
+          contentGroup.add(g);
           return;
         }
         var seriesModel = ecModel.getSeriesByName(name)[0];
@@ -78907,8 +76081,8 @@ function dispatchAction(api, batch) {
     });
   }
 }
-function containsPoint(coordSysModel, e2, x, y2) {
-  return coordSysModel.coordinateSystem.containPoint([x, y2]);
+function containsPoint(coordSysModel, e2, x, y) {
+  return coordSysModel.coordinateSystem.containPoint([x, y]);
 }
 function mergeControllerParams(dataZoomInfoMap) {
   var controlType;
@@ -79326,7 +76500,7 @@ var SliderZoomView = (
     };
     SliderZoomView2.prototype._positionGroup = function() {
       var thisGroup = this.group;
-      var location2 = this._location;
+      var location = this._location;
       var orient = this._orient;
       var targetAxisModel = this.dataZoomModel.getFirstTargetAxisModel();
       var inverse = targetAxisModel && targetAxisModel.get("inverse");
@@ -79348,8 +76522,8 @@ var SliderZoomView = (
         rotation: Math.PI / 2
       });
       var rect = thisGroup.getBoundingRect([sliderGroup]);
-      thisGroup.x = location2.x - rect.x;
-      thisGroup.y = location2.y - rect.y;
+      thisGroup.x = location.x - rect.x;
+      thisGroup.y = location.y - rect.y;
       thisGroup.markRedraw();
     };
     SliderZoomView2.prototype._getViewExtent = function() {
@@ -79808,8 +76982,8 @@ var SliderZoomView = (
     };
     SliderZoomView2.prototype._onBrushStart = function(e2) {
       var x = e2.offsetX;
-      var y2 = e2.offsetY;
-      this._brushStart = new Point(x, y2);
+      var y = e2.offsetY;
+      this._brushStart = new Point(x, y);
       this._brushing = true;
       this._brushStartTime = +/* @__PURE__ */ new Date();
     };
@@ -80029,11 +77203,11 @@ var VisualMapModel = (
       }, this);
     };
     VisualMapModel2.prototype.isTargetSeries = function(seriesModel) {
-      var is2 = false;
+      var is = false;
       this.eachTargetSeries(function(model) {
-        model === seriesModel && (is2 = true);
+        model === seriesModel && (is = true);
       });
-      return is2;
+      return is;
     };
     VisualMapModel2.prototype.formatValueText = function(value, isCategory2, edgeSymbols) {
       var option = this.option;
@@ -80886,13 +78060,13 @@ var ContinuousView = (
       };
       var color = this.getControllerVisual(cursorValue, "color", opts);
       var symbolSize = this.getControllerVisual(cursorValue, "symbolSize");
-      var y2 = linearMap(cursorValue, dataExtent, sizeExtent, true);
+      var y = linearMap(cursorValue, dataExtent, sizeExtent, true);
       var x = itemSize[0] - symbolSize / 2;
       var oldIndicatorPos = {
         x: indicator.x,
         y: indicator.y
       };
-      indicator.y = y2;
+      indicator.y = y;
       indicator.x = x;
       var textPoint = applyTransform(shapes.indicatorLabelPoint, getTransform$1(indicator, this.group));
       var indicatorLabel = shapes.indicatorLabel;
@@ -80907,7 +78081,7 @@ var ContinuousView = (
       });
       var indicatorNewProps = {
         x,
-        y: y2,
+        y,
         style: {
           fill: color
         }
@@ -81262,7 +78436,7 @@ var PiecewiseModel = (
           }
         });
       });
-      each$f(visualTypesInPieces, function(v4, visualType) {
+      each$f(visualTypesInPieces, function(v, visualType) {
         var exists = false;
         each$f(this.stateList, function(state) {
           exists = exists || has2(option, state, visualType) || has2(option.target, state, visualType);
@@ -81850,8 +79024,8 @@ function ariaVisual(ecModel, api) {
           for (var i = 0; i < data.count(); i++) {
             if (i < maxDataCnt) {
               var name_1 = data.getName(i);
-              var value = !excludeDimensionId_1 ? data.getValues(i) : filter(data.getValues(i), function(v4, j2) {
-                return indexOf(excludeDimensionId_1, j2) === -1;
+              var value = !excludeDimensionId_1 ? data.getValues(i) : filter(data.getValues(i), function(v, j) {
+                return indexOf(excludeDimensionId_1, j) === -1;
               });
               var dataLabel = labelModel.get(["data", name_1 ? "withName" : "withoutName"]);
               dataLabels.push(replace(dataLabel, {
@@ -82342,8 +79516,8 @@ function install(registers) {
   registers.registerComponentView(DatasetView);
 }
 var CMD = PathProxy.CMD;
-function aroundEqual(a2, b2) {
-  return Math.abs(a2 - b2) < 1e-5;
+function aroundEqual(a, b) {
+  return Math.abs(a - b) < 1e-5;
 }
 function pathToBezierCurves(path) {
   var data = path.data;
@@ -82354,11 +79528,11 @@ function pathToBezierCurves(path) {
   var yi = 0;
   var x0 = 0;
   var y0 = 0;
-  function createNewSubpath(x, y3) {
+  function createNewSubpath(x, y) {
     if (currentSubpath && currentSubpath.length > 2) {
       bezierArrayGroups.push(currentSubpath);
     }
-    currentSubpath = [x, y3];
+    currentSubpath = [x, y];
   }
   function addLine(x02, y02, x12, y12) {
     if (!(aroundEqual(x02, x12) && aroundEqual(y02, y12))) {
@@ -82480,9 +79654,9 @@ function adpativeBezier(x0, y0, x1, y1, x2, y2, x3, y3, out2, scale2) {
   var PIXEL_DISTANCE_SQR = PIXEL_DISTANCE * PIXEL_DISTANCE;
   var dx = x3 - x0;
   var dy = y3 - y0;
-  var d2 = Math.sqrt(dx * dx + dy * dy);
-  dx /= d2;
-  dy /= d2;
+  var d = Math.sqrt(dx * dx + dy * dy);
+  dx /= d;
+  dy /= d;
   var dx1 = x1 - x0;
   var dy1 = y1 - y0;
   var dx2 = x2 - x3;
@@ -82558,12 +79732,12 @@ function getDividingGrids(dimSize, rowDim, count2) {
 }
 function divideSector(sectorShape, count2, outShapes) {
   var r0 = sectorShape.r0;
-  var r2 = sectorShape.r;
+  var r = sectorShape.r;
   var startAngle = sectorShape.startAngle;
   var endAngle = sectorShape.endAngle;
   var angle = Math.abs(endAngle - startAngle);
-  var arcLen = angle * r2;
-  var deltaR = r2 - r0;
+  var arcLen = angle * r;
+  var deltaR = r - r0;
   var isAngleRow = arcLen > Math.abs(deltaR);
   var grids = getDividingGrids([arcLen, deltaR], isAngleRow ? 0 : 1, count2);
   var rowSize = (isAngleRow ? angle : deltaR) / grids.length;
@@ -82633,21 +79807,21 @@ function lineLineIntersect(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y) {
   }
   return new Point(p2 * mx + a1x, p2 * my2 + a1y);
 }
-function projPtOnLine(pt3, lineA, lineB) {
+function projPtOnLine(pt, lineA, lineB) {
   var dir3 = new Point();
   Point.sub(dir3, lineB, lineA);
   dir3.normalize();
   var dir22 = new Point();
-  Point.sub(dir22, pt3, lineA);
+  Point.sub(dir22, pt, lineA);
   var len2 = dir22.dot(dir3);
   return len2;
 }
-function addToPoly(poly, pt3) {
+function addToPoly(poly, pt) {
   var last = poly[poly.length - 1];
-  if (last && last[0] === pt3[0] && last[1] === pt3[1]) {
+  if (last && last[0] === pt[0] && last[1] === pt[1]) {
     return;
   }
-  poly.push(pt3);
+  poly.push(pt);
 }
 function splitPolygonByLine(points2, lineA, lineB) {
   var len2 = points2.length;
@@ -82667,8 +79841,8 @@ function splitPolygonByLine(points2, lineA, lineB) {
   if (intersections.length < 2) {
     return [{ points: points2 }, { points: points2 }];
   }
-  intersections.sort(function(a2, b2) {
-    return a2.projPt - b2.projPt;
+  intersections.sort(function(a, b) {
+    return a.projPt - b.projPt;
   });
   var splitPt0 = intersections[0];
   var splitPt1 = intersections[intersections.length - 1];
@@ -82706,15 +79880,15 @@ function binaryDividePolygon(polygonShape) {
   var width = boundingRect.width;
   var height = boundingRect.height;
   var x = boundingRect.x;
-  var y2 = boundingRect.y;
+  var y = boundingRect.y;
   var pt02 = new Point();
   var pt12 = new Point();
   if (width > height) {
     pt02.x = pt12.x = x + width / 2;
-    pt02.y = y2;
-    pt12.y = y2 + height;
+    pt02.y = y;
+    pt12.y = y + height;
   } else {
-    pt02.y = pt12.y = y2 + height / 2;
+    pt02.y = pt12.y = y + height / 2;
     pt02.x = x;
     pt12.x = x + width;
   }
@@ -82802,8 +79976,8 @@ function split(path, count2) {
           totalArea_1 += area;
           return { poly, area };
         });
-        items.sort(function(a2, b2) {
-          return b2.area - a2.area;
+        items.sort(function(a, b) {
+          return b.area - a.area;
         });
         var left = count2;
         for (var i = 0; i < polygonCount; i++) {
@@ -82924,15 +80098,15 @@ function centroid(array) {
   var cx = 0;
   var cy = 0;
   var len2 = array.length;
-  for (var i = 0, j2 = len2 - 2; i < len2; j2 = i, i += 2) {
-    var x0 = array[j2];
-    var y0 = array[j2 + 1];
+  for (var i = 0, j = len2 - 2; i < len2; j = i, i += 2) {
+    var x0 = array[j];
+    var y0 = array[j + 1];
     var x1 = array[i];
     var y1 = array[i + 1];
-    var a2 = x0 * y1 - x1 * y0;
-    signedArea += a2;
-    cx += (x0 + x1) * a2;
-    cy += (y0 + y1) * a2;
+    var a = x0 * y1 - x1 * y0;
+    signedArea += a;
+    cx += (x0 + x1) * a;
+    cy += (y0 + y1) * a;
   }
   if (signedArea === 0) {
     return [array[0] || 0, array[1] || 0];
@@ -83084,9 +80258,9 @@ function applyTransformOnBeziers(bezierCurves, mm) {
     var subBeziers = bezierCurves[i];
     for (var k = 0; k < subBeziers.length; ) {
       var x = subBeziers[k];
-      var y2 = subBeziers[k + 1];
-      subBeziers[k++] = mm[0] * x + mm[2] * y2 + mm[4];
-      subBeziers[k++] = mm[1] * x + mm[3] * y2 + mm[5];
+      var y = subBeziers[k + 1];
+      subBeziers[k++] = mm[0] * x + mm[2] * y + mm[4];
+      subBeziers[k++] = mm[1] * x + mm[3] * y + mm[5];
     }
   }
 }
@@ -83125,9 +80299,9 @@ function prepareMorphPath(fromPath, toPath) {
         var x1 = to[m2];
         var y1 = to[m2 + 1];
         var x = x0_1 * onet + x1 * t2;
-        var y2 = y0_1 * onet + y1 * t2;
-        tmpArr2[m2] = x * ca - y2 * sa + newCp[0];
-        tmpArr2[m2 + 1] = x * sa + y2 * ca + newCp[1];
+        var y = y0_1 * onet + y1 * t2;
+        tmpArr2[m2] = x * ca - y * sa + newCp[0];
+        tmpArr2[m2 + 1] = x * sa + y * ca + newCp[1];
       }
       var x0 = tmpArr2[0];
       var y0 = tmpArr2[1];
@@ -83136,13 +80310,13 @@ function prepareMorphPath(fromPath, toPath) {
         var x1 = tmpArr2[m2++];
         var y1 = tmpArr2[m2++];
         var x2 = tmpArr2[m2++];
-        var y22 = tmpArr2[m2++];
+        var y2 = tmpArr2[m2++];
         var x3 = tmpArr2[m2++];
         var y3 = tmpArr2[m2++];
-        if (x0 === x1 && y0 === y1 && x2 === x3 && y22 === y3) {
+        if (x0 === x1 && y0 === y1 && x2 === x3 && y2 === y3) {
           path.lineTo(x3, y3);
         } else {
-          path.bezierCurveTo(x1, y1, x2, y22, x3, y3);
+          path.bezierCurveTo(x1, y1, x2, y2, x3, y3);
         }
         x0 = x3;
         y0 = y3;
@@ -83179,33 +80353,33 @@ function morphPath(fromPath, toPath, animationOpts) {
   }, animationOpts));
   return toPath;
 }
-function hilbert(x, y2, minX, minY, maxX, maxY) {
+function hilbert(x, y, minX, minY, maxX, maxY) {
   var bits = 16;
   x = maxX === minX ? 0 : Math.round(32767 * (x - minX) / (maxX - minX));
-  y2 = maxY === minY ? 0 : Math.round(32767 * (y2 - minY) / (maxY - minY));
-  var d2 = 0;
+  y = maxY === minY ? 0 : Math.round(32767 * (y - minY) / (maxY - minY));
+  var d = 0;
   var tmp;
-  for (var s2 = (1 << bits) / 2; s2 > 0; s2 /= 2) {
+  for (var s = (1 << bits) / 2; s > 0; s /= 2) {
     var rx = 0;
     var ry = 0;
-    if ((x & s2) > 0) {
+    if ((x & s) > 0) {
       rx = 1;
     }
-    if ((y2 & s2) > 0) {
+    if ((y & s) > 0) {
       ry = 1;
     }
-    d2 += s2 * s2 * (3 * rx ^ ry);
+    d += s * s * (3 * rx ^ ry);
     if (ry === 0) {
       if (rx === 1) {
-        x = s2 - 1 - x;
-        y2 = s2 - 1 - y2;
+        x = s - 1 - x;
+        y = s - 1 - y;
       }
       tmp = x;
-      x = y2;
-      y2 = tmp;
+      x = y;
+      y = tmp;
     }
   }
-  return d2;
+  return d;
 }
 function sortPaths(pathList) {
   var xMin = Infinity;
@@ -83216,12 +80390,12 @@ function sortPaths(pathList) {
     var rect = path.getBoundingRect();
     var m2 = path.getComputedTransform();
     var x = rect.x + rect.width / 2 + (m2 ? m2[4] : 0);
-    var y2 = rect.y + rect.height / 2 + (m2 ? m2[5] : 0);
+    var y = rect.y + rect.height / 2 + (m2 ? m2[5] : 0);
     xMin = Math.min(x, xMin);
-    yMin = Math.min(y2, yMin);
+    yMin = Math.min(y, yMin);
     xMax = Math.max(x, xMax);
-    yMax = Math.max(y2, yMax);
-    return [x, y2];
+    yMax = Math.max(y, yMax);
+    return [x, y];
   });
   var items = map$1(cps, function(cp, idx) {
     return {
@@ -83230,8 +80404,8 @@ function sortPaths(pathList) {
       path: pathList[idx]
     };
   });
-  return items.sort(function(a2, b2) {
-    return a2.z - b2.z;
+  return items.sort(function(a, b) {
+    return a.z - b.z;
   }).map(function(item) {
     return item.path;
   });
@@ -84088,21 +81262,20 @@ use(install$1);
 use(install);
 use(installUniversalTransition);
 use(installLabelLayout);
-exports.Ys = Ys;
 exports._export_sfc = _export_sfc;
 exports.computed = computed;
 exports.createSSRApp = createSSRApp;
-exports.e = e$2;
-exports.f = f$1;
+exports.e = e$1;
+exports.f = f;
 exports.index = index;
 exports.init = init$1;
-exports.n = n$1;
-exports.o = o$1;
+exports.n = n;
+exports.o = o;
 exports.onMounted = onMounted;
 exports.onUnmounted = onUnmounted;
-exports.p = p$1;
+exports.p = p;
 exports.ref = ref;
 exports.resolveComponent = resolveComponent;
 exports.sr = sr;
-exports.t = t$1;
+exports.t = t;
 exports.watch = watch;
