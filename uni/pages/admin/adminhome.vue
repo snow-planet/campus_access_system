@@ -39,8 +39,13 @@
           
           <!-- 用户信息 -->
           <view v-if="drawerVisible" class="user-info">
-            <text class="user-name">{{ currentUser.real_name }}</text>
-            <text class="user-dept">{{ currentUser.department }}</text>
+            <view v-if="isLoading" class="loading-info">
+              <text class="loading-text">加载中...</text>
+            </view>
+            <view v-else>
+              <text class="user-name">{{ currentUser.username }}</text>
+              <text class="user-dept">{{ currentUser.college || currentUser.department }}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -74,17 +79,21 @@ import AuditManagement from './aud.vue';
 import AccountManagement from './mgr.vue';
 import NotificationManagement from './not.vue';
 import DataScreen from './screen.vue';
+import { getUserInfo } from '../../api/uniAdmin.js';
 
 export default {
 	data() {
 		return {
 			// 当前用户信息
 			currentUser: {
-				real_name: '管理员',
-				role: '超级管理员',
-				department: '信息技术中心',
-				username: 'admin'
+				real_name: '加载中...',
+				role: '',
+				department: '',
+				username: '',
+				user_id: null
 			},
+			// 加载状态
+			isLoading: true,
 			// 菜单项
 			menuItems: [
 				{ key: 'approval', title: '审批信息管理', icon: '审' },
@@ -104,6 +113,65 @@ export default {
 		'data-screen': DataScreen
 	},
 	methods: {
+		// 获取用户信息
+		async loadUserInfo() {
+			try {
+				this.isLoading = true
+				
+				// 从本地存储获取用户ID
+				const userId = uni.getStorageSync('user_id')
+				if (!userId) {
+					uni.showToast({
+						title: '用户信息丢失，请重新登录',
+						icon: 'none'
+					})
+					setTimeout(() => {
+						uni.reLaunch({
+							url: '/pages/admin/login'
+						})
+					}, 1500)
+					return
+				}
+				
+				const result = await getUserInfo(userId)
+				if (result && result.code === 0) {
+					this.currentUser = {
+						real_name: result.data.real_name || '管理员',
+						role: result.data.role || '管理员',
+						department: result.data.department || result.data.college || '管理部门',
+						username: result.data.username || '',
+						user_id: result.data.user_id || userId
+					}
+					// 更新本地存储
+					uni.setStorageSync('currentUser', this.currentUser)
+				} else {
+					// 如果API调用失败，尝试从本地存储获取
+					const localUser = uni.getStorageSync('currentUser')
+					if (localUser) {
+						this.currentUser = localUser
+					} else {
+						uni.showToast({
+							title: '获取用户信息失败',
+							icon: 'none'
+						})
+					}
+				}
+			} catch (error) {
+				console.error('获取用户信息失败:', error)
+				// 尝试从本地存储获取
+				const localUser = uni.getStorageSync('currentUser')
+				if (localUser) {
+					this.currentUser = localUser
+				} else {
+					uni.showToast({
+						title: '网络错误',
+						icon: 'none'
+					})
+				}
+			} finally {
+				this.isLoading = false
+			}
+		},
 		// 获取当前模块名称
 		getCurrentModuleName() {
 			const currentItem = this.menuItems.find(item => item.key === this.activeMenu)
@@ -128,14 +196,34 @@ export default {
 		},
 		// 退出登录
 		logout() {
-			uni.removeStorageSync('currentUser')
-			uni.reLaunch({
-				url: '/pages/admin/login'
+			uni.showModal({
+				title: '确认退出',
+				content: '确定要退出登录吗？',
+				success: (res) => {
+					if (res.confirm) {
+						// 清除所有本地存储的用户数据
+						uni.removeStorageSync('currentUser')
+						uni.removeStorageSync('user_id')
+						uni.removeStorageSync('token')
+						
+						uni.showToast({
+							title: '已退出登录',
+							icon: 'success'
+						})
+						
+						setTimeout(() => {
+							uni.reLaunch({
+								url: '/pages/admin/login'
+							})
+						}, 1000)
+					}
+				}
 			})
 		}
 	},
 	onLoad() {
-		// 页面加载时的逻辑
+		// 页面加载时获取用户信息
+		this.loadUserInfo()
 	},
 	onShow() {
 		// 页面显示时的逻辑
@@ -279,6 +367,24 @@ export default {
   display: block;
   font-size: 12px;
   color: #666;
+  margin-bottom: 3px;
+}
+
+.user-role {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+}
+
+.loading-info {
+  text-align: center;
+  padding: 10px;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #999;
 }
 
 /* 菜单列表 */

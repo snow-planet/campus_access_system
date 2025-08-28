@@ -53,7 +53,7 @@
                     <input type="checkbox" v-model="loginForm.remember">
                     <span class="checkmark"></span>
                   </label>
-                  <a href="#" class="forgot-link">忘记密码?</a>
+                  <a href="#" class="forgot-link" @click.prevent="showForgotPasswordModal">忘记密码?</a>
                 </div>
                 <button type="submit" class="submit-btn">登 录</button>
               </form>
@@ -140,6 +140,53 @@
         </div>
       </div>
     </div>
+
+    <!-- 忘记密码弹窗 -->
+    <div v-if="showForgotModal" class="modal-overlay" @click.self="closeForgotModal">
+      <div class="forgot-modal">
+        <div class="modal-header">
+          <h3>忘记密码</h3>
+          <span class="close-btn" @click="closeForgotModal">×</span>
+        </div>
+        <div class="modal-content">
+          <div class="forgot-content">
+            <div class="forgot-icon">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="#1c4e80">
+                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C15.4,11.5 16,12.1 16,12.7V16.2C16,16.8 15.4,17.3 14.8,17.3H9.2C8.6,17.3 8,16.8 8,16.2V12.7C8,12.1 8.6,11.5 9.2,11.5V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,10V11.5H13.5V10C13.5,8.7 12.8,8.2 12,8.2Z"/>
+              </svg>
+            </div>
+            <h4>密码重置说明</h4>
+            <p>如果您忘记了登录密码，请按照以下方式进行密码重置：</p>
+            <div class="reset-steps">
+              <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-text">联系您所在学院的二级学院负责人</span>
+              </div>
+              <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-text">或联系学校保卫处相关工作人员</span>
+              </div>
+              <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-text">提供您的身份信息进行验证</span>
+              </div>
+              <div class="step">
+                <span class="step-number">4</span>
+                <span class="step-text">工作人员将为您重置密码</span>
+              </div>
+            </div>
+            <div class="contact-info">
+              <p><strong>联系方式：</strong></p>
+              <p>保卫处电话：xxx-xxxx-xxxx</p>
+              <p>办公时间：周一至周五 8:00-17:30</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="confirm-btn" @click="closeForgotModal">我知道了</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -147,6 +194,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { BankOutlined, LogoutOutlined } from '@ant-design/icons-vue'
+import { adminLogin, submitApproverApplication } from '../../api/webAuth'
 
 export default {
   name: 'AdminLogin',
@@ -158,6 +206,7 @@ export default {
     const router = useRouter()
     const showPassword = ref(false)
     const showApplicationModal = ref(false)
+    const showForgotModal = ref(false)
     
     const loginForm = reactive({
       username: '',
@@ -188,27 +237,44 @@ export default {
       }
     ]
     
-    const handleLogin = () => {
-      // 验证账号密码
-      const user = accounts.find(account => 
-        account.username === loginForm.username && 
-        account.password === loginForm.password
-      )
-      
-      if (user) {
-        // 存储用户信息到localStorage
-        localStorage.setItem('currentUser', JSON.stringify(user))
+    const handleLogin = async () => {
+      try {
+        const res = await adminLogin({
+          username: loginForm.username,
+          password: loginForm.password
+        })
         
-        // 根据角色跳转到不同页面
-        if (user.role === 'admin') {
-          router.push('/admin/home')
-        } else if (user.role === 'approver') {
-          router.push('/admin/approval')
+        if (res && res._status === 'OK') {
+          // 登录成功，保存用户信息
+          const userData = res.data
+          localStorage.setItem('currentUser', JSON.stringify({
+            user_id: userData.user_id,
+            username: userData.username,
+            real_name: userData.real_name,
+            role: userData.role,
+            college: userData.college,
+            position: userData.position,
+            token: userData.token
+          }))
+          
+          // 根据角色跳转到不同页面
+          if (userData.role === 'admin') {
+            router.push('/admin/adminhome')
+          } else if (userData.role === 'approver') {
+            router.push('/admin/home')
+          } else {
+            alert('权限不足，无法访问管理系统')
+            return
+          }
+          
+          alert(`欢迎 ${userData.real_name}！`)
+        } else {
+          const errorMsg = res._error?.meta || '登录失败'
+          alert(errorMsg)
         }
-        
-        alert(`欢迎 ${user.name}！`)
-      } else {
-        alert('用户名或密码错误！')
+      } catch (error) {
+        console.error('登录失败:', error)
+        alert('登录失败，请检查网络连接或稍后重试')
       }
     }
     
@@ -227,7 +293,7 @@ export default {
       })
     }
     
-    const submitApplication = () => {
+    const submitApplication = async () => {
       // 表单验证
       if (!applicationForm.real_name || !applicationForm.phone || 
           !applicationForm.college || !applicationForm.position) {
@@ -242,12 +308,38 @@ export default {
         return
       }
       
-      // 这里应该发送API请求到后端
-      console.log('提交申请:', applicationForm)
-      
-      // 模拟提交成功
-      alert('申请已提交，请等待管理员审核')
-      closeModal()
+      try {
+        // 这里需要先获取用户ID，实际应用中可能需要微信登录
+        // 暂时使用固定用户ID进行演示
+        const tempUserId = 1
+        
+        const res = await submitApproverApplication({
+          user_id: tempUserId,
+          real_name: applicationForm.real_name,
+          phone: applicationForm.phone,
+          college: applicationForm.college,
+          position: applicationForm.position
+        })
+        
+        if (res && res._status === 'OK') {
+          alert('申请已提交，请等待管理员审核')
+          closeModal()
+        } else {
+          const errorMsg = res._error?.meta || '申请提交失败'
+          alert(errorMsg)
+        }
+      } catch (error) {
+        console.error('提交申请失败:', error)
+        alert('申请提交失败，请检查网络连接或稍后重试')
+      }
+    }
+    
+    const showForgotPasswordModal = () => {
+      showForgotModal.value = true
+    }
+    
+    const closeForgotModal = () => {
+      showForgotModal.value = false
     }
     
     const logout = () => {
@@ -258,11 +350,14 @@ export default {
       showPassword,
       loginForm,
       showApplicationModal,
+      showForgotModal,
       applicationForm,
       handleLogin,
       showSignIn,
       closeModal,
       submitApplication,
+      showForgotPasswordModal,
+      closeForgotModal,
       logout
     }
   }
@@ -753,6 +848,107 @@ export default {
   }
 }
 
+/* 忘记密码弹窗样式 */
+.forgot-modal {
+  background: white;
+  border-radius: 12px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.forgot-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.forgot-icon {
+  margin-bottom: 20px;
+}
+
+.forgot-content h4 {
+  color: #1c4e80;
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.forgot-content p {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.reset-steps {
+  text-align: left;
+  margin: 20px 0;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+.step-number {
+  background: #1c4e80;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.step-text {
+  color: #333;
+  font-size: 14px;
+}
+
+.contact-info {
+  background: #f0f8ff;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+  text-align: left;
+}
+
+.contact-info p {
+  margin: 5px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.contact-info strong {
+  color: #1c4e80;
+}
+
+.confirm-btn {
+  background: linear-gradient(to right, #1c4e80, #4a6fa5);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-btn:hover {
+  background: linear-gradient(to right, #0f3057, #3d5a80);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 480px) {
   .top-header {
     padding: 0 15px;
@@ -779,6 +975,14 @@ export default {
   .form-section,
   .wechat-section {
     padding: 20px;
+  }
+  
+  .forgot-modal {
+    width: 95%;
+  }
+  
+  .forgot-content {
+    padding: 15px;
   }
 }
 </style>

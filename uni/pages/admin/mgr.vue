@@ -23,7 +23,7 @@
           <view class="alert-subtitle">点击查看详情</view>
         </view>
         <button class="create-btn" @click.stop="showCreateModal">
-          <uni-icons type="plus" size="16" color="#fff"></uni-icons> 创建后台账号
+          <text style="color: #fff; font-size: 16px;">+ 创建后台账号</text>
         </button>
       </view>
     </view>
@@ -36,14 +36,9 @@
       
       <view class="management-controls">
         <view class="filter-group">
-          <label class="filter-label">类型：</label>
           <picker mode="selector" :range="roleOptions" :value="accountFilters.roleIndex" @change="onRoleChange" class="filter-select">
             <view class="picker-text">{{ getRoleText(accountFilters.role) }}</view>
           </picker>
-        </view>
-        
-        <view class="filter-group">
-          <label class="filter-label">所属：</label>
           <picker mode="selector" :range="collegeFilterOptions" :value="accountFilters.collegeIndex" @change="onCollegeFilterChange" class="filter-select">
             <view class="picker-text">{{ accountFilters.college === 'all' ? '全部学院' : accountFilters.college }}</view>
           </picker>
@@ -51,10 +46,10 @@
         
         <view class="filter-actions">
           <button class="search-btn" @click="loadAccounts">
-            <uni-icons type="search" size="16" color="#fff"></uni-icons> 搜索
+            <text style="color: #fff; font-size: 16px;">🔍 搜索</text>
           </button>
           <button class="reset-btn" @click="resetAccountFilters">
-            <uni-icons type="refresh" size="16" color="#666"></uni-icons> 重置
+            <text style="color: #666; font-size: 16px;">↻ 重置</text>
           </button>
         </view>
       </view>
@@ -64,7 +59,7 @@
           <view class="table-header">
             <view class="table-row">
               <view class="table-cell">用户ID</view>
-              <view class="table-cell">用户名</view>
+              <view class="table-cell">真实姓名</view>
               <view class="table-cell">联系电话</view>
               <view class="table-cell">学院/部门</view>
               <view class="table-cell">职位</view>
@@ -75,14 +70,13 @@
           <view class="table-body">
             <view v-if="accounts.length === 0" class="empty-state">
               <view class="empty-content">
-                <uni-icons type="search" size="24" color="#999"></uni-icons>
+                <text style="color: #999; font-size: 24px;">🔍</text>
                 <text>暂无账号记录</text>
               </view>
             </view>
             
             <view v-else v-for="account in accounts" :key="account.user_id" class="table-row account-row">
               <view class="table-cell">{{ account.user_id }}</view>
-              <view class="table-cell">{{ account.username }}</view>
               <view class="table-cell">{{ account.real_name }}</view>
               <view class="table-cell">{{ account.phone }}</view>
               <view class="table-cell">{{ account.college || '-' }}</view>
@@ -97,10 +91,10 @@
               <view class="table-cell">
                 <view class="action-buttons">
                   <button class="edit-btn" @click="editAccount(account)">
-                    <uni-icons type="compose" size="14" color="#1890ff"></uni-icons> 修改
+                    <text style="color: #1890ff; font-size: 14px;">✏ 修改</text>
                   </button>
                   <button class="delete-btn" @click="deleteAccount(account)">
-                    <uni-icons type="trash" size="14" color="#ff4d4f"></uni-icons> 删除
+                    <text style="color: #ff4d4f; font-size: 14px;">🗑 删除</text>
                   </button>
                 </view>
               </view>
@@ -116,7 +110,7 @@
         <view class="modal-header">
           <h3>创建后台账号</h3>
           <button class="modal-close" @click="closeCreateModal">
-            <uni-icons type="close" size="16" color="#999"></uni-icons>
+            <text style="color: #999; font-size: 16px;">×</text>
           </button>
         </view>
         <view class="modal-body">
@@ -156,9 +150,9 @@
     <view v-if="showApplicationsModal" class="modal-overlay">
       <view class="modal-content large-modal">
         <view class="modal-header">
-          <h3>处理账号申请</h3>
+          <text class="modal-title">处理账号申请</text>
           <button class="modal-close" @click="closeApplicationsModal">
-            <uni-icons type="close" size="16" color="#999"></uni-icons>
+            <text style="color: #999; font-size: 16px;">×</text>
           </button>
         </view>
         <view class="modal-body">
@@ -177,7 +171,7 @@
               <view class="table-body">
                 <view v-if="applications.length === 0" class="empty-state">
                   <view class="empty-content">
-                    <uni-icons type="search" size="24" color="#999"></uni-icons>
+                    <text style="color: #999; font-size: 24px;">🔍</text>
                     <text>暂无申请记录</text>
                   </view>
                 </view>
@@ -193,13 +187,13 @@
                   <view class="table-cell">
                     <view class="action-buttons">
                       <button v-if="application.status === 'pending'" class="approve-btn" @click="approveApplication(application)">
-                        <uni-icons type="checkmark" size="14" color="#52c41a"></uni-icons> 通过
+                        <text style="color: #52c41a; font-size: 14px;">✓ 通过</text>
                       </button>
                       <button v-if="application.status === 'pending'" class="reject-btn" @click="rejectApplication(application)">
-                        <uni-icons type="close" size="14" color="#ff4d4f"></uni-icons> 拒绝
+                        <text style="color: #ff4d4f; font-size: 14px;">✗ 拒绝</text>
                       </button>
                       <button v-if="application.status !== 'pending'" class="view-btn" @click="viewApplicationDetails(application)">
-                        <uni-icons type="eye" size="14" color="#666"></uni-icons> 详情
+                        <text style="color: #666; font-size: 14px;">👁 详情</text>
                       </button>
                     </view>
                   </view>
@@ -217,13 +211,16 @@
 </template>
 
 <script>
+import { getManagerStats, getAccounts, getApplications, createAccount, processApplication, deleteAccount, updateAccount } from '../../api/uniAdmin.js';
+
 export default {
   data() {
     return {
+      currentUser: null,
       approverCount: 5,
       pendingApplicationCount: 3,
-      selectedCollege: '信息中心',
-      selectedCollegeIndex: 6,
+      selectedCollege: '信息技术学院',
+      selectedCollegeIndex: 0,
       
       applicationFilters: {
         position: 'all'
@@ -257,24 +254,18 @@ export default {
       positionOptions: ['二级学院负责人', '保卫处'],
       
       collegeOptions: [
-        '计算机学院',
-        '外国语学院',
-        '经济管理学院',
-        '电子工程学院',
-        '机械工程学院',
-        '保卫处',
-        '信息中心'
+        '信息技术学院',
+        '治安学院',
+        '交通管理学院',
+        '保卫处'
       ],
       
       collegeFilterOptions: [
         '全部学院',
-        '计算机学院',
-        '外国语学院',
-        '经济管理学院',
-        '电子工程学院',
-        '机械工程学院',
-        '保卫处',
-        '信息中心'
+        '信息技术学院',
+        '治安学院',
+        '交通管理学院',
+        '保卫处'
       ]
     }
   },
@@ -341,63 +332,58 @@ export default {
       return new Date(dateString).toLocaleDateString('zh-CN');
     },
     
-    loadApplications() {
-      this.applications = [
-        {
-          application_id: 1001,
-          user_id: 101,
-          real_name: '张三',
-          phone: '13800138000',
-          college: this.selectedCollege,
-          position: 'teacher',
-          status: 'pending',
-          created_at: '2023-10-15 09:30:00'
-        },
-        {
-          application_id: 1002,
-          user_id: 102,
-          real_name: '李四',
-          phone: '13900139000',
-          college: this.selectedCollege,
-          position: 'security',
-          status: 'pending',
-          created_at: '2023-10-16 14:20:00'
+    async loadApplications() {
+      try {
+        // 使用当前用户的学院进行筛选
+        const userCollege = this.currentUser && this.currentUser.college ? this.currentUser.college : null;
+        const result = await getApplications({
+          position: this.applicationFilters.position === 'all' ? null : this.applicationFilters.position,
+          college: userCollege
+        });
+        
+        if (result && result.code === 0) {
+          this.applications = result.data || [];
+        } else {
+          uni.showToast({
+            title: '获取申请数据失败',
+            icon: 'none'
+          });
+          this.applications = [];
         }
-      ].filter(app => {
-        if (this.applicationFilters.position !== 'all' && app.position !== this.applicationFilters.position) return false;
-        return true;
-      });
+      } catch (error) {
+        console.error('获取申请数据失败:', error);
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        });
+        this.applications = [];
+      }
     },
     
-    loadAccounts() {
-      this.accounts = [
-        {
-          user_id: 1,
-          username: 'admin01',
-          real_name: '系统管理员',
-          phone: '13800138001',
-          college: '信息中心',
-          position: 'other',
-          role: 'admin',
-          status: 'active',
-          created_at: '2023-09-01 08:00:00'
-        },
-        {
-          user_id: 2,
-          username: 'approver01',
-          real_name: '李老师',
-          phone: '13900139001',
-          college: '计算机学院',
-          position: 'teacher',
-          role: 'approver',
-          status: 'active',
-          created_at: '2023-09-05 10:30:00'
+    async loadAccounts() {
+      try {
+        const result = await getAccounts({
+          role: this.accountFilters.role === 'all' ? null : this.accountFilters.role,
+          college: this.accountFilters.college === 'all' ? null : this.accountFilters.college
+        });
+        
+        if (result && result.code === 0) {
+          this.accounts = result.data || [];
+        } else {
+          uni.showToast({
+            title: '获取账号数据失败',
+            icon: 'none'
+          });
+          this.accounts = [];
         }
-      ].filter(acc => {
-        if (this.accountFilters.role !== 'all' && acc.role !== this.accountFilters.role) return false;
-        if (this.accountFilters.college !== 'all' && acc.college !== this.accountFilters.college) return false;
-        return true;
-      });
+      } catch (error) {
+        console.error('获取账号数据失败:', error);
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        });
+        this.accounts = [];
+      }
     },
     
     resetApplicationFilters() {
@@ -406,28 +392,88 @@ export default {
     },
     
     resetAccountFilters() {
+      // 保持当前用户的默认学院设置
+      const defaultCollege = this.currentUser && this.currentUser.college ? this.currentUser.college : 'all';
+      const defaultCollegeIndex = defaultCollege === 'all' ? 0 : this.collegeFilterOptions.findIndex(college => college === defaultCollege);
+      
       this.accountFilters = { 
         role: 'all', 
-        college: 'all',
+        college: defaultCollege,
         roleIndex: 0,
-        collegeIndex: 0
+        collegeIndex: defaultCollegeIndex !== -1 ? defaultCollegeIndex : 0
       };
       this.loadAccounts();
     },
     
-    approveApplication(application) {
-      if (confirm(`确定要通过 ${application.real_name} 的审批人申请吗？`)) {
-        uni.showToast({ title: '已通过申请', icon: 'success' });
-        this.loadApplications();
-        this.loadStats();
+    async approveApplication(application) {
+      try {
+        const res = await uni.showModal({
+          title: '确认操作',
+          content: `确定要通过 ${application.real_name} 的审批人申请吗？`
+        });
+        
+        if (res.confirm) {
+          const result = await processApplication({
+            application_id: application.application_id,
+            action: 'approve'
+          });
+          
+          if (result && result.code === 0) {
+            uni.showToast({
+              title: '已通过申请',
+              icon: 'success'
+            });
+            this.loadApplications();
+            this.loadStats();
+          } else {
+            uni.showToast({
+              title: '操作失败',
+              icon: 'none'
+            });
+          }
+        }
+      } catch (error) {
+        console.error('审批申请失败:', error);
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        });
       }
     },
-    
-    rejectApplication(application) {
-      if (confirm(`确定要拒绝 ${application.real_name} 的审批人申请吗？`)) {
-        uni.showToast({ title: '已拒绝申请', icon: 'success' });
-        this.loadApplications();
-        this.loadStats();
+
+    async rejectApplication(application) {
+      try {
+        const res = await uni.showModal({
+          title: '确认操作',
+          content: `确定要拒绝 ${application.real_name} 的审批人申请吗？`
+        });
+        
+        if (res.confirm) {
+          const result = await processApplication({
+            application_id: application.application_id,
+            action: 'reject'
+          });
+          
+          if (result && result.code === 0) {
+            uni.showToast({
+              title: '已拒绝申请',
+              icon: 'success'
+            });
+            this.loadApplications();
+            this.loadStats();
+          } else {
+            uni.showToast({
+              title: '操作失败',
+              icon: 'none'
+            });
+          }
+        }
+      } catch (error) {
+        console.error('拒绝申请失败:', error);
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        });
       }
     },
     
@@ -445,9 +491,38 @@ export default {
       });
     },
     
-    deleteAccount(account) {
-      if (confirm(`确定要删除 ${account.real_name} 的账号吗？`)) {
-        uni.showToast({ title: '账号已删除', icon: 'success' });
+    async deleteAccount(account) {
+      try {
+        const res = await uni.showModal({
+          title: '确认删除',
+          content: `确定要删除 ${account.real_name} 的账号吗？此操作不可恢复！`
+        });
+        
+        if (res.confirm) {
+          const result = await deleteAccount({
+            user_id: account.user_id
+          });
+          
+          if (result && result.code === 0) {
+            uni.showToast({
+              title: '账号已删除',
+              icon: 'success'
+            });
+            this.loadAccounts();
+            this.loadStats();
+          } else {
+            uni.showToast({
+              title: '删除失败',
+              icon: 'none'
+            });
+          }
+        }
+      } catch (error) {
+        console.error('删除账号失败:', error);
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        });
       }
     },
     
@@ -478,7 +553,7 @@ export default {
       this.showApplicationsModal = false;
     },
     
-    createAccount() {
+    async createAccount() {
       if (!this.newAccount.username || !this.newAccount.password || 
           !this.newAccount.real_name || !this.newAccount.phone || 
           !this.newAccount.college) {
@@ -486,24 +561,94 @@ export default {
         return;
       }
       
-      uni.showToast({ title: '后台账号创建成功', icon: 'success' });
-      this.closeCreateModal();
+      try {
+        const result = await createAccount({
+          username: this.newAccount.username,
+          password: this.newAccount.password,
+          real_name: this.newAccount.real_name,
+          phone: this.newAccount.phone,
+          college: this.newAccount.college,
+          position: this.newAccount.position,
+          role: 'admin' // 默认创建后台账号
+        });
+        
+        if (result && result.code === 0) {
+          uni.showToast({
+            title: '后台账号创建成功',
+            icon: 'success'
+          });
+          this.closeCreateModal();
+          this.loadAccounts();
+          this.loadStats();
+        } else {
+          uni.showToast({
+            title: result.message || '创建失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        console.error('创建账号失败:', error);
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        });
+      }
     },
     
-    loadStats() {
-      if (this.selectedCollege === '信息中心') {
-        this.approverCount = 5;
-        this.pendingApplicationCount = 3;
-      } else {
-        this.approverCount = 0;
-        this.pendingApplicationCount = 0;
+    async loadStats() {
+      try {
+        const result = await getManagerStats({
+          college: this.selectedCollege === '全部学院' ? null : this.selectedCollege
+        });
+        
+        if (result && result.code === 0) {
+          this.approverCount = result.data.approverCount || 0;
+          this.pendingApplicationCount = result.data.pendingApplications || 0;
+        } else {
+          uni.showToast({
+            title: '获取统计数据失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        console.error('获取统计数据失败:', error);
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        });
       }
+    },
+    
+    async getCurrentUserInfo() {
+      try {
+        const currentUser = uni.getStorageSync('currentUser');
+        if (currentUser) {
+          this.currentUser = currentUser;
+          // 设置默认学院为当前用户所属学院
+          if (currentUser.college) {
+            const collegeIndex = this.collegeOptions.findIndex(college => college === currentUser.college);
+            if (collegeIndex !== -1) {
+              this.selectedCollege = currentUser.college;
+              this.selectedCollegeIndex = collegeIndex;
+              // 设置账号筛选的默认学院
+              this.accountFilters.college = currentUser.college;
+              const filterIndex = this.collegeFilterOptions.findIndex(college => college === currentUser.college);
+              if (filterIndex !== -1) {
+                this.accountFilters.collegeIndex = filterIndex;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('获取当前用户信息失败:', error);
+      }
+    },
+
+    onLoad() {
+      this.getCurrentUserInfo();
+      this.loadAccounts();
+      this.loadStats();
     }
-  },
-  
-  onLoad() {
-    this.loadAccounts();
-    this.loadStats();
   }
 }
 </script>
@@ -532,12 +677,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 15px;
-}
-
-.filter-label {
-  font-size: 14px;
-  color: #333;
-  font-weight: 500;
 }
 
 .filter-select {
@@ -632,8 +771,7 @@ export default {
 
 .filter-group {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
 
 .filter-actions {

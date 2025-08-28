@@ -1,56 +1,23 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
+const api_uniDashboard = require("./api/uniDashboard.js");
 const _sfc_main = {
-  name: "DashboardScreen",
-  setup() {
+  __name: "screen",
+  setup(__props) {
     const currentTime = common_vendor.ref("");
-    const todayChart = common_vendor.ref(null);
-    const weekChart = common_vendor.ref(null);
-    const pendingGauge = common_vendor.ref(null);
-    const enteredGauge = common_vendor.ref(null);
-    let todayChartInstance = null;
-    let weekChartInstance = null;
-    let pendingGaugeInstance = null;
-    let enteredGaugeInstance = null;
     let timeInterval = null;
     const todayStats = common_vendor.ref({
-      total: 128,
-      people: 210,
-      pending: 42,
-      entered: 76
+      total: 0,
+      people: 0,
+      pending: 0,
+      entered: 0,
+      vehicles: 0
     });
-    const todayRecords = common_vendor.ref([
-      {
-        applicant: "张三",
-        type: "个人",
-        reason: "参加学术讲座",
-        time: "14:00 - 16:00"
-      },
-      {
-        applicant: "李四",
-        type: "访客",
-        reason: "拜访教授",
-        time: "09:30 - 11:00"
-      },
-      {
-        applicant: "王五",
-        type: "公务",
-        reason: "部门会议",
-        time: "13:00 - 17:00"
-      },
-      {
-        applicant: "赵六",
-        type: "个人",
-        reason: "图书馆借阅",
-        time: "10:00 - 12:00"
-      },
-      {
-        applicant: "钱七",
-        type: "供应商",
-        reason: "设备维修",
-        time: "14:30 - 16:30"
-      }
-    ]);
+    const todayRecords = common_vendor.ref([]);
+    const chartData = common_vendor.ref({
+      hourly: [],
+      weekly: []
+    });
     const updateTime = () => {
       const now = /* @__PURE__ */ new Date();
       currentTime.value = now.toLocaleString("zh-CN", {
@@ -65,375 +32,266 @@ const _sfc_main = {
     const goBack = () => {
       common_vendor.index.navigateBack();
     };
-    const refreshData = () => {
-      todayStats.value = {
-        total: Math.floor(Math.random() * 50) + 100,
-        people: Math.floor(Math.random() * 100) + 150,
-        pending: Math.floor(Math.random() * 30) + 20,
-        entered: Math.floor(Math.random() * 50) + 50
-      };
-      if (pendingGaugeInstance) {
-        pendingGaugeInstance.setOption({
-          series: [{
-            data: [{
-              value: todayStats.value.pending,
-              name: "待入校"
-            }]
-          }]
+    const handleCanvasTouch = (e) => {
+      console.log("Canvas touched:", e);
+    };
+    const loadDashboardStats = async () => {
+      try {
+        const result = await api_uniDashboard.getDashboardStats();
+        if (result && result.code === 0) {
+          const data = result.data;
+          todayStats.value = {
+            total: data.todayApproved || 0,
+            people: data.todayPeople || 0,
+            pending: data.todayPending || 0,
+            entered: data.todayCompleted || 0,
+            vehicles: data.todayVehicles || 0
+          };
+          updateGauges();
+        }
+      } catch (error) {
+        console.error("加载统计数据失败:", error);
+        common_vendor.index.showToast({
+          title: "加载统计数据失败",
+          icon: "none"
         });
       }
-      if (enteredGaugeInstance) {
-        enteredGaugeInstance.setOption({
-          series: [{
-            data: [{
-              value: todayStats.value.entered,
-              name: "已入校"
-            }]
-          }]
+    };
+    const loadTodayReservations = async () => {
+      try {
+        const result = await api_uniDashboard.getTodayReservations();
+        if (result && result.code === 0) {
+          const currentTime2 = /* @__PURE__ */ new Date();
+          todayRecords.value = result.data.filter((item) => {
+            if (item.status !== "approved")
+              return false;
+            const reservationTime = /* @__PURE__ */ new Date(item.reservation_date + " " + (item.time_slot || "00:00"));
+            return reservationTime > currentTime2;
+          }).map((item) => ({
+            applicant: item.applicant || "未知",
+            type: item.type === "individual" ? "个人" : "团队",
+            reason: item.purpose || "未填写",
+            time: item.time_slot || "未设置"
+          }));
+        }
+      } catch (error) {
+        console.error("加载今日预约记录失败:", error);
+        common_vendor.index.showToast({
+          title: "加载预约记录失败",
+          icon: "none"
         });
       }
-      alert("数据已刷新");
+    };
+    const loadChartData = async () => {
+      try {
+        const hourlyResult = await api_uniDashboard.getHourlyTraffic();
+        if (hourlyResult && hourlyResult.code === 0) {
+          chartData.value.hourly = hourlyResult.data;
+          drawLineChart("todayChart", chartData.value.hourly, "hourly");
+        }
+        const weeklyResult = await api_uniDashboard.getWeeklyTraffic();
+        if (weeklyResult && weeklyResult.code === 0) {
+          chartData.value.weekly = weeklyResult.data;
+          drawLineChart("weekChart", chartData.value.weekly, "weekly");
+        }
+      } catch (error) {
+        console.error("加载图表数据失败:", error);
+      }
+    };
+    const drawGauge = (canvasId, value, maxValue = 100, label) => {
+      const ctx = common_vendor.index.createCanvasContext(canvasId);
+      const centerX = 75;
+      const centerY = 75;
+      const radius = 60;
+      const startAngle = -Math.PI;
+      const endAngle = 0;
+      const currentAngle = startAngle + (endAngle - startAngle) * (value / maxValue);
+      ctx.clearRect(0, 0, 150, 150);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+      ctx.setStrokeStyle("#e0e0e0");
+      ctx.setLineWidth(8);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, startAngle, currentAngle);
+      ctx.setStrokeStyle("#00d4ff");
+      ctx.setLineWidth(8);
+      ctx.setLineCap("round");
+      ctx.stroke();
+      ctx.setFontSize(24);
+      ctx.setFillStyle("#00d4ff");
+      ctx.setTextAlign("center");
+      ctx.fillText(value.toString(), centerX, centerY + 5);
+      ctx.setFontSize(14);
+      ctx.setFillStyle("#666");
+      ctx.fillText(label, centerX, centerY + 30);
+      ctx.draw();
+    };
+    const drawLineChart = (canvasId, data, type) => {
+      const ctx = common_vendor.index.createCanvasContext(canvasId);
+      const width = 280;
+      const height = 120;
+      const padding = 25;
+      const chartWidth = width - 2 * padding;
+      const chartHeight = height - 2 * padding;
+      ctx.clearRect(0, 0, width, height);
+      if (!data || data.length === 0) {
+        ctx.setFontSize(16);
+        ctx.setFillStyle("#999");
+        ctx.setTextAlign("center");
+        ctx.fillText("暂无数据", width / 2, height / 2);
+        ctx.draw();
+        return;
+      }
+      let labels, values;
+      if (type === "hourly") {
+        labels = data.map((item) => item.hour + ":00");
+        values = data.map((item) => item.reservations || 0);
+      } else {
+        labels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+        values = data.map((item) => item.reservations || 0);
+      }
+      const maxValue = Math.max(...values, 1);
+      const stepX = chartWidth / (labels.length - 1);
+      ctx.setStrokeStyle("#e0e0e0");
+      ctx.setLineWidth(1);
+      ctx.beginPath();
+      ctx.moveTo(padding, height - padding);
+      ctx.lineTo(width - padding, height - padding);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, height - padding);
+      ctx.stroke();
+      ctx.setFontSize(10);
+      ctx.setFillStyle("#666");
+      ctx.setTextAlign("center");
+      labels.forEach((label, index) => {
+        const x = padding + index * stepX;
+        ctx.fillText(label, x, height - 8);
+      });
+      ctx.beginPath();
+      ctx.setStrokeStyle("#00d4ff");
+      ctx.setLineWidth(2);
+      values.forEach((value, index) => {
+        const x = padding + index * stepX;
+        const y = height - padding - value / maxValue * chartHeight;
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+      values.forEach((value, index) => {
+        const x = padding + index * stepX;
+        const y = height - padding - value / maxValue * chartHeight;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.setFillStyle("#00d4ff");
+        ctx.fill();
+      });
+      ctx.draw();
+    };
+    const updateGauges = () => {
+      drawGauge("pendingGauge", todayStats.value.pending, 100, "待入校");
+      drawGauge("enteredGauge", todayStats.value.entered, 100, "已入校");
     };
     const initCharts = () => {
-      const todayData = {
-        categories: ["00:00", "02:00", "04:00", "06:00", "08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"],
-        series: [
-          {
-            name: "预约数",
-            data: [12, 8, 15, 25, 45, 68, 82, 95, 78, 65, 42, 28]
-          },
-          {
-            name: "预约人次",
-            data: [18, 12, 22, 38, 68, 102, 125, 142, 118, 98, 65, 42]
-          }
-        ]
-      };
-      const weekData = {
-        categories: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
-        series: [
-          {
-            name: "预约数",
-            data: [320, 280, 350, 420, 480, 380, 290]
-          },
-          {
-            name: "预约人次",
-            data: [485, 425, 528, 635, 725, 575, 438]
-          }
-        ]
-      };
-      if (todayChart.value) {
-        todayChartInstance = common_vendor.init(todayChart.value);
-        todayChartInstance.setOption({
-          grid: {
-            left: "10%",
-            right: "10%",
-            top: "15%",
-            bottom: "15%"
-          },
-          xAxis: {
-            type: "category",
-            data: todayData.categories,
-            axisLine: {
-              lineStyle: {
-                color: "rgba(0, 212, 255, 0.5)"
-              }
-            },
-            axisLabel: {
-              color: "rgba(255, 255, 255, 0.7)",
-              fontSize: 8
-            }
-          },
-          yAxis: {
-            type: "value",
-            axisLine: {
-              lineStyle: {
-                color: "rgba(0, 212, 255, 0.5)"
-              }
-            },
-            axisLabel: {
-              color: "rgba(255, 255, 255, 0.7)",
-              fontSize: 8
-            },
-            splitLine: {
-              lineStyle: {
-                color: "rgba(0, 212, 255, 0.2)"
-              }
-            }
-          },
-          series: [
-            {
-              name: "预约数",
-              type: "line",
-              data: todayData.series[0].data,
-              smooth: true,
-              lineStyle: {
-                color: "rgba(0, 100, 200, 0.8)",
-                width: 2
-              },
-              itemStyle: {
-                color: "rgba(0, 100, 200, 0.9)"
-              }
-            },
-            {
-              name: "预约人次",
-              type: "line",
-              data: todayData.series[1].data,
-              smooth: true,
-              lineStyle: {
-                color: "#00ff88",
-                width: 2
-              },
-              itemStyle: {
-                color: "#00ff88"
-              }
-            }
-          ],
-          tooltip: {
-            trigger: "axis",
-            backgroundColor: "rgba(0, 30, 60, 0.9)",
-            textStyle: {
-              color: "#fff",
-              fontSize: 10
-            }
-          }
+      updateGauges();
+      const mockHourlyData = [
+        { hour: 8, reservations: 12 },
+        { hour: 10, reservations: 25 },
+        { hour: 12, reservations: 45 },
+        { hour: 14, reservations: 68 },
+        { hour: 16, reservations: 42 },
+        { hour: 18, reservations: 28 }
+      ];
+      const mockWeeklyData = [
+        { reservations: 320 },
+        { reservations: 280 },
+        { reservations: 350 },
+        { reservations: 420 },
+        { reservations: 480 },
+        { reservations: 380 },
+        { reservations: 290 }
+      ];
+      drawLineChart("todayChart", mockHourlyData, "hourly");
+      drawLineChart("weekChart", mockWeeklyData, "weekly");
+    };
+    const refreshData = async () => {
+      common_vendor.index.showLoading({ title: "刷新中..." });
+      try {
+        await Promise.all([
+          loadDashboardStats(),
+          loadTodayReservations(),
+          loadChartData()
+        ]);
+        common_vendor.index.showToast({
+          title: "数据已刷新",
+          icon: "success"
         });
-      }
-      if (weekChart.value) {
-        weekChartInstance = common_vendor.init(weekChart.value);
-        weekChartInstance.setOption({
-          grid: {
-            left: "10%",
-            right: "10%",
-            top: "15%",
-            bottom: "15%"
-          },
-          xAxis: {
-            type: "category",
-            data: weekData.categories,
-            axisLine: {
-              lineStyle: {
-                color: "rgba(0, 212, 255, 0.5)"
-              }
-            },
-            axisLabel: {
-              color: "rgba(255, 255, 255, 0.7)",
-              fontSize: 8
-            }
-          },
-          yAxis: {
-            type: "value",
-            axisLine: {
-              lineStyle: {
-                color: "rgba(0, 212, 255, 0.5)"
-              }
-            },
-            axisLabel: {
-              color: "rgba(255, 255, 255, 0.7)",
-              fontSize: 8
-            },
-            splitLine: {
-              lineStyle: {
-                color: "rgba(0, 212, 255, 0.2)"
-              }
-            }
-          },
-          series: [
-            {
-              name: "预约数",
-              type: "line",
-              data: weekData.series[0].data,
-              smooth: true,
-              lineStyle: {
-                color: "rgba(0, 100, 200, 0.8)",
-                width: 2
-              },
-              itemStyle: {
-                color: "rgba(0, 100, 200, 0.9)"
-              }
-            },
-            {
-              name: "预约人次",
-              type: "line",
-              data: weekData.series[1].data,
-              smooth: true,
-              lineStyle: {
-                color: "#00ff88",
-                width: 2
-              },
-              itemStyle: {
-                color: "#00ff88"
-              }
-            }
-          ],
-          tooltip: {
-            trigger: "axis",
-            backgroundColor: "rgba(0, 30, 60, 0.9)",
-            textStyle: {
-              color: "#fff",
-              fontSize: 10
-            }
-          }
+      } catch (error) {
+        common_vendor.index.showToast({
+          title: "刷新失败",
+          icon: "none"
         });
-      }
-      if (pendingGauge.value && enteredGauge.value) {
-        pendingGaugeInstance = common_vendor.init(pendingGauge.value);
-        pendingGaugeInstance.setOption({
-          series: [{
-            type: "gauge",
-            radius: "100%",
-            center: ["50%", "60%"],
-            startAngle: 180,
-            endAngle: 0,
-            min: 0,
-            max: 100,
-            progress: {
-              show: true,
-              width: 10
-            },
-            axisLine: {
-              lineStyle: {
-                width: 10
-              }
-            },
-            axisTick: {
-              show: false
-            },
-            splitLine: {
-              show: false
-            },
-            axisLabel: {
-              show: false
-            },
-            pointer: {
-              show: false
-            },
-            detail: {
-              valueAnimation: true,
-              offsetCenter: [0, "0%"],
-              fontSize: 12,
-              fontWeight: "normal",
-              formatter: "{value}",
-              color: "#fff"
-            },
-            data: [{
-              value: todayStats.value.pending,
-              name: "待入校"
-            }]
-          }]
-        });
-        enteredGaugeInstance = common_vendor.init(enteredGauge.value);
-        enteredGaugeInstance.setOption({
-          series: [{
-            type: "gauge",
-            radius: "100%",
-            center: ["50%", "60%"],
-            startAngle: 180,
-            endAngle: 0,
-            min: 0,
-            max: 100,
-            progress: {
-              show: true,
-              width: 10
-            },
-            axisLine: {
-              lineStyle: {
-                width: 10
-              }
-            },
-            axisTick: {
-              show: false
-            },
-            splitLine: {
-              show: false
-            },
-            axisLabel: {
-              show: false
-            },
-            pointer: {
-              show: false
-            },
-            detail: {
-              valueAnimation: true,
-              offsetCenter: [0, "0%"],
-              fontSize: 12,
-              fontWeight: "normal",
-              formatter: "{value}",
-              color: "#fff"
-            },
-            data: [{
-              value: todayStats.value.entered,
-              name: "已入校"
-            }]
-          }]
-        });
+      } finally {
+        common_vendor.index.hideLoading();
       }
     };
     common_vendor.onMounted(() => {
       updateTime();
       timeInterval = setInterval(updateTime, 1e3);
-      setTimeout(() => {
-        initCharts();
-      }, 100);
-      common_vendor.index.onWindowResize(() => {
-        if (todayChartInstance)
-          todayChartInstance.resize();
-        if (weekChartInstance)
-          weekChartInstance.resize();
-        if (pendingGaugeInstance)
-          pendingGaugeInstance.resize();
-        if (enteredGaugeInstance)
-          enteredGaugeInstance.resize();
+      common_vendor.nextTick$1(() => {
+        setTimeout(() => {
+          try {
+            initCharts();
+            loadDashboardStats();
+            loadTodayReservations();
+            loadChartData();
+          } catch (error) {
+            console.error("图表初始化失败:", error);
+            common_vendor.index.showToast({
+              title: "图表加载失败",
+              icon: "none"
+            });
+          }
+        }, 300);
       });
     });
     common_vendor.onUnmounted(() => {
       if (timeInterval) {
         clearInterval(timeInterval);
       }
-      if (todayChartInstance) {
-        todayChartInstance.dispose();
-      }
-      if (weekChartInstance) {
-        weekChartInstance.dispose();
-      }
-      if (pendingGaugeInstance) {
-        pendingGaugeInstance.dispose();
-      }
-      if (enteredGaugeInstance) {
-        enteredGaugeInstance.dispose();
-      }
     });
-    return {
-      currentTime,
-      todayStats,
-      todayRecords,
-      todayChart,
-      weekChart,
-      pendingGauge,
-      enteredGauge,
-      goBack,
-      refreshData
+    return (_ctx, _cache) => {
+      return common_vendor.e({
+        a: common_vendor.t(currentTime.value),
+        b: common_vendor.o(goBack),
+        c: common_vendor.t(todayStats.value.total),
+        d: common_vendor.t(todayStats.value.people),
+        e: common_vendor.t(todayStats.value.vehicles),
+        f: common_vendor.o(handleCanvasTouch),
+        g: common_vendor.t(todayStats.value.pending),
+        h: common_vendor.o(handleCanvasTouch),
+        i: common_vendor.t(todayStats.value.entered),
+        j: common_vendor.o(handleCanvasTouch),
+        k: common_vendor.o(handleCanvasTouch),
+        l: common_vendor.o(refreshData),
+        m: common_vendor.f(todayRecords.value, (item, index, i0) => {
+          return {
+            a: common_vendor.t(item.applicant),
+            b: common_vendor.t(item.type),
+            c: common_vendor.t(item.reason),
+            d: common_vendor.t(item.time),
+            e: index
+          };
+        }),
+        n: todayRecords.value.length === 0
+      }, todayRecords.value.length === 0 ? {} : {});
     };
   }
 };
-function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
-  return {
-    a: common_vendor.t($setup.currentTime),
-    b: common_vendor.o((...args) => $setup.goBack && $setup.goBack(...args)),
-    c: common_vendor.t($setup.todayStats.total),
-    d: common_vendor.t($setup.todayStats.people),
-    e: common_vendor.t($setup.todayStats.pending),
-    f: common_vendor.t($setup.todayStats.entered),
-    g: common_vendor.o((...args) => $setup.refreshData && $setup.refreshData(...args)),
-    h: common_vendor.f($setup.todayRecords, (item, index, i0) => {
-      return {
-        a: common_vendor.t(item.applicant),
-        b: common_vendor.t(item.type),
-        c: common_vendor.t(item.reason),
-        d: common_vendor.t(item.time),
-        e: index
-      };
-    })
-  };
-}
-const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-ac5f71b6"]]);
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__scopeId", "data-v-ac5f71b6"]]);
 exports.MiniProgramPage = MiniProgramPage;

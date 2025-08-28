@@ -6,43 +6,16 @@ const fetchNotice = (type) => {
     method: "GET"
   });
 };
-const fetchAnnouncements = (params = {}) => {
+const fetchHomepageAnnouncements = () => {
   return utils_request.request({
     url: "/api/uni/notifications/announcements",
     method: "GET",
-    data: params
+    data: {
+      location: "homepage",
+      type: "announcement",
+      active: true
+    }
   });
 };
-const createAnnouncement = (data) => {
-  return utils_request.request({
-    url: "/api/uni/notifications/announcements",
-    method: "POST",
-    data
-  });
-};
-const updateAnnouncement = (id, data) => {
-  return utils_request.request({
-    url: `/api/uni/notifications/announcements/${id}`,
-    method: "PUT",
-    data
-  });
-};
-const deleteAnnouncement = (id) => {
-  return utils_request.request({
-    url: `/api/uni/notifications/announcements/${id}`,
-    method: "DELETE"
-  });
-};
-const updateNotice = (type, data) => {
-  return utils_request.request({
-    url: `/api/uni/notifications/notices/${type}`,
-    method: "PUT",
-    data
-  });
-};
-exports.createAnnouncement = createAnnouncement;
-exports.deleteAnnouncement = deleteAnnouncement;
-exports.fetchAnnouncements = fetchAnnouncements;
+exports.fetchHomepageAnnouncements = fetchHomepageAnnouncements;
 exports.fetchNotice = fetchNotice;
-exports.updateAnnouncement = updateAnnouncement;
-exports.updateNotice = updateNotice;

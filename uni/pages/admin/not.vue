@@ -3,7 +3,7 @@
     <!-- 头部标题和按钮 -->
     <view class="filter-section">
       <view class="filter-header">
-        <h2>公告与须知管理</h2>
+        <text class="page-title">公告与须知管理</text>
         <button class="btn-primary" @click="showAnnouncementModal(null)">发布公告</button>
       </view>
     </view>
@@ -12,14 +12,14 @@
       <!-- 左侧公告管理 -->
       <view class="left-panel">
         <view class="panel-header">
-          <h2>公告管理</h2>
+          <text class="panel-title">公告管理</text>
         </view>
         <view class="announcement-list">
           <view v-for="announcement in announcements" :key="announcement.notification_id" 
                class="announcement-item" :class="{ inactive: !announcement.is_active }">
             <view class="announcement-content">
-              <h3>{{ announcement.title }}</h3>
-              <p>{{ truncateContent(announcement.content, 50) }}</p>
+              <text class="announcement-title">{{ announcement.title }}</text>
+              <text class="announcement-text">{{ truncateContent(announcement.content, 50) }}</text>
               <view class="announcement-actions">
                 <button @click="showAnnouncementModal(announcement)" class="btn-edit">编辑</button>
                 <button @click="deleteAnnouncementItem(announcement.notification_id)" class="btn-delete">删除</button>
@@ -32,7 +32,7 @@
       <!-- 右侧入校须知管理 -->
       <view class="right-panel">
         <view class="panel-header">
-          <h2>入校须知管理</h2>
+          <text class="panel-title">入校须知管理</text>
           <view class="notice-tabs">
             <button :class="{ active: activeNoticeTab === 'individual' }" 
                     @click="activeNoticeTab = 'individual'">个人预约</button>
@@ -42,7 +42,7 @@
         </view>
         
         <view class="notice-editor">
-          <h3>{{ activeNoticeTab === 'individual' ? '个人预约入校须知' : '团体预约入校须知' }}</h3>
+          <text class="notice-title">{{ activeNoticeTab === 'individual' ? '个人预约入校须知' : '团体预约入校须知' }}</text>
           <textarea v-model="currentNoticeContent" placeholder="请输入入校须知内容..." class="notice-textarea"></textarea>
           <view class="editor-actions">
             <button @click="saveNotice" class="btn-primary">保存修改</button>
@@ -85,7 +85,7 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue'
-import { fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement, fetchNotice, updateNotice } from '../../api/uniNotifications.js'
+import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement, getNotice, updateNotice } from '../../api/uniAdmin.js'
 
 export default {
   name: 'NotificationManagement',
@@ -121,16 +121,16 @@ export default {
     // 获取公告列表
     const fetchAnnouncementsList = async () => {
       try {
-        const res = await fetchAnnouncements({ page: 1, limit: 50 })
-        const body = res?.data || res
-        if (body?.code === 0 && body?.data) {
-          announcements.value = body.data.announcements || []
+        const result = await getAnnouncements({ page: 1, limit: 50 })
+        if (result && result.code === 0) {
+          announcements.value = result.data?.announcements || []
         } else {
           announcements.value = []
+          uni.showToast({ title: result.message || '获取公告列表失败', icon: 'none' })
         }
       } catch (error) {
         console.error('获取公告列表失败:', error)
-        uni.showToast({ title: '获取公告列表失败', icon: 'none' })
+        uni.showToast({ title: '网络错误', icon: 'none' })
       }
     }
     
@@ -138,19 +138,17 @@ export default {
     const fetchNotices = async () => {
       try {
         // 获取个人预约须知
-        const individualRes = await fetchNotice('individual_notice')
-        const individualBody = individualRes?.data || individualRes
-        if (individualBody?.code === 0 && individualBody?.data) {
-          individualNotice.value = individualBody.data.content || ''
+        const individualResult = await getNotice('individual_notice')
+        if (individualResult && individualResult.code === 0 && individualResult.data) {
+          individualNotice.value = individualResult.data.content || ''
         } else {
           individualNotice.value = '暂无个人预约入校须知'
         }
         
         // 获取团队预约须知
-        const groupRes = await fetchNotice('group_notice')
-        const groupBody = groupRes?.data || groupRes
-        if (groupBody?.code === 0 && groupBody?.data) {
-          groupNotice.value = groupBody.data.content || ''
+        const groupResult = await getNotice('group_notice')
+        if (groupResult && groupResult.code === 0 && groupResult.data) {
+          groupNotice.value = groupResult.data.content || ''
         } else {
           groupNotice.value = '暂无团队预约入校须知'
         }
@@ -160,7 +158,7 @@ export default {
           : groupNotice.value
       } catch (error) {
         console.error('获取入校须知失败:', error)
-        uni.showToast({ title: '获取入校须知失败', icon: 'none' })
+        uni.showToast({ title: '网络错误', icon: 'none' })
       }
     }
     
@@ -184,6 +182,14 @@ export default {
     // 保存公告
     const saveAnnouncement = async () => {
       try {
+        if (!currentAnnouncement.value.title || !currentAnnouncement.value.content) {
+          uni.showToast({
+            title: '请填写标题和内容',
+            icon: 'none'
+          })
+          return
+        }
+        
         // 获取当前用户ID（这里需要从存储中获取）
         const publisherId = uni.getStorageSync('user_id') || 1
         
@@ -195,24 +201,32 @@ export default {
           is_active: currentAnnouncement.value.is_active
         }
         
+        let result
         if (editingAnnouncement.value) {
           // 更新公告
-          await updateAnnouncement(editingAnnouncement.value.notification_id, payload)
+          result = await updateAnnouncement(editingAnnouncement.value.notification_id, payload)
         } else {
           // 创建公告
-          await createAnnouncement(payload)
+          result = await createAnnouncement(payload)
         }
         
-        showModal.value = false
-        fetchAnnouncementsList()
-        uni.showToast({
-          title: '保存成功',
-          icon: 'success'
-        })
+        if (result && result.code === 0) {
+          showModal.value = false
+          fetchAnnouncementsList()
+          uni.showToast({
+            title: '保存成功',
+            icon: 'success'
+          })
+        } else {
+          uni.showToast({
+            title: result.message || '保存失败',
+            icon: 'none'
+          })
+        }
       } catch (error) {
         console.error('保存公告失败:', error)
         uni.showToast({
-          title: '保存失败，请重试',
+          title: '网络错误',
           icon: 'none'
         })
       }
@@ -220,33 +234,47 @@ export default {
     
     // 删除公告
     const deleteAnnouncementItem = async (id) => {
-      uni.showModal({
-        title: '确认删除',
-        content: '确定要删除这条公告吗？',
-        success: async (res) => {
-          if (res.confirm) {
-            try {
-              await deleteAnnouncement(id)
-              fetchAnnouncementsList()
-              uni.showToast({
-                title: '删除成功',
-                icon: 'success'
-              })
-            } catch (error) {
-              console.error('删除公告失败:', error)
-              uni.showToast({
-                title: '删除失败，请重试',
-                icon: 'none'
-              })
-            }
+      try {
+        const res = await uni.showModal({
+          title: '确认删除',
+          content: '确定要删除这条公告吗？此操作不可恢复！'
+        })
+        
+        if (res.confirm) {
+          const result = await deleteAnnouncement(id)
+          if (result && result.code === 0) {
+            fetchAnnouncementsList()
+            uni.showToast({
+              title: '删除成功',
+              icon: 'success'
+            })
+          } else {
+            uni.showToast({
+              title: result.message || '删除失败',
+              icon: 'none'
+            })
           }
         }
-      })
+      } catch (error) {
+        console.error('删除公告失败:', error)
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        })
+      }
     }
     
     // 保存入校须知
     const saveNotice = async () => {
       try {
+        if (!currentNoticeContent.value.trim()) {
+          uni.showToast({
+            title: '请填写须知内容',
+            icon: 'none'
+          })
+          return
+        }
+        
         // 获取当前用户ID
         const publisherId = uni.getStorageSync('user_id') || 1
         
@@ -259,23 +287,30 @@ export default {
           publisher_id: publisherId
         }
         
-        await updateNotice(noticeType, payload)
+        const result = await updateNotice(noticeType, payload)
         
-        // 更新本地数据
-        if (activeNoticeTab.value === 'individual') {
-          individualNotice.value = currentNoticeContent.value
+        if (result && result.code === 0) {
+          // 更新本地数据
+          if (activeNoticeTab.value === 'individual') {
+            individualNotice.value = currentNoticeContent.value
+          } else {
+            groupNotice.value = currentNoticeContent.value
+          }
+          
+          uni.showToast({
+            title: '保存成功',
+            icon: 'success'
+          })
         } else {
-          groupNotice.value = currentNoticeContent.value
+          uni.showToast({
+            title: result.message || '保存失败',
+            icon: 'none'
+          })
         }
-        
-        uni.showToast({
-          title: '保存成功',
-          icon: 'success'
-        })
       } catch (error) {
         console.error('保存入校须知失败:', error)
         uni.showToast({
-          title: '保存失败，请重试',
+          title: '网络错误',
           icon: 'none'
         })
       }
@@ -364,6 +399,27 @@ export default {
   color: #333;
 }
 
+/* 标题样式 */
+.page-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.panel-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.notice-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
 /* 按钮样式 */
 .btn-primary {
   background: #1c4e80;
@@ -403,13 +459,13 @@ export default {
   opacity: 0.7;
 }
 
-.announcement-content h3 {
+.announcement-title {
   margin: 0 0 16rpx 0;
   font-size: 30rpx;
   color: #333;
 }
 
-.announcement-content p {
+.announcement-text {
   margin: 0 0 24rpx 0;
   color: #666;
   font-size: 26rpx;

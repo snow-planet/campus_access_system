@@ -1,8 +1,8 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
-const api_auth = require("./api/auth.js");
-const api_users = require("./api/users.js");
-const api_groupReservations = require("./api/groupReservations.js");
+const api_uniWechatAuth = require("./api/uniWechatAuth.js");
+const api_uniUsers = require("./api/uniUsers.js");
+const api_uniGroupReservations = require("./api/uniGroupReservations.js");
 const api_uniNotifications = require("./api/uniNotifications.js");
 const common_assets = require("./common/assets.js");
 const _sfc_main = {
@@ -118,7 +118,7 @@ const _sfc_main = {
               phone: ((_b = this.formData) == null ? void 0 : _b.contactPhone) || "未填写",
               real_name: ((_c = this.formData) == null ? void 0 : _c.contactName) || "微信用户"
             };
-            const res = await api_auth.wechatLogin(payload);
+            const res = await api_uniWechatAuth.wechatLogin(payload);
             const body = (res == null ? void 0 : res.data) || res;
             const user = (body == null ? void 0 : body.data) || body;
             const userId = user == null ? void 0 : user.user_id;
@@ -179,13 +179,12 @@ const _sfc_main = {
         }
       }).catch((err) => {
         console.error("加载入校须知失败:", err);
-        this.noticeContent = "1. 请提前至少3个工作日进行团队预约申请\n2. 团队负责人需提供所有成员名单及身份证信息\n3. 入校时所有成员需携带有效身份证件以备查验\n4. 请按照预约时间段集体入校，不得分散进入\n5. 团队车辆请停放在指定停车场，不得随意停放\n6. 入校后请遵守校园管理规定，保持集体行动\n7. 团队活动不得影响正常教学秩序\n8. 如行程有变，请及时取消或修改预约\n9. 严禁携带违禁物品入校\n10. 活动结束后请及时离校，保持环境整洁\n11. 团队负责人需对成员行为负责\n12. 如有任何问题，请及时与审批人或保卫处联系";
       });
     },
     // 加载审批人列表（真实接口）
     loadApprovers() {
       common_vendor.index.showLoading({ title: "加载审批人" });
-      api_users.fetchApprovers().then((res) => {
+      api_uniUsers.fetchApprovers().then((res) => {
         const body = (res == null ? void 0 : res.data) || res;
         const list = (body == null ? void 0 : body.data) || body || [];
         this.approvers = (Array.isArray(list) ? list : []).map((u) => ({
@@ -286,7 +285,7 @@ const _sfc_main = {
         approver_id: this.formData.approverId
       };
       common_vendor.index.showLoading({ title: "提交中..." });
-      api_groupReservations.createGroupReservation(payload).then((res) => {
+      api_uniGroupReservations.createGroupReservation(payload).then((res) => {
         const body = (res == null ? void 0 : res.data) || res;
         if ((body == null ? void 0 : body.code) && body.code !== 0) {
           throw new Error((body == null ? void 0 : body.message) || "提交失败");
@@ -316,10 +315,6 @@ const _sfc_main = {
     });
   }
 };
-if (!Array) {
-  const _component_uni_icons = common_vendor.resolveComponent("uni-icons");
-  _component_uni_icons();
-}
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $data.showNoticeModal
@@ -341,68 +336,48 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     m: !$data.showNoticeModal
   }, !$data.showNoticeModal ? common_vendor.e({
     n: common_vendor.t($data.formData.purpose || "请选择来访事由"),
-    o: common_vendor.p({
-      type: "arrowdown",
-      size: "16",
-      color: "#999"
-    }),
-    p: common_vendor.o((...args) => $options.onPurposeChange && $options.onPurposeChange(...args)),
-    q: $data.purposeIndex,
-    r: $data.purposeOptions,
-    s: $data.formData.visitorCount,
-    t: common_vendor.o(($event) => $data.formData.visitorCount = $event.detail.value),
-    v: $data.formData.contactName,
-    w: common_vendor.o(($event) => $data.formData.contactName = $event.detail.value),
-    x: $data.formData.contactPhone,
-    y: common_vendor.o(($event) => $data.formData.contactPhone = $event.detail.value),
-    z: !$data.isWechatLoggedIn
+    o: common_vendor.o((...args) => $options.onPurposeChange && $options.onPurposeChange(...args)),
+    p: $data.purposeIndex,
+    q: $data.purposeOptions,
+    r: $data.formData.visitorCount,
+    s: common_vendor.o(($event) => $data.formData.visitorCount = $event.detail.value),
+    t: $data.formData.contactName,
+    v: common_vendor.o(($event) => $data.formData.contactName = $event.detail.value),
+    w: $data.formData.contactPhone,
+    x: common_vendor.o(($event) => $data.formData.contactPhone = $event.detail.value),
+    y: !$data.isWechatLoggedIn
   }, !$data.isWechatLoggedIn ? common_vendor.e({
-    A: $data.authLoading
+    z: $data.authLoading
   }, $data.authLoading ? {} : {}, {
-    B: common_vendor.o((...args) => $options.handleWechatAuth && $options.handleWechatAuth(...args)),
-    C: $data.authLoading
+    A: common_vendor.o((...args) => $options.handleWechatAuth && $options.handleWechatAuth(...args)),
+    B: $data.authLoading
   }) : {}, {
-    D: common_vendor.t($data.formData.visitDate || "请选择日期"),
-    E: common_vendor.p({
-      type: "arrowdown",
-      size: "16",
-      color: "#999"
-    }),
-    F: $data.formData.visitDate,
-    G: $data.minDate,
-    H: common_vendor.o((...args) => $options.onDateChange && $options.onDateChange(...args)),
-    I: $data.formData.entryTime,
-    J: common_vendor.o(($event) => $data.formData.entryTime = $event.detail.value),
-    K: $data.formData.exitTime,
-    L: common_vendor.o(($event) => $data.formData.exitTime = $event.detail.value),
-    M: !$data.formData.entryTime && !$data.formData.exitTime
+    C: common_vendor.t($data.formData.visitDate || "请选择日期"),
+    D: $data.formData.visitDate,
+    E: $data.minDate,
+    F: common_vendor.o((...args) => $options.onDateChange && $options.onDateChange(...args)),
+    G: $data.formData.entryTime,
+    H: common_vendor.o(($event) => $data.formData.entryTime = $event.detail.value),
+    I: $data.formData.exitTime,
+    J: common_vendor.o(($event) => $data.formData.exitTime = $event.detail.value),
+    K: !$data.formData.entryTime && !$data.formData.exitTime
   }, !$data.formData.entryTime && !$data.formData.exitTime ? {} : {}, {
-    N: $data.formData.gate === "北门",
-    O: common_vendor.o((...args) => $options.onGateChange && $options.onGateChange(...args)),
-    P: $data.formData.carNumber,
-    Q: common_vendor.o(($event) => $data.formData.carNumber = $event.detail.value),
-    R: common_vendor.t($options.selectedApprover || "请选择审批人"),
-    S: common_vendor.p({
-      type: "arrowdown",
-      size: "16",
-      color: "#999"
-    }),
-    T: common_vendor.o((...args) => $options.onApproverChange && $options.onApproverChange(...args)),
-    U: $data.approverIndex,
-    V: $data.approvers,
-    W: common_vendor.o((...args) => $options.resetForm && $options.resetForm(...args)),
-    X: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args))
+    L: $data.formData.gate === "北门",
+    M: common_vendor.o((...args) => $options.onGateChange && $options.onGateChange(...args)),
+    N: $data.formData.carNumber,
+    O: common_vendor.o(($event) => $data.formData.carNumber = $event.detail.value),
+    P: common_vendor.t($options.selectedApprover || "请选择审批人"),
+    Q: common_vendor.o((...args) => $options.onApproverChange && $options.onApproverChange(...args)),
+    R: $data.approverIndex,
+    S: $data.approvers,
+    T: common_vendor.o((...args) => $options.resetForm && $options.resetForm(...args)),
+    U: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args))
   }) : {}, {
-    Y: $data.showQrcodeModal
+    V: $data.showQrcodeModal
   }, $data.showQrcodeModal ? {
-    Z: common_vendor.p({
-      type: "closeempty",
-      size: "24",
-      color: "#fff"
-    }),
-    aa: common_vendor.o((...args) => $options.closeQrcodeModal && $options.closeQrcodeModal(...args)),
-    ab: common_assets._imports_0$1,
-    ac: common_vendor.o((...args) => $options.closeQrcodeModal && $options.closeQrcodeModal(...args))
+    W: common_vendor.o((...args) => $options.closeQrcodeModal && $options.closeQrcodeModal(...args)),
+    X: common_assets._imports_0,
+    Y: common_vendor.o((...args) => $options.closeQrcodeModal && $options.closeQrcodeModal(...args))
   } : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-afedccba"]]);

@@ -44,6 +44,25 @@
   color: #333;
 }
 
+/* 标题样式 */
+.page-title.data-v-38f6fdde {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+.panel-title.data-v-38f6fdde {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+.notice-title.data-v-38f6fdde {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
 /* 按钮样式 */
 .btn-primary.data-v-38f6fdde {
   background: #1c4e80;
@@ -79,12 +98,12 @@
   background: #fafafa;
   opacity: 0.7;
 }
-.announcement-content h3.data-v-38f6fdde {
+.announcement-title.data-v-38f6fdde {
   margin: 0 0 16rpx 0;
   font-size: 30rpx;
   color: #333;
 }
-.announcement-content p.data-v-38f6fdde {
+.announcement-text.data-v-38f6fdde {
   margin: 0 0 24rpx 0;
   color: #666;
   font-size: 26rpx;

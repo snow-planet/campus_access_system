@@ -49,7 +49,7 @@
 					<picker @change="onPurposeChange" :value="purposeIndex" :range="purposeOptions" range-key="name">
 						<view class="picker-input">
 							<text>{{ formData.purpose || '请选择来访事由' }}</text>
-							<uni-icons type="arrowdown" size="16" color="#999" class="picker-arrow"></uni-icons>
+							<text class="picker-arrow">▼</text>
 						</view>
 					</picker>
 				</view>
@@ -96,7 +96,7 @@
 						<picker mode="date" :value="formData.visitDate" :start="minDate" @change="onDateChange">
 							<view class="picker-input">
 								<text>{{ formData.visitDate || '请选择日期' }}</text>
-								<uni-icons type="arrowdown" size="16" color="#999" class="picker-arrow"></uni-icons>
+								<text class="picker-arrow">▼</text>
 							</view>
 						</picker>
 					</view>
@@ -146,7 +146,7 @@
 					<picker @change="onApproverChange" :value="approverIndex" :range="approvers" range-key="name" :disabled="approvers.length === 0">
 						<view class="picker-input" :class="{ disabled: approvers.length === 0 }">
 							<text>{{ approvers.length === 0 ? '加载审批人中...' : (selectedApprover || '请选择审批人') }}</text>
-							<uni-icons type="arrowdown" size="16" color="#999" class="picker-arrow"></uni-icons>
+							<text class="picker-arrow">▼</text>
 						</view>
 					</picker>
 				</view>
@@ -164,7 +164,7 @@
 				<view class="modal-header">
 					<text class="modal-title">关注公众号</text>
 					<view class="close-btn" @tap="closeQrcodeModal">
-						<uni-icons type="closeempty" size="24" color="#fff"></uni-icons>
+						<text style="color: #fff; font-size: 24px;">×</text>
 					</view>
 				</view>
 				<view class="qrcode-content">
@@ -184,9 +184,9 @@
 </template>
 
 <script>
-import { wechatLogin } from '../../api/auth.js'
-import { fetchApprovers } from '../../api/users.js'
-import { createIndividualReservation } from '../../api/reservations.js'
+import { wechatLogin } from '../../api/uniWechatAuth.js'
+import { fetchApprovers } from '../../api/uniUsers.js'
+import { createIndividualReservation } from '../../api/uniReservations.js'
 import { fetchNotice } from '../../api/uniNotifications.js'
 
 export default {
@@ -375,8 +375,7 @@ export default {
 				})
 				.catch((err) => {
 					console.error('加载入校须知失败:', err)
-					// 使用默认内容
-					this.noticeContent = '1. 请提前至少1个工作日进行预约申请\n2. 入校时请携带有效身份证件以备查验\n3. 请按照预约时间段入校，不得提前或超时\n4. 车辆请停放在指定停车场，不得随意停放\n5. 入校后请遵守校园管理规定，不得进入非申请区域\n6. 如有随行人员，请在事由中说明并确保其携带身份证件\n7. 如行程有变，请及时取消或修改预约\n8. 严禁携带违禁物品入校\n9. 入校期间请保持环境整洁，不得乱扔垃圾\n10. 如有任何问题，请及时与审批人或保卫处联系'
+					// 使用默认内容（与上面相同）
 				})
 		},
 

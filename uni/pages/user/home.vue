@@ -86,7 +86,7 @@ import { ref, unref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PersonalForm from './form.vue'
 import GroupForm from './group.vue'
-import { fetchHomepageAnnouncements } from '../../api/notifications.js'
+import { fetchHomepageAnnouncements } from '../../api/uniNotifications.js'
 
 const activeTab = ref('notice')
 const announcements = ref([])
@@ -107,8 +107,8 @@ const viewAnnouncement = (item) => {
 const loadAnnouncements = async () => {
 	try {
 		const res = await fetchHomepageAnnouncements()
-		if (res && res.code === 0 && Array.isArray(res.data)) {
-			announcements.value = res.data.map(n => ({
+		if (res && res.code === 0 && res.data && Array.isArray(res.data.announcements)) {
+			announcements.value = res.data.announcements.map(n => ({
 				notification_id: n.notification_id,
 				type: n.title || '系统公告',
 				content: n.content,

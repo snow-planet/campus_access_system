@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize'
-import { sequelize } from '../utils/db.js'
+import { sequelize } from '../config/database.js'
+import { User } from './User.js'
 
 export const IndividualReservation = sequelize.define('IndividualReservation', {
   reservation_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
@@ -17,4 +18,15 @@ export const IndividualReservation = sequelize.define('IndividualReservation', {
 }, {
   tableName: 'individual_reservations',
   timestamps: false,
+})
+
+// 定义关联关系
+IndividualReservation.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user'
+})
+
+IndividualReservation.belongsTo(User, {
+  foreignKey: 'approver_id',
+  as: 'approver'
 })

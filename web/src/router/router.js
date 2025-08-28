@@ -24,13 +24,13 @@ const routes = [
   },
   {
     path: '/admin/home',
-    name: 'AdminHome',
-    component: AdminHome
-  },
-  {
-    path: '/admin/approval',
     name: 'AdminApproval',
     component: AdminApproval
+  },
+  {
+    path: '/admin/adminhome',
+    name: 'AdminHome',
+    component: AdminHome
   },
   {
     path: '/admin/screen',

@@ -176,6 +176,7 @@ import {
   LeftOutlined,
   RightOutlined
 } from '@ant-design/icons-vue';
+import { getAuditReservations, getAuditStats, auditAction } from '../../api/webAdmin'
 
 // 筛选条件 - 默认只显示今日已通过审批的信息
 const filters = ref({
@@ -233,121 +234,49 @@ const formatTime = (timeString) => {
 };
 
 // 加载统计数据
-const loadStats = () => {
-  // 模拟数据
-  stats.value = {
-    todayReservations: 24,
-    totalVisitors: 156
-  };
+const loadStats = async () => {
+  try {
+    const res = await getAuditStats()
+    if (res && res._status === 'OK') {
+      stats.value = {
+        todayReservations: res.data.todayReservations || 0,
+        totalVisitors: res.data.totalVisitors || 0
+      }
+    }
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+    stats.value = {
+      todayReservations: 0,
+      totalVisitors: 0
+    }
+  }
 };
 
 // 加载预约数据
-const loadReservations = () => {
-  // 模拟数据
-  const allReservations = [
-    {
-      reservation_id: 1001,
-      user_id: 101,
-      user_name: '张三',
-      type: 'individual',
-      purpose: '参加学术讲座',
-      visit_date: getTodayDate(),
-      entry_time: '14:00:00',
-      exit_time: '16:00:00',
-      gate: '北门',
-      license_plate: '京A12345',
-      approver_id: 1,
-      approver_name: '李老师',
-      status: 'approved',
-      created_at: '2023-10-15 09:30:00',
-      updated_at: '2023-10-15 10:15:00'
-    },
-    {
-      reservation_id: 1002,
-      user_id: 102,
-      user_name: '计算机科学协会',
-      type: 'group',
-      purpose: '举办技术沙龙活动',
-      visitor_count: 25,
-      contact_name: '李四',
-      contact_phone: '13800138000',
-      visit_date: '2023-10-18',
-      entry_time: '13:00:00',
-      exit_time: '17:00:00',
-      gate: '东门',
-      license_plate: '京B67890',
-      approver_id: null,
-      approver_name: null,
-      status: 'pending',
-      created_at: '2023-10-15 11:05:00',
-      updated_at: '2023-10-15 11:05:00'
-    },
-    {
-      reservation_id: 1003,
-      user_id: 103,
-      user_name: '王五',
-      type: 'individual',
-      purpose: '办理学生事务',
-      visit_date: '2023-10-17',
-      entry_time: '09:00:00',
-      exit_time: '12:00:00',
-      gate: '北门',
-      license_plate: '',
-      approver_id: 1,
-      approver_name: '李老师',
-      status: 'completed',
-      created_at: '2023-10-14 15:20:00',
-      updated_at: '2023-10-17 12:30:00'
-    },
-    {
-      reservation_id: 1004,
-      user_id: 104,
-      user_name: '外语学院',
-      type: 'group',
-      purpose: '举办外语角活动',
-      visitor_count: 30,
-      contact_name: '赵六',
-      contact_phone: '13900139000',
-      visit_date: getTodayDate(),
-      entry_time: '08:30:00',
-      exit_time: '11:30:00',
-      gate: '北门',
-      license_plate: '京C54321',
-      approver_id: 2,
-      approver_name: '王老师',
-      status: 'approved',
-      created_at: '2023-10-15 14:20:00',
-      updated_at: '2023-10-15 16:45:00'
-    },
-    {
-      reservation_id: 1005,
-      user_id: 105,
-      user_name: '钱七',
-      type: 'individual',
-      purpose: '实验室工作',
-      visit_date: getTodayDate(),
-      entry_time: '08:00:00',
-      exit_time: '18:00:00',
-      gate: '东门',
-      license_plate: '京D09876',
-      approver_id: 1,
-      approver_name: '李老师',
-      status: 'approved',
-      created_at: '2023-10-16 10:30:00',
-      updated_at: '2023-10-16 10:30:00'
+const loadReservations = async () => {
+  try {
+    const params = {
+      type: filters.value.type,
+      status: filters.value.status,
+      date: filters.value.date,
+      gate: filters.value.gate,
+      page: currentPage.value,
+      pageSize
     }
-  ];
-  
-  // 根据筛选条件过滤
-  reservations.value = allReservations.filter(res => {
-    if (filters.value.type !== 'all' && res.type !== filters.value.type) return false;
-    if (filters.value.status !== 'all' && res.status !== filters.value.status) return false;
-    if (filters.value.date && res.visit_date !== filters.value.date) return false;
-    if (filters.value.gate !== 'all' && res.gate !== filters.value.gate) return false;
-    return true;
-  });
-  
-  totalItems.value = reservations.value.length;
+    
+    const res = await getAuditReservations(params)
+    if (res && res._status === 'OK') {
+      reservations.value = res.data.reservations || []
+      totalItems.value = res.data.total || 0
+    } else {
+      reservations.value = []
+      totalItems.value = 0
+    }
+  } catch (error) {
+    console.error('加载预约数据失败:', error)
+    reservations.value = []
+    totalItems.value = 0
+  }
 };
 
 // 重置筛选条件
@@ -368,18 +297,61 @@ const viewDetails = (reservation) => {
 };
 
 // 通过审批
-const approveReservation = (reservation) => {
+const approveReservation = async (reservation) => {
   if (confirm('确定要通过该预约申请吗？')) {
-    console.log('通过审批:', reservation);
-    alert('已通过审批');
+    try {
+      // 获取当前用户ID
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+      const approverId = currentUser.user_id || 1
+      
+      const res = await auditAction({
+        reservation_id: reservation.reservation_id,
+        reservation_type: reservation.type,
+        action: 'approve',
+        approver_id: approverId,
+        comments: '管理员审批通过'
+      })
+      
+      if (res && res._status === 'OK') {
+        alert('已通过审批')
+        loadReservations() // 重新加载数据
+      } else {
+        alert('审批失败：' + (res._error?.meta || '未知错误'))
+      }
+    } catch (error) {
+      console.error('审批操作失败:', error)
+      alert('审批失败，请稍后重试')
+    }
   }
 };
 
 // 驳回申请
-const rejectReservation = (reservation) => {
-  if (confirm('确定要驳回该预约申请吗？')) {
-    console.log('驳回申请:', reservation);
-    alert('已驳回申请');
+const rejectReservation = async (reservation) => {
+  const reason = prompt('请输入驳回原因：')
+  if (reason && confirm('确定要驳回该预约申请吗？')) {
+    try {
+      // 获取当前用户ID
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+      const approverId = currentUser.user_id || 1
+      
+      const res = await auditAction({
+        reservation_id: reservation.reservation_id,
+        reservation_type: reservation.type,
+        action: 'reject',
+        approver_id: approverId,
+        comments: reason
+      })
+      
+      if (res && res._status === 'OK') {
+        alert('已驳回申请')
+        loadReservations() // 重新加载数据
+      } else {
+        alert('驳回失败：' + (res._error?.meta || '未知错误'))
+      }
+    } catch (error) {
+      console.error('驳回操作失败:', error)
+      alert('驳回失败，请稍后重试')
+    }
   }
 };
 
@@ -413,8 +385,9 @@ onMounted(() => {
 
 <style scoped>
 .audit-management {
-  padding: 0 20px 0 20px;
+  padding: 20px;
   background: linear-gradient(#c7e9f4 0%, #446daa, #1c4e80);
+  min-height: 100vh;
 }
 
 /* 筛选模块 */

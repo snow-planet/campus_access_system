@@ -6,15 +6,15 @@
         <text class="screen-title">校园出入预约数据看板</text>
         <view class="current-time">{{ currentTime }}</view>
       </view>
-      <view class="back-button" @click="goBack">
+      <view class="back-button" @tap="goBack">
         <text class="back-icon">←</text>
         <text class="back-text">返回</text>
       </view>
     </view>
 
-    <!-- 数据概览区域 - 修改后的布局 -->
+    <!-- 数据概览区域 -->
     <view class="data-overview">
-      <!-- 左侧上下排列的卡片 -->
+      <!-- 左侧统计卡片 -->
       <view class="left-cards">
         <view class="stat-card main-card">
           <view class="stat-number">{{ todayStats.total }}</view>
@@ -24,49 +24,69 @@
           <view class="stat-number">{{ todayStats.people }}</view>
           <view class="stat-label">预约人次</view>
         </view>
+        <view class="stat-card main-card">
+          <view class="stat-number">{{ todayStats.vehicles }}</view>
+          <view class="stat-label">今日车流量</view>
+        </view>
       </view>
 
       <!-- 右侧仪表盘区域 -->
       <view class="right-gauges">
         <view class="gauge-container">
-          <view class="gauge-chart" ref="pendingGauge"></view>
+          <canvas 
+            canvas-id="pendingGauge" 
+            class="gauge-chart" 
+            @touchstart="handleCanvasTouch"
+          ></canvas>
           <view class="gauge-label">待入校: {{ todayStats.pending }}</view>
         </view>
         <view class="gauge-container">
-          <view class="gauge-chart" ref="enteredGauge"></view>
+          <canvas 
+            canvas-id="enteredGauge" 
+            class="gauge-chart" 
+            @touchstart="handleCanvasTouch"
+          ></canvas>
           <view class="gauge-label">已入校: {{ todayStats.entered }}</view>
         </view>
       </view>
     </view>
 
-    <!-- 图表区域 - 修改为上下排列 -->
+    <!-- 图表区域 -->
     <view class="charts-section">
       <view class="chart-panel">
         <view class="chart-header">
           <text class="chart-title">今日人流量统计 (24小时)</text>
         </view>
-        <view class="chart-container" ref="todayChart"></view>
+        <canvas 
+          canvas-id="todayChart" 
+          class="chart-container" 
+          @touchstart="handleCanvasTouch"
+        ></canvas>
       </view>
 
       <view class="chart-panel">
         <view class="chart-header">
           <text class="chart-title">本周人流量统计</text>
         </view>
-        <view class="chart-container" ref="weekChart"></view>
+        <canvas 
+          canvas-id="weekChart" 
+          class="chart-container" 
+          @touchstart="handleCanvasTouch"
+        ></canvas>
       </view>
     </view>
 
     <!-- 今日预约记录 -->
     <view class="records-section">
       <view class="records-header">
-        <text class="section-title">今日预约记录</text>
-        <button class="refresh-btn" @click="refreshData">
+        <text class="section-title">今日待入校预约</text>
+        <button class="refresh-btn" @tap="refreshData">
           <text class="refresh-icon">↻</text>
           <text>刷新</text>
         </button>
       </view>
       
-      <view class="records-list">
+      <scroll-view class="records-list" scroll-y="true">
         <view v-for="(item, index) in todayRecords" :key="index" class="record-item">
           <view class="item-main">
             <text class="applicant-name">{{ item.applicant }}</text>
@@ -77,472 +97,388 @@
             <text class="record-time">{{ item.time }}</text>
           </view>
         </view>
-      </view>
+        <view v-if="todayRecords.length === 0" class="empty-records">
+          <text class="empty-text">暂无待入校预约</text>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </template>
 
-<script>
-import { ref, onMounted, onUnmounted } from 'vue';
-import * as echarts from 'echarts';
+<script setup>
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { 
+  getDashboardStats, 
+  getHourlyTraffic, 
+  getWeeklyTraffic, 
+  getTodayReservations 
+} from '../../api/uniDashboard.js'
 
-export default {
-  name: 'DashboardScreen',
-  setup() {
-    const currentTime = ref('');
-    const todayChart = ref(null);
-    const weekChart = ref(null);
-    const pendingGauge = ref(null);
-    const enteredGauge = ref(null);
-    let todayChartInstance = null;
-    let weekChartInstance = null;
-    let pendingGaugeInstance = null;
-    let enteredGaugeInstance = null;
-    let timeInterval = null;
+// 响应式数据
+const currentTime = ref('')
+let timeInterval = null
 
-    // 模拟数据
-    const todayStats = ref({
-      total: 128,
-      people: 210,
-      pending: 42,
-      entered: 76
-    });
+// 今日统计数据
+const todayStats = ref({
+  total: 0,
+  people: 0,
+  pending: 0,
+  entered: 0,
+  vehicles: 0
+})
 
-    const todayRecords = ref([
-      {
-        applicant: '张三',
-        type: '个人',
-        reason: '参加学术讲座',
-        time: '14:00 - 16:00'
-      },
-      {
-        applicant: '李四',
-        type: '访客',
-        reason: '拜访教授',
-        time: '09:30 - 11:00'
-      },
-      {
-        applicant: '王五',
-        type: '公务',
-        reason: '部门会议',
-        time: '13:00 - 17:00'
-      },
-      {
-        applicant: '赵六',
-        type: '个人',
-        reason: '图书馆借阅',
-        time: '10:00 - 12:00'
-      },
-      {
-        applicant: '钱七',
-        type: '供应商',
-        reason: '设备维修',
-        time: '14:30 - 16:30'
-      }
-    ]);
+// 今日预约记录
+const todayRecords = ref([])
 
-    const updateTime = () => {
-      const now = new Date();
-      currentTime.value = now.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
-    };
+// 图表数据
+const chartData = ref({
+  hourly: [],
+  weekly: []
+})
 
-    const goBack = () => {
-      uni.navigateBack();
-    };
+// Canvas上下文
+let canvasContexts = {}
 
-    const refreshData = () => {
-      // 模拟刷新数据
+// 更新时间
+const updateTime = () => {
+  const now = new Date()
+  currentTime.value = now.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
+// 返回上一页
+const goBack = () => {
+  uni.navigateBack()
+}
+
+// 处理Canvas触摸事件
+const handleCanvasTouch = (e) => {
+  // 可以在这里添加图表交互逻辑
+  console.log('Canvas touched:', e)
+}
+
+// 加载统计数据
+const loadDashboardStats = async () => {
+  try {
+    const result = await getDashboardStats()
+    if (result && result.code === 0) {
+      const data = result.data
       todayStats.value = {
-        total: Math.floor(Math.random() * 50) + 100,
-        people: Math.floor(Math.random() * 100) + 150,
-        pending: Math.floor(Math.random() * 30) + 20,
-        entered: Math.floor(Math.random() * 50) + 50
-      };
+        total: data.todayApproved || 0,
+        people: data.todayPeople || 0,
+        pending: data.todayPending || 0,
+        entered: data.todayCompleted || 0,
+        vehicles: data.todayVehicles || 0
+      }
       
       // 更新仪表盘
-      if (pendingGaugeInstance) {
-        pendingGaugeInstance.setOption({
-          series: [{
-            data: [{
-              value: todayStats.value.pending,
-              name: '待入校'
-            }]
-          }]
-        });
-      }
-      
-      if (enteredGaugeInstance) {
-        enteredGaugeInstance.setOption({
-          series: [{
-            data: [{
-              value: todayStats.value.entered,
-              name: '已入校'
-            }]
-          }]
-        });
-      }
-      
-      alert('数据已刷新');
-    };
-
-    const initCharts = () => {
-      // 今日数据
-      const todayData = {
-        categories: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'],
-        series: [
-          {
-            name: '预约数',
-            data: [12, 8, 15, 25, 45, 68, 82, 95, 78, 65, 42, 28]
-          },
-          {
-            name: '预约人次',
-            data: [18, 12, 22, 38, 68, 102, 125, 142, 118, 98, 65, 42]
-          }
-        ]
-      };
-
-      // 周数据
-      const weekData = {
-        categories: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-        series: [
-          {
-            name: '预约数',
-            data: [320, 280, 350, 420, 480, 380, 290]
-          },
-          {
-            name: '预约人次',
-            data: [485, 425, 528, 635, 725, 575, 438]
-          }
-        ]
-      };
-
-      // 初始化今日图表
-      if (todayChart.value) {
-        todayChartInstance = echarts.init(todayChart.value);
-        todayChartInstance.setOption({
-          grid: {
-            left: '10%',
-            right: '10%',
-            top: '15%',
-            bottom: '15%'
-          },
-          xAxis: {
-            type: 'category',
-            data: todayData.categories,
-            axisLine: {
-              lineStyle: {
-                color: 'rgba(0, 212, 255, 0.5)'
-              }
-            },
-            axisLabel: {
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: 8
-            }
-          },
-          yAxis: {
-            type: 'value',
-            axisLine: {
-              lineStyle: {
-                color: 'rgba(0, 212, 255, 0.5)'
-              }
-            },
-            axisLabel: {
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: 8
-            },
-            splitLine: {
-              lineStyle: {
-                color: 'rgba(0, 212, 255, 0.2)'
-              }
-            }
-          },
-          series: [
-            {
-              name: '预约数',
-              type: 'line',
-              data: todayData.series[0].data,
-              smooth: true,
-              lineStyle: {
-                color: 'rgba(0, 100, 200, 0.8)',
-                width: 2
-              },
-              itemStyle: {
-                color: 'rgba(0, 100, 200, 0.9)'
-              }
-            },
-            {
-              name: '预约人次',
-              type: 'line',
-              data: todayData.series[1].data,
-              smooth: true,
-              lineStyle: {
-                color: '#00ff88',
-                width: 2
-              },
-              itemStyle: {
-                color: '#00ff88'
-              }
-            }
-          ],
-          tooltip: {
-            trigger: 'axis',
-            backgroundColor: 'rgba(0, 30, 60, 0.9)',
-            textStyle: {
-              color: '#fff',
-              fontSize: 10
-            }
-          }
-        });
-      }
-
-      // 初始化周图表
-      if (weekChart.value) {
-        weekChartInstance = echarts.init(weekChart.value);
-        weekChartInstance.setOption({
-          grid: {
-            left: '10%',
-            right: '10%',
-            top: '15%',
-            bottom: '15%'
-          },
-          xAxis: {
-            type: 'category',
-            data: weekData.categories,
-            axisLine: {
-              lineStyle: {
-                color: 'rgba(0, 212, 255, 0.5)'
-              }
-            },
-            axisLabel: {
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: 8
-            }
-          },
-          yAxis: {
-            type: 'value',
-            axisLine: {
-              lineStyle: {
-                color: 'rgba(0, 212, 255, 0.5)'
-              }
-            },
-            axisLabel: {
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: 8
-            },
-            splitLine: {
-              lineStyle: {
-                color: 'rgba(0, 212, 255, 0.2)'
-              }
-            }
-          },
-          series: [
-            {
-              name: '预约数',
-              type: 'line',
-              data: weekData.series[0].data,
-              smooth: true,
-              lineStyle: {
-                color: 'rgba(0, 100, 200, 0.8)',
-                width: 2
-              },
-              itemStyle: {
-                color: 'rgba(0, 100, 200, 0.9)'
-              }
-            },
-            {
-              name: '预约人次',
-              type: 'line',
-              data: weekData.series[1].data,
-              smooth: true,
-              lineStyle: {
-                color: '#00ff88',
-                width: 2
-              },
-              itemStyle: {
-                color: '#00ff88'
-              }
-            }
-          ],
-          tooltip: {
-            trigger: 'axis',
-            backgroundColor: 'rgba(0, 30, 60, 0.9)',
-            textStyle: {
-              color: '#fff',
-              fontSize: 10
-            }
-          }
-        });
-      }
-
-      // 初始化仪表盘
-      if (pendingGauge.value && enteredGauge.value) {
-        // 待入校仪表盘
-        pendingGaugeInstance = echarts.init(pendingGauge.value);
-        pendingGaugeInstance.setOption({
-          series: [{
-            type: 'gauge',
-            radius: '100%',
-            center: ['50%', '60%'],
-            startAngle: 180,
-            endAngle: 0,
-            min: 0,
-            max: 100,
-            progress: {
-              show: true,
-              width: 10
-            },
-            axisLine: {
-              lineStyle: {
-                width: 10
-              }
-            },
-            axisTick: {
-              show: false
-            },
-            splitLine: {
-              show: false
-            },
-            axisLabel: {
-              show: false
-            },
-            pointer: {
-              show: false
-            },
-            detail: {
-              valueAnimation: true,
-              offsetCenter: [0, '0%'],
-              fontSize: 12,
-              fontWeight: 'normal',
-              formatter: '{value}',
-              color: '#fff'
-            },
-            data: [{
-              value: todayStats.value.pending,
-              name: '待入校'
-            }]
-          }]
-        });
-
-        // 已入校仪表盘
-        enteredGaugeInstance = echarts.init(enteredGauge.value);
-        enteredGaugeInstance.setOption({
-          series: [{
-            type: 'gauge',
-            radius: '100%',
-            center: ['50%', '60%'],
-            startAngle: 180,
-            endAngle: 0,
-            min: 0,
-            max: 100,
-            progress: {
-              show: true,
-              width: 10
-            },
-            axisLine: {
-              lineStyle: {
-                width: 10
-              }
-            },
-            axisTick: {
-              show: false
-            },
-            splitLine: {
-              show: false
-            },
-            axisLabel: {
-              show: false
-            },
-            pointer: {
-              show: false
-            },
-            detail: {
-              valueAnimation: true,
-              offsetCenter: [0, '0%'],
-              fontSize: 12,
-              fontWeight: 'normal',
-              formatter: '{value}',
-              color: '#fff'
-            },
-            data: [{
-              value: todayStats.value.entered,
-              name: '已入校'
-            }]
-          }]
-        });
-      }
-    };
-
-    onMounted(() => {
-      updateTime();
-      timeInterval = setInterval(updateTime, 1000);
-      
-      // 初始化图表
-      setTimeout(() => {
-        initCharts();
-      }, 100);
-
-      // 监听窗口大小变化，重新渲染图表
-      uni.onWindowResize(() => {
-        if (todayChartInstance) todayChartInstance.resize();
-        if (weekChartInstance) weekChartInstance.resize();
-        if (pendingGaugeInstance) pendingGaugeInstance.resize();
-        if (enteredGaugeInstance) enteredGaugeInstance.resize();
-      });
-    });
-
-    onUnmounted(() => {
-      if (timeInterval) {
-        clearInterval(timeInterval);
-      }
-      if (todayChartInstance) {
-        todayChartInstance.dispose();
-      }
-      if (weekChartInstance) {
-        weekChartInstance.dispose();
-      }
-      if (pendingGaugeInstance) {
-        pendingGaugeInstance.dispose();
-      }
-      if (enteredGaugeInstance) {
-        enteredGaugeInstance.dispose();
-      }
-    });
-
-    return {
-      currentTime,
-      todayStats,
-      todayRecords,
-      todayChart,
-      weekChart,
-      pendingGauge,
-      enteredGauge,
-      goBack,
-      refreshData
-    };
+      updateGauges()
+    }
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+    uni.showToast({
+      title: '加载统计数据失败',
+      icon: 'none'
+    })
   }
-};
+}
+
+// 加载今日预约记录（只显示审批通过但未完成的）
+const loadTodayReservations = async () => {
+  try {
+    const result = await getTodayReservations()
+    if (result && result.code === 0) {
+      // 过滤出审批通过但未完成的预约
+      const currentTime = new Date()
+      todayRecords.value = result.data
+        .filter(item => {
+          // 只显示状态为approved且预约时间未过的记录
+          if (item.status !== 'approved') return false
+          
+          // 检查预约时间是否未过
+          const reservationTime = new Date(item.reservation_date + ' ' + (item.time_slot || '00:00'))
+          return reservationTime > currentTime
+        })
+        .map(item => ({
+          applicant: item.applicant || '未知',
+          type: item.type === 'individual' ? '个人' : '团队',
+          reason: item.purpose || '未填写',
+          time: item.time_slot || '未设置'
+        }))
+    }
+  } catch (error) {
+    console.error('加载今日预约记录失败:', error)
+    uni.showToast({
+      title: '加载预约记录失败',
+      icon: 'none'
+    })
+  }
+}
+
+// 加载图表数据
+const loadChartData = async () => {
+  try {
+    // 加载小时流量数据
+    const hourlyResult = await getHourlyTraffic()
+    if (hourlyResult && hourlyResult.code === 0) {
+      chartData.value.hourly = hourlyResult.data
+      drawLineChart('todayChart', chartData.value.hourly, 'hourly')
+    }
+    
+    // 加载周流量数据
+    const weeklyResult = await getWeeklyTraffic()
+    if (weeklyResult && weeklyResult.code === 0) {
+      chartData.value.weekly = weeklyResult.data
+      drawLineChart('weekChart', chartData.value.weekly, 'weekly')
+    }
+  } catch (error) {
+    console.error('加载图表数据失败:', error)
+  }
+}
+
+// 绘制仪表盘
+const drawGauge = (canvasId, value, maxValue = 100, label) => {
+  const ctx = uni.createCanvasContext(canvasId)
+  const centerX = 75
+  const centerY = 75
+  const radius = 60
+  const startAngle = -Math.PI
+  const endAngle = 0
+  const currentAngle = startAngle + (endAngle - startAngle) * (value / maxValue)
+  
+  // 清除画布
+  ctx.clearRect(0, 0, 150, 150)
+  
+  // 绘制背景圆弧
+  ctx.beginPath()
+  ctx.arc(centerX, centerY, radius, startAngle, endAngle)
+  ctx.setStrokeStyle('#e0e0e0')
+  ctx.setLineWidth(8)
+  ctx.stroke()
+  
+  // 绘制进度圆弧
+  ctx.beginPath()
+  ctx.arc(centerX, centerY, radius, startAngle, currentAngle)
+  ctx.setStrokeStyle('#00d4ff')
+  ctx.setLineWidth(8)
+  ctx.setLineCap('round')
+  ctx.stroke()
+  
+  // 绘制中心数值
+  ctx.setFontSize(24)
+  ctx.setFillStyle('#00d4ff')
+  ctx.setTextAlign('center')
+  ctx.fillText(value.toString(), centerX, centerY + 5)
+  
+  // 绘制标签
+  ctx.setFontSize(14)
+  ctx.setFillStyle('#666')
+  ctx.fillText(label, centerX, centerY + 30)
+  
+  ctx.draw()
+}
+
+// 绘制折线图
+const drawLineChart = (canvasId, data, type) => {
+  const ctx = uni.createCanvasContext(canvasId)
+  const width = 280
+  const height = 120
+  const padding = 25
+  const chartWidth = width - 2 * padding
+  const chartHeight = height - 2 * padding
+  
+  // 清除画布
+  ctx.clearRect(0, 0, width, height)
+  
+  if (!data || data.length === 0) {
+    // 绘制无数据提示
+    ctx.setFontSize(16)
+    ctx.setFillStyle('#999')
+    ctx.setTextAlign('center')
+    ctx.fillText('暂无数据', width / 2, height / 2)
+    ctx.draw()
+    return
+  }
+  
+  // 准备数据
+  let labels, values
+  if (type === 'hourly') {
+    labels = data.map(item => item.hour + ':00')
+    values = data.map(item => item.reservations || 0)
+  } else {
+    labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    values = data.map(item => item.reservations || 0)
+  }
+  
+  const maxValue = Math.max(...values, 1)
+  const stepX = chartWidth / (labels.length - 1)
+  
+  // 绘制坐标轴
+  ctx.setStrokeStyle('#e0e0e0')
+  ctx.setLineWidth(1)
+  
+  // X轴
+  ctx.beginPath()
+  ctx.moveTo(padding, height - padding)
+  ctx.lineTo(width - padding, height - padding)
+  ctx.stroke()
+  
+  // Y轴
+  ctx.beginPath()
+  ctx.moveTo(padding, padding)
+  ctx.lineTo(padding, height - padding)
+  ctx.stroke()
+  
+  // 绘制标签
+  ctx.setFontSize(10)
+  ctx.setFillStyle('#666')
+  ctx.setTextAlign('center')
+  
+  labels.forEach((label, index) => {
+    const x = padding + index * stepX
+    ctx.fillText(label, x, height - 8)
+  })
+  
+  // 绘制折线
+  ctx.beginPath()
+  ctx.setStrokeStyle('#00d4ff')
+  ctx.setLineWidth(2)
+  
+  values.forEach((value, index) => {
+    const x = padding + index * stepX
+    const y = height - padding - (value / maxValue) * chartHeight
+    
+    if (index === 0) {
+      ctx.moveTo(x, y)
+    } else {
+      ctx.lineTo(x, y)
+    }
+  })
+  
+  ctx.stroke()
+  
+  // 绘制数据点
+  values.forEach((value, index) => {
+    const x = padding + index * stepX
+    const y = height - padding - (value / maxValue) * chartHeight
+    
+    ctx.beginPath()
+    ctx.arc(x, y, 3, 0, 2 * Math.PI)
+    ctx.setFillStyle('#00d4ff')
+    ctx.fill()
+  })
+  
+  ctx.draw()
+}
+
+// 更新仪表盘
+const updateGauges = () => {
+  drawGauge('pendingGauge', todayStats.value.pending, 100, '待入校')
+  drawGauge('enteredGauge', todayStats.value.entered, 100, '已入校')
+}
+
+// 初始化图表
+const initCharts = () => {
+  // 初始化仪表盘
+  updateGauges()
+  
+  // 初始化折线图（使用模拟数据）
+  const mockHourlyData = [
+    { hour: 8, reservations: 12 },
+    { hour: 10, reservations: 25 },
+    { hour: 12, reservations: 45 },
+    { hour: 14, reservations: 68 },
+    { hour: 16, reservations: 42 },
+    { hour: 18, reservations: 28 }
+  ]
+  
+  const mockWeeklyData = [
+    { reservations: 320 },
+    { reservations: 280 },
+    { reservations: 350 },
+    { reservations: 420 },
+    { reservations: 480 },
+    { reservations: 380 },
+    { reservations: 290 }
+  ]
+  
+  drawLineChart('todayChart', mockHourlyData, 'hourly')
+  drawLineChart('weekChart', mockWeeklyData, 'weekly')
+}
+
+// 刷新数据
+const refreshData = async () => {
+  uni.showLoading({ title: '刷新中...' })
+  try {
+    await Promise.all([
+      loadDashboardStats(),
+      loadTodayReservations(),
+      loadChartData()
+    ])
+    uni.showToast({
+      title: '数据已刷新',
+      icon: 'success'
+    })
+  } catch (error) {
+    uni.showToast({
+      title: '刷新失败',
+      icon: 'none'
+    })
+  } finally {
+    uni.hideLoading()
+  }
+}
+
+// 生命周期钩子
+onMounted(() => {
+  updateTime()
+  timeInterval = setInterval(updateTime, 1000)
+  
+  // 使用nextTick确保DOM完全渲染后再初始化图表
+  nextTick(() => {
+    setTimeout(() => {
+      try {
+        initCharts()
+        // 初始化加载数据
+        loadDashboardStats()
+        loadTodayReservations()
+        loadChartData()
+      } catch (error) {
+        console.error('图表初始化失败:', error)
+        uni.showToast({
+          title: '图表加载失败',
+          icon: 'none'
+        })
+      }
+    }, 300)
+  })
+})
+
+onUnmounted(() => {
+  if (timeInterval) {
+    clearInterval(timeInterval)
+  }
+})
 </script>
 
 <style scoped>
-/* 移除通配符选择器，小程序不支持 */
-
 .screen-container {
   width: 100vw;
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  padding: 8px;
+  padding: 16rpx;
   color: white;
   display: flex;
   flex-direction: column;
-  font-family: 'Microsoft YaHei', Arial, sans-serif;
-  overflow-x: hidden;
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* 顶部标题区域 */
@@ -550,38 +486,42 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
+  margin-bottom: 20rpx;
+  padding: 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16rpx;
+  backdrop-filter: blur(20rpx);
+  flex-shrink: 0;
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8rpx;
 }
 
 .screen-title {
-  font-size: 1.1rem;
+  font-size: 36rpx;
   font-weight: 700;
   color: white;
+  letter-spacing: 1rpx;
 }
 
 .current-time {
-  font-size: 0.8rem;
+  font-size: 24rpx;
   color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
 }
 
 .back-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: 8rpx;
+  padding: 16rpx 24rpx;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  font-size: 0.8rem;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.3s;
 }
@@ -590,44 +530,44 @@ export default {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* 数据概览区域 - 修改后的布局 */
+/* 数据概览区域 */
 .data-overview {
   display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
-  height: 150px;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  flex-shrink: 0;
 }
 
 .left-cards {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20rpx;
 }
 
 .right-gauges {
   flex: 1;
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 20rpx;
 }
 
 .stat-card {
-  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  padding: 10px;
-  backdrop-filter: blur(10px);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  backdrop-filter: blur(20rpx);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .stat-card.main-card {
   background: rgba(0, 50, 100, 0.9);
   border: 2px solid rgba(0, 212, 255, 0.6);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 20rpx rgba(0, 212, 255, 0.5);
 }
 
 .gauge-container {
@@ -637,65 +577,66 @@ export default {
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  padding: 8px;
-  backdrop-filter: blur(10px);
+  border-radius: 16rpx;
+  padding: 16rpx;
+  backdrop-filter: blur(20rpx);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .gauge-chart {
-  width: 100%;
-  height: 70%;
+  width: 150px;
+  height: 100px;
 }
 
 .gauge-label {
-  font-size: 0.7rem;
+  font-size: 28rpx;
   color: rgba(255, 255, 255, 0.9);
-  margin-top: 4px;
+  margin-top: 8rpx;
   text-align: center;
+  font-weight: 600;
 }
 
 .stat-number {
-  font-size: 1.4rem;
+  font-size: 48rpx;
   font-weight: 700;
   color: #00d4ff;
   display: block;
-  margin-bottom: 4px;
-  text-shadow: 0 0 6px rgba(0, 212, 255, 0.5);
+  margin-bottom: 8rpx;
+  text-shadow: 0 0 12rpx rgba(0, 212, 255, 0.5);
 }
 
 .stat-label {
-  font-size: 0.8rem;
+  font-size: 28rpx;
   color: rgba(255, 255, 255, 0.9);
   display: block;
+  font-weight: 600;
 }
 
-/* 图表区域 - 修改为上下排列 */
+/* 图表区域 */
 .charts-section {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  flex-shrink: 0;
 }
 
 .chart-panel {
   flex: 1;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px;
-  backdrop-filter: blur(10px);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  backdrop-filter: blur(20rpx);
   border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   flex-direction: column;
-  min-height: 180px;
 }
 
 .chart-header {
-  margin-bottom: 10px;
+  margin-bottom: 16rpx;
 }
 
 .chart-title {
-  font-size: 0.9rem;
+  font-size: 28rpx;
   font-weight: 600;
   color: white;
 }
@@ -703,30 +644,32 @@ export default {
 .chart-container {
   flex: 1;
   width: 100%;
-  min-height: 140px;
+  min-height: 120px;
 }
 
 /* 记录区域 */
 .records-section {
-  min-height: 160px;
+  flex: 1;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px;
-  backdrop-filter: blur(10px);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  backdrop-filter: blur(20rpx);
   border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .records-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 16rpx;
+  flex-shrink: 0;
 }
 
 .section-title {
-  font-size: 0.9rem;
+  font-size: 32rpx;
   font-weight: 600;
   color: white;
 }
@@ -734,13 +677,14 @@ export default {
 .refresh-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 0.7rem;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.3s;
 }
@@ -751,37 +695,37 @@ export default {
 
 .records-list {
   flex: 1;
-  overflow-y: auto;
-  max-height: 240px;
+  min-height: 0;
 }
 
 .record-item {
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 16rpx;
+  margin-bottom: 12rpx;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  border-left: 3px solid #00d4ff;
+  border-radius: 12rpx;
+  border-left: 6rpx solid #00d4ff;
 }
 
 .item-main {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 8rpx;
 }
 
 .applicant-name {
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 30rpx;
+  font-weight: 600;
   color: white;
 }
 
 .record-type {
-  font-size: 0.7rem;
-  padding: 2px 6px;
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
   background: rgba(0, 212, 255, 0.3);
   color: #00d4ff;
-  border-radius: 6px;
+  border-radius: 12rpx;
+  font-weight: 600;
 }
 
 .item-details {
@@ -791,31 +735,27 @@ export default {
 }
 
 .record-reason {
-  font-size: 0.75rem;
+  font-size: 26rpx;
   color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
 }
 
 .record-time {
-  font-size: 0.7rem;
+  font-size: 24rpx;
   color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
 }
 
-/* 滚动条样式 */
-.records-list::-webkit-scrollbar {
-  width: 4px;
+.empty-records {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200rpx;
 }
 
-.records-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-}
-
-.records-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 212, 255, 0.5);
-  border-radius: 2px;
-}
-
-.records-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 212, 255, 0.7);
+.empty-text {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
 }
 </style>

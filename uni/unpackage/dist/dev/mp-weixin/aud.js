@@ -1,9 +1,6 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
-if (!Array) {
-  const _component_uni_icons = common_vendor.resolveComponent("uni-icons");
-  _component_uni_icons();
-}
+const api_uniAdmin = require("./api/uniAdmin.js");
 const pageSize = 10;
 const _sfc_main = {
   __name: "aud",
@@ -70,118 +67,54 @@ const _sfc_main = {
     const formatTime = (timeString) => {
       return timeString.substring(0, 5);
     };
-    const loadStats = () => {
-      stats.value = {
-        todayReservations: 24,
-        totalVisitors: 156
-      };
-    };
-    const loadReservations = () => {
-      const allReservations = [
-        {
-          reservation_id: 1001,
-          user_id: 101,
-          user_name: "张三",
-          type: "individual",
-          purpose: "参加学术讲座",
-          visit_date: getTodayDate(),
-          entry_time: "14:00:00",
-          exit_time: "16:00:00",
-          gate: "北门",
-          license_plate: "京A12345",
-          approver_id: 1,
-          approver_name: "李老师",
-          status: "approved",
-          created_at: "2023-10-15 09:30:00",
-          updated_at: "2023-10-15 10:15:00"
-        },
-        {
-          reservation_id: 1002,
-          user_id: 102,
-          user_name: "计算机科学协会",
-          type: "group",
-          purpose: "举办技术沙龙活动",
-          visitor_count: 25,
-          contact_name: "李四",
-          contact_phone: "13800138000",
-          visit_date: "2023-10-18",
-          entry_time: "13:00:00",
-          exit_time: "17:00:00",
-          gate: "东门",
-          license_plate: "京B67890",
-          approver_id: null,
-          approver_name: null,
-          status: "pending",
-          created_at: "2023-10-15 11:05:00",
-          updated_at: "2023-10-15 11:05:00"
-        },
-        {
-          reservation_id: 1003,
-          user_id: 103,
-          user_name: "王五",
-          type: "individual",
-          purpose: "办理学生事务",
-          visit_date: "2023-10-17",
-          entry_time: "09:00:00",
-          exit_time: "12:00:00",
-          gate: "北门",
-          license_plate: "",
-          approver_id: 1,
-          approver_name: "李老师",
-          status: "completed",
-          created_at: "2023-10-14 15:20:00",
-          updated_at: "2023-10-17 12:30:00"
-        },
-        {
-          reservation_id: 1004,
-          user_id: 104,
-          user_name: "外语学院",
-          type: "group",
-          purpose: "举办外语角活动",
-          visitor_count: 30,
-          contact_name: "赵六",
-          contact_phone: "13900139000",
-          visit_date: getTodayDate(),
-          entry_time: "08:30:00",
-          exit_time: "11:30:00",
-          gate: "北门",
-          license_plate: "京C54321",
-          approver_id: 2,
-          approver_name: "王老师",
-          status: "approved",
-          created_at: "2023-10-15 14:20:00",
-          updated_at: "2023-10-15 16:45:00"
-        },
-        {
-          reservation_id: 1005,
-          user_id: 105,
-          user_name: "钱七",
-          type: "individual",
-          purpose: "实验室工作",
-          visit_date: getTodayDate(),
-          entry_time: "08:00:00",
-          exit_time: "18:00:00",
-          gate: "东门",
-          license_plate: "京D09876",
-          approver_id: 1,
-          approver_name: "李老师",
-          status: "approved",
-          created_at: "2023-10-16 10:30:00",
-          updated_at: "2023-10-16 10:30:00"
+    const loadStats = async () => {
+      try {
+        const res = await api_uniAdmin.getAuditStats();
+        if (res && res.code === 0) {
+          stats.value = {
+            todayReservations: res.data.todayReservations || 0,
+            totalVisitors: res.data.totalVisitors || 0
+          };
         }
-      ];
-      reservations.value = allReservations.filter((res) => {
-        if (filters.value.type !== "all" && res.type !== filters.value.type)
-          return false;
-        if (filters.value.status !== "all" && res.status !== filters.value.status)
-          return false;
-        if (filters.value.date && res.visit_date !== filters.value.date)
-          return false;
-        if (filters.value.gate !== "all" && res.gate !== filters.value.gate)
-          return false;
-        return true;
-      });
-      totalItems.value = reservations.value.length;
+      } catch (error) {
+        console.error("加载统计数据失败:", error);
+        common_vendor.index.showToast({
+          title: "加载统计数据失败",
+          icon: "none"
+        });
+        stats.value = {
+          todayReservations: 0,
+          totalVisitors: 0
+        };
+      }
+    };
+    const loadReservations = async () => {
+      try {
+        const params = {
+          type: filters.value.type,
+          status: filters.value.status,
+          date: filters.value.date,
+          gate: filters.value.gate,
+          page: currentPage.value,
+          pageSize
+        };
+        const res = await api_uniAdmin.getAuditReservations(params);
+        if (res && res.code === 0) {
+          reservations.value = res.data.reservations || [];
+          totalItems.value = res.data.total || 0;
+        } else {
+          reservations.value = [];
+          totalItems.value = 0;
+        }
+      } catch (error) {
+        console.error("加载预约数据失败:", error);
+        common_vendor.index.showToast({
+          title: "加载数据失败",
+          icon: "none"
+        });
+        reservations.value = [];
+        totalItems.value = 0;
+      }
     };
     const resetFilters = () => {
       filters.value = {
@@ -198,19 +131,84 @@ const _sfc_main = {
       loadReservations();
     };
     const viewDetails = (reservation) => {
-      console.log("查看详情:", reservation);
-      alert(`查看预约详情：${reservation.reservation_id}`);
+      common_vendor.index.showModal({
+        title: "预约详情",
+        content: `预约编号：${reservation.reservation_id}
+申请人：${reservation.user_name}
+预约类型：${reservation.type === "individual" ? "个人" : "团体"}
+事由：${reservation.purpose}
+预约日期：${reservation.visit_date}
+时间段：${reservation.entry_time}-${reservation.exit_time}`,
+        showCancel: false
+      });
     };
-    const approveReservation = (reservation) => {
-      if (confirm("确定要通过该预约申请吗？")) {
-        console.log("通过审批:", reservation);
-        alert("已通过审批");
+    const approveReservation = async (reservation) => {
+      try {
+        const res = await common_vendor.index.showModal({
+          title: "确认操作",
+          content: "确定要通过该预约申请吗？"
+        });
+        if (res.confirm) {
+          const result = await api_uniAdmin.auditAction({
+            reservation_id: reservation.reservation_id,
+            action: "approve",
+            reason: "审批通过"
+          });
+          if (result && result.code === 0) {
+            common_vendor.index.showToast({
+              title: "审批成功",
+              icon: "success"
+            });
+            loadReservations();
+          } else {
+            common_vendor.index.showToast({
+              title: "审批失败",
+              icon: "none"
+            });
+          }
+        }
+      } catch (error) {
+        console.error("审批操作失败:", error);
+        common_vendor.index.showToast({
+          title: "操作失败",
+          icon: "none"
+        });
       }
     };
-    const rejectReservation = (reservation) => {
-      if (confirm("确定要驳回该预约申请吗？")) {
-        console.log("驳回申请:", reservation);
-        alert("已驳回申请");
+    const rejectReservation = async (reservation) => {
+      try {
+        const res = await common_vendor.index.showModal({
+          title: "确认操作",
+          content: "确定要驳回该预约申请吗？请输入驳回理由：",
+          editable: true,
+          placeholderText: "请输入驳回理由"
+        });
+        if (res.confirm) {
+          const reason = res.content || "不符合要求";
+          const result = await api_uniAdmin.auditAction({
+            reservation_id: reservation.reservation_id,
+            action: "reject",
+            reason
+          });
+          if (result && result.code === 0) {
+            common_vendor.index.showToast({
+              title: "驳回成功",
+              icon: "success"
+            });
+            loadReservations();
+          } else {
+            common_vendor.index.showToast({
+              title: "驳回失败",
+              icon: "none"
+            });
+          }
+        }
+      } catch (error) {
+        console.error("驳回操作失败:", error);
+        common_vendor.index.showToast({
+          title: "操作失败",
+          icon: "none"
+        });
       }
     };
     const prevPage = () => {
@@ -241,29 +239,13 @@ const _sfc_main = {
         h: common_vendor.o(onStatusChange),
         i: filters.value.date,
         j: common_vendor.o(($event) => filters.value.date = $event.detail.value),
-        k: common_vendor.p({
-          type: "search",
-          size: "16",
-          color: "#fff"
-        }),
-        l: common_vendor.o(loadReservations),
-        m: common_vendor.p({
-          type: "refresh",
-          size: "16",
-          color: "#666"
-        }),
-        n: common_vendor.o(resetFilters),
-        o: common_vendor.t(stats.value.todayReservations),
-        p: common_vendor.t(stats.value.totalVisitors),
-        q: reservations.value.length === 0
-      }, reservations.value.length === 0 ? {
-        r: common_vendor.p({
-          type: "search",
-          size: "24",
-          color: "#999"
-        })
-      } : {
-        s: common_vendor.f(reservations.value, (reservation, k0, i0) => {
+        k: common_vendor.o(loadReservations),
+        l: common_vendor.o(resetFilters),
+        m: common_vendor.t(stats.value.todayReservations),
+        n: common_vendor.t(stats.value.totalVisitors),
+        o: reservations.value.length === 0
+      }, reservations.value.length === 0 ? {} : {
+        p: common_vendor.f(reservations.value, (reservation, k0, i0) => {
           return common_vendor.e({
             a: common_vendor.t(reservation.reservation_id),
             b: common_vendor.t(reservation.user_name),
@@ -290,55 +272,27 @@ const _sfc_main = {
             q: common_vendor.t(getStatusText(reservation.status)),
             r: common_vendor.n(reservation.status),
             s: common_vendor.t(reservation.approver_name || "-"),
-            t: "ec62db0b-3-" + i0,
-            v: common_vendor.o(($event) => viewDetails(reservation), reservation.reservation_id),
-            w: reservation.status === "pending"
+            t: common_vendor.o(($event) => viewDetails(reservation), reservation.reservation_id),
+            v: reservation.status === "pending"
           }, reservation.status === "pending" ? {
-            x: "ec62db0b-4-" + i0,
-            y: common_vendor.p({
-              type: "checkmark",
-              size: "14",
-              color: "#52c41a"
-            }),
-            z: common_vendor.o(($event) => approveReservation(reservation), reservation.reservation_id)
+            w: common_vendor.o(($event) => approveReservation(reservation), reservation.reservation_id)
           } : {}, {
-            A: reservation.status === "pending"
+            x: reservation.status === "pending"
           }, reservation.status === "pending" ? {
-            B: "ec62db0b-5-" + i0,
-            C: common_vendor.p({
-              type: "close",
-              size: "14",
-              color: "#ff4d4f"
-            }),
-            D: common_vendor.o(($event) => rejectReservation(reservation), reservation.reservation_id)
+            y: common_vendor.o(($event) => rejectReservation(reservation), reservation.reservation_id)
           } : {}, {
-            E: reservation.reservation_id
+            z: reservation.reservation_id
           });
-        }),
-        t: common_vendor.p({
-          type: "eye",
-          size: "14",
-          color: "#666"
         })
       }, {
-        v: reservations.value.length > 0
+        q: reservations.value.length > 0
       }, reservations.value.length > 0 ? {
-        w: common_vendor.p({
-          type: "left",
-          size: "14",
-          color: "#fff"
-        }),
-        x: currentPage.value === 1,
-        y: common_vendor.o(prevPage),
-        z: common_vendor.t(currentPage.value),
-        A: common_vendor.t(totalPages.value),
-        B: common_vendor.p({
-          type: "right",
-          size: "14",
-          color: "#fff"
-        }),
-        C: currentPage.value === totalPages.value,
-        D: common_vendor.o(nextPage)
+        r: currentPage.value === 1,
+        s: common_vendor.o(prevPage),
+        t: common_vendor.t(currentPage.value),
+        v: common_vendor.t(totalPages.value),
+        w: currentPage.value === totalPages.value,
+        x: common_vendor.o(nextPage)
       } : {});
     };
   }

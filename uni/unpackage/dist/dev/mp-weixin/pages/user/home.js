@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const api_notifications = require("../../api/notifications.js");
+const api_uniNotifications = require("../../api/uniNotifications.js");
 if (!Math) {
   (PersonalForm + GroupForm)();
 }
@@ -24,9 +24,9 @@ const _sfc_main = {
     };
     const loadAnnouncements = async () => {
       try {
-        const res = await api_notifications.fetchHomepageAnnouncements();
-        if (res && res.code === 0 && Array.isArray(res.data)) {
-          announcements.value = res.data.map((n) => ({
+        const res = await api_uniNotifications.fetchHomepageAnnouncements();
+        if (res && res.code === 0 && res.data && Array.isArray(res.data.announcements)) {
+          announcements.value = res.data.announcements.map((n) => ({
             notification_id: n.notification_id,
             type: n.title || "系统公告",
             content: n.content,

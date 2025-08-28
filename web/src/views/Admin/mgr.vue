@@ -88,7 +88,7 @@
           </thead>
           <tbody>
             <tr v-if="accounts.length === 0">
-              <td colspan="8" class="empty-state">
+              <td colspan="7" class="empty-state">
                 <div class="empty-content">
                   <FileSearchOutlined />
                   <p>暂无账号记录</p>
@@ -121,7 +121,7 @@
                   </button>
                   <button 
                     class="delete-btn" 
-                    @click="deleteAccount(account)"
+                    @click="deleteAccountItem(account)"
                     title="删除账号"
                   >
                     <DeleteOutlined /> 删除
@@ -181,7 +181,7 @@
         </div>
         <div class="modal-footer">
           <button class="modal-cancel" @click="closeCreateModal">取消</button>
-          <button class="modal-confirm" @click="createAccount">确认创建</button>
+          <button class="modal-confirm" @click="createAccountItem">确认创建</button>
         </div>
       </div>
     </div>
@@ -300,13 +300,22 @@ import {
   ExclamationCircleOutlined,
   EditOutlined
 } from '@ant-design/icons-vue';
+import { 
+  getManagerStats, 
+  getAccounts, 
+  getApplications, 
+  createAccount, 
+  processApplication, 
+  deleteAccount, 
+  updateAccount 
+} from '../../api/webAdmin'
 
 // 当前用户信息（模拟数据）
 const currentUser = ref({
   user_id: 1,
   username: 'admin01',
   real_name: '系统管理员',
-  college: '信息中心',
+  college: '信息技术学院',
   role: 'admin'
 });
 
@@ -347,13 +356,10 @@ const newAccount = ref({
 
 // 学院选项
 const collegeOptions = ref([
-  '计算机学院',
-  '外国语学院',
-  '经济管理学院',
-  '电子工程学院',
-  '机械工程学院',
-  '保卫处',
-  '信息中心'
+  '信息技术学院',
+  '交通管理学院',
+  '治安学院',
+  '保卫处'
 ]);
 
 // 获取申请状态文本
@@ -402,89 +408,51 @@ const formatDate = (dateString) => {
 };
 
 // 加载申请数据
-const loadApplications = () => {
-  // 模拟数据 - 只显示当前学院的申请
-  applications.value = [
-    {
-      application_id: 1001,
-      user_id: 101,
-      real_name: '张三',
-      phone: '13800138000',
+const loadApplications = async () => {
+  try {
+    const params = {
+      position: applicationFilters.value.position,
+      status: 'all',
       college: selectedCollege.value,
-      position: 'teacher',
-      status: 'pending',
-      created_at: '2023-10-15 09:30:00'
-    },
-    {
-      application_id: 1002,
-      user_id: 102,
-      real_name: '李四',
-      phone: '13900139000',
-      college: selectedCollege.value,
-      position: 'security',
-      status: 'pending',
-      created_at: '2023-10-16 14:20:00'
-    },
-    {
-      application_id: 1003,
-      user_id: 103,
-      real_name: '王五',
-      phone: '13700137000',
-      college: selectedCollege.value,
-      position: 'teacher',
-      status: 'approved',
-      reviewed_by: 1,
-      reviewed_at: '2023-10-14 16:45:00',
-      created_at: '2023-10-14 10:15:00'
+      page: 1,
+      pageSize: 50
     }
-  ].filter(app => {
-    if (applicationFilters.value.position !== 'all' && app.position !== applicationFilters.value.position) return false;
-    return true;
-  });
+    
+    const res = await getApplications(params)
+    if (res && res._status === 'OK') {
+      applications.value = res.data.applications || []
+    } else {
+      applications.value = []
+    }
+  } catch (error) {
+    console.error('加载申请数据失败:', error)
+    applications.value = []
+  }
 };
 
 // 加载账号数据
-const loadAccounts = () => {
-  // 模拟数据
-  accounts.value = [
-    {
-      user_id: 1,
-      username: 'admin01',
-      real_name: '系统管理员',
-      phone: '13800138001',
-      college: '信息中心',
-      position: 'other',
-      role: 'admin',
-      status: 'active',
-      created_at: '2023-09-01 08:00:00'
-    },
-    {
-      user_id: 2,
-      username: 'approver01',
-      real_name: '李老师',
-      phone: '13900139001',
-      college: '计算机学院',
-      position: 'teacher',
-      role: 'approver',
-      status: 'active',
-      created_at: '2023-09-05 10:30:00'
-    },
-    {
-      user_id: 3,
-      username: 'security01',
-      real_name: '张保安',
-      phone: '13700137001',
-      college: '保卫处',
-      position: 'security',
-      role: 'approver',
-      status: 'inactive',
-      created_at: '2023-09-10 14:20:00'
+const loadAccounts = async () => {
+  try {
+    const params = {
+      role: accountFilters.value.role,
+      college: accountFilters.value.college,
+      page: 1,
+      pageSize: 50
     }
-  ].filter(acc => {
-    if (accountFilters.value.role !== 'all' && acc.role !== accountFilters.value.role) return false;
-    if (accountFilters.value.college !== 'all' && acc.college !== accountFilters.value.college) return false;
-    return true;
-  });
+    
+    const res = await getAccounts(params)
+    if (res && res._status === 'OK') {
+      // 只显示admin和approver角色的账号
+      accounts.value = (res.data.accounts || []).filter(account => 
+        account.role === 'admin' || account.role === 'approver'
+      )
+    } else {
+      accounts.value = []
+    }
+  } catch (error) {
+    console.error('加载账号数据失败:', error)
+    accounts.value = []
+  }
 };
 
 // 重置申请筛选条件
@@ -505,23 +473,56 @@ const resetAccountFilters = () => {
 };
 
 // 通过申请
-const approveApplication = (application) => {
+const approveApplication = async (application) => {
   if (confirm(`确定要通过 ${application.real_name} 的审批人申请吗？`)) {
-    console.log('通过申请:', application);
-    // 这里应该调用API通过申请，并自动生成账号
-    alert('已通过申请，账号已生成并已通过微信公众号发送通知');
-    loadApplications();
-    loadStats();
+    try {
+      // 获取当前用户ID
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+      const reviewerId = currentUser.user_id || 1
+      
+      const res = await processApplication(application.application_id, {
+        action: 'approve',
+        reviewer_id: reviewerId
+      })
+      
+      if (res && res._status === 'OK') {
+        alert('已通过申请，账号已生成')
+        loadApplications()
+        loadStats()
+      } else {
+        alert('处理失败：' + (res._error?.meta || '未知错误'))
+      }
+    } catch (error) {
+      console.error('处理申请失败:', error)
+      alert('处理失败，请稍后重试')
+    }
   }
 };
 
 // 拒绝申请
-const rejectApplication = (application) => {
+const rejectApplication = async (application) => {
   if (confirm(`确定要拒绝 ${application.real_name} 的审批人申请吗？`)) {
-    console.log('拒绝申请:', application);
-    alert('已拒绝申请');
-    loadApplications();
-    loadStats();
+    try {
+      // 获取当前用户ID
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+      const reviewerId = currentUser.user_id || 1
+      
+      const res = await processApplication(application.application_id, {
+        action: 'reject',
+        reviewer_id: reviewerId
+      })
+      
+      if (res && res._status === 'OK') {
+        alert('已拒绝申请')
+        loadApplications()
+        loadStats()
+      } else {
+        alert('处理失败：' + (res._error?.meta || '未知错误'))
+      }
+    } catch (error) {
+      console.error('处理申请失败:', error)
+      alert('处理失败，请稍后重试')
+    }
   }
 };
 
@@ -535,13 +536,26 @@ const viewApplicationDetails = (application) => {
 const editAccount = (account) => {
   console.log('修改账号信息:', account);
   alert(`修改账号信息：${account.real_name}`);
+  // TODO: 实现账号编辑功能
 };
 
 // 删除账号
-const deleteAccount = (account) => {
+const deleteAccountItem = async (account) => {
   if (confirm(`确定要删除 ${account.real_name} 的账号吗？此操作不可恢复！`)) {
-    console.log('删除账号:', account);
-    alert('账号已删除');
+    try {
+      const res = await deleteAccount(account.user_id)
+      
+      if (res && res._status === 'OK') {
+        alert('账号已删除')
+        loadAccounts()
+        loadStats()
+      } else {
+        alert('删除失败：' + (res._error?.meta || '未知错误'))
+      }
+    } catch (error) {
+      console.error('删除账号失败:', error)
+      alert('删除失败，请稍后重试')
+    }
   }
 };
 
@@ -576,7 +590,7 @@ const closeApplicationsModal = () => {
 };
 
 // 创建账号
-const createAccount = () => {
+const createAccountItem = async () => {
   // 简单验证
   if (!newAccount.value.username || !newAccount.value.password || 
       !newAccount.value.real_name || !newAccount.value.phone || 
@@ -585,21 +599,42 @@ const createAccount = () => {
     return;
   }
   
-  console.log('创建账号:', newAccount.value);
-  alert('后台账号创建成功');
-  closeCreateModal();
+  try {
+    const res = await createAccount(newAccount.value)
+    
+    if (res && res._status === 'OK') {
+      alert('后台账号创建成功')
+      closeCreateModal()
+      loadAccounts()
+      loadStats()
+    } else {
+      alert('创建失败：' + (res._error?.meta || '未知错误'))
+    }
+  } catch (error) {
+    console.error('创建账号失败:', error)
+    alert('创建失败，请稍后重试')
+  }
 };
 
 // 加载统计数据
-const loadStats = () => {
-  // 模拟API调用 - 根据选择的学院统计
-  if (selectedCollege.value === currentUser.value.college) {
-    approverCount.value = 5;
-    pendingApplicationCount.value = 3;
-  } else {
-    // 非本学院显示暂无待处理申请
-    approverCount.value = 0;
-    pendingApplicationCount.value = 0;
+const loadStats = async () => {
+  try {
+    const params = {
+      college: selectedCollege.value
+    }
+    
+    const res = await getManagerStats(params)
+    if (res && res._status === 'OK') {
+      approverCount.value = res.data.approverCount || 0
+      pendingApplicationCount.value = res.data.pendingApplicationCount || 0
+    } else {
+      approverCount.value = 0
+      pendingApplicationCount.value = 0
+    }
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+    approverCount.value = 0
+    pendingApplicationCount.value = 0
   }
 };
 

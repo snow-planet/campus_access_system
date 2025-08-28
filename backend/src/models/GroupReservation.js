@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize'
-import { sequelize } from '../utils/db.js'
+import { sequelize } from '../config/database.js'
 import { User } from './User.js'
 
 export const GroupReservation = sequelize.define('GroupReservation', {

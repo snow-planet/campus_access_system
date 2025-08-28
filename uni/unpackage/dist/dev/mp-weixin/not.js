@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
-const api_uniNotifications = require("./api/uniNotifications.js");
+const api_uniAdmin = require("./api/uniAdmin.js");
 const _sfc_main = {
   name: "NotificationManagement",
   setup() {
@@ -25,39 +25,38 @@ const _sfc_main = {
       currentNoticeContent.value = newTab === "individual" ? individualNotice.value : groupNotice.value;
     });
     const fetchAnnouncementsList = async () => {
+      var _a;
       try {
-        const res = await api_uniNotifications.fetchAnnouncements({ page: 1, limit: 50 });
-        const body = (res == null ? void 0 : res.data) || res;
-        if ((body == null ? void 0 : body.code) === 0 && (body == null ? void 0 : body.data)) {
-          announcements.value = body.data.announcements || [];
+        const result = await api_uniAdmin.getAnnouncements({ page: 1, limit: 50 });
+        if (result && result.code === 0) {
+          announcements.value = ((_a = result.data) == null ? void 0 : _a.announcements) || [];
         } else {
           announcements.value = [];
+          common_vendor.index.showToast({ title: result.message || "获取公告列表失败", icon: "none" });
         }
       } catch (error) {
         console.error("获取公告列表失败:", error);
-        common_vendor.index.showToast({ title: "获取公告列表失败", icon: "none" });
+        common_vendor.index.showToast({ title: "网络错误", icon: "none" });
       }
     };
     const fetchNotices = async () => {
       try {
-        const individualRes = await api_uniNotifications.fetchNotice("individual_notice");
-        const individualBody = (individualRes == null ? void 0 : individualRes.data) || individualRes;
-        if ((individualBody == null ? void 0 : individualBody.code) === 0 && (individualBody == null ? void 0 : individualBody.data)) {
-          individualNotice.value = individualBody.data.content || "";
+        const individualResult = await api_uniAdmin.getNotice("individual_notice");
+        if (individualResult && individualResult.code === 0 && individualResult.data) {
+          individualNotice.value = individualResult.data.content || "";
         } else {
           individualNotice.value = "暂无个人预约入校须知";
         }
-        const groupRes = await api_uniNotifications.fetchNotice("group_notice");
-        const groupBody = (groupRes == null ? void 0 : groupRes.data) || groupRes;
-        if ((groupBody == null ? void 0 : groupBody.code) === 0 && (groupBody == null ? void 0 : groupBody.data)) {
-          groupNotice.value = groupBody.data.content || "";
+        const groupResult = await api_uniAdmin.getNotice("group_notice");
+        if (groupResult && groupResult.code === 0 && groupResult.data) {
+          groupNotice.value = groupResult.data.content || "";
         } else {
           groupNotice.value = "暂无团队预约入校须知";
         }
         currentNoticeContent.value = activeNoticeTab.value === "individual" ? individualNotice.value : groupNotice.value;
       } catch (error) {
         console.error("获取入校须知失败:", error);
-        common_vendor.index.showToast({ title: "获取入校须知失败", icon: "none" });
+        common_vendor.index.showToast({ title: "网络错误", icon: "none" });
       }
     };
     const showAnnouncementModal = (announcement) => {
@@ -77,6 +76,13 @@ const _sfc_main = {
     };
     const saveAnnouncement = async () => {
       try {
+        if (!currentAnnouncement.value.title || !currentAnnouncement.value.content) {
+          common_vendor.index.showToast({
+            title: "请填写标题和内容",
+            icon: "none"
+          });
+          return;
+        }
         const publisherId = common_vendor.index.getStorageSync("user_id") || 1;
         const payload = {
           title: currentAnnouncement.value.title,
@@ -85,51 +91,71 @@ const _sfc_main = {
           publisher_id: publisherId,
           is_active: currentAnnouncement.value.is_active
         };
+        let result;
         if (editingAnnouncement.value) {
-          await api_uniNotifications.updateAnnouncement(editingAnnouncement.value.notification_id, payload);
+          result = await api_uniAdmin.updateAnnouncement(editingAnnouncement.value.notification_id, payload);
         } else {
-          await api_uniNotifications.createAnnouncement(payload);
+          result = await api_uniAdmin.createAnnouncement(payload);
         }
-        showModal.value = false;
-        fetchAnnouncementsList();
-        common_vendor.index.showToast({
-          title: "保存成功",
-          icon: "success"
-        });
+        if (result && result.code === 0) {
+          showModal.value = false;
+          fetchAnnouncementsList();
+          common_vendor.index.showToast({
+            title: "保存成功",
+            icon: "success"
+          });
+        } else {
+          common_vendor.index.showToast({
+            title: result.message || "保存失败",
+            icon: "none"
+          });
+        }
       } catch (error) {
         console.error("保存公告失败:", error);
         common_vendor.index.showToast({
-          title: "保存失败，请重试",
+          title: "网络错误",
           icon: "none"
         });
       }
     };
     const deleteAnnouncementItem = async (id) => {
-      common_vendor.index.showModal({
-        title: "确认删除",
-        content: "确定要删除这条公告吗？",
-        success: async (res) => {
-          if (res.confirm) {
-            try {
-              await api_uniNotifications.deleteAnnouncement(id);
-              fetchAnnouncementsList();
-              common_vendor.index.showToast({
-                title: "删除成功",
-                icon: "success"
-              });
-            } catch (error) {
-              console.error("删除公告失败:", error);
-              common_vendor.index.showToast({
-                title: "删除失败，请重试",
-                icon: "none"
-              });
-            }
+      try {
+        const res = await common_vendor.index.showModal({
+          title: "确认删除",
+          content: "确定要删除这条公告吗？此操作不可恢复！"
+        });
+        if (res.confirm) {
+          const result = await api_uniAdmin.deleteAnnouncement(id);
+          if (result && result.code === 0) {
+            fetchAnnouncementsList();
+            common_vendor.index.showToast({
+              title: "删除成功",
+              icon: "success"
+            });
+          } else {
+            common_vendor.index.showToast({
+              title: result.message || "删除失败",
+              icon: "none"
+            });
           }
         }
-      });
+      } catch (error) {
+        console.error("删除公告失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
+      }
     };
     const saveNotice = async () => {
       try {
+        if (!currentNoticeContent.value.trim()) {
+          common_vendor.index.showToast({
+            title: "请填写须知内容",
+            icon: "none"
+          });
+          return;
+        }
         const publisherId = common_vendor.index.getStorageSync("user_id") || 1;
         const noticeType = activeNoticeTab.value === "individual" ? "individual_notice" : "group_notice";
         const title = activeNoticeTab.value === "individual" ? "个人预约入校须知" : "团队预约入校须知";
@@ -138,20 +164,27 @@ const _sfc_main = {
           content: currentNoticeContent.value,
           publisher_id: publisherId
         };
-        await api_uniNotifications.updateNotice(noticeType, payload);
-        if (activeNoticeTab.value === "individual") {
-          individualNotice.value = currentNoticeContent.value;
+        const result = await api_uniAdmin.updateNotice(noticeType, payload);
+        if (result && result.code === 0) {
+          if (activeNoticeTab.value === "individual") {
+            individualNotice.value = currentNoticeContent.value;
+          } else {
+            groupNotice.value = currentNoticeContent.value;
+          }
+          common_vendor.index.showToast({
+            title: "保存成功",
+            icon: "success"
+          });
         } else {
-          groupNotice.value = currentNoticeContent.value;
+          common_vendor.index.showToast({
+            title: result.message || "保存失败",
+            icon: "none"
+          });
         }
-        common_vendor.index.showToast({
-          title: "保存成功",
-          icon: "success"
-        });
       } catch (error) {
         console.error("保存入校须知失败:", error);
         common_vendor.index.showToast({
-          title: "保存失败，请重试",
+          title: "网络错误",
           icon: "none"
         });
       }

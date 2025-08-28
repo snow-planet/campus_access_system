@@ -56,23 +56,26 @@
               </div>
               <div class="notice-body">
                 <template v-if="loading">
-                  <div class="notice-title">加载中...</div>
+                  <div class="notice-loading">加载中...</div>
                 </template>
                 <template v-else>
-                  <div v-if="currentAnnouncement" class="notice-current">
-                    <div class="notice-title">{{ currentAnnouncement.title }}</div>
-                    <div class="notice-text">{{ currentAnnouncement.content }}</div>
-                    <div class="notice-date">发布时间：{{ (currentAnnouncement.created_at || '').toString().slice(0,10) }}</div>
+                  <div v-if="currentPageAnnouncements.length > 0" class="announcements-grid">
+                    <div v-for="announcement in currentPageAnnouncements" :key="announcement.notification_id" class="announcement-card">
+                      <div class="announcement-title">{{ announcement.title }}</div>
+                      <div class="announcement-content">{{ truncateContent(announcement.content, 100) }}</div>
+                      <div class="announcement-date">发布时间：{{ formatDate(announcement.created_at) }}</div>
+                      <button class="read-more-btn" @click="viewAnnouncementDetail(announcement)">查看详情</button>
+                    </div>
                   </div>
                   <div v-else class="notice-empty">
                     <div class="notice-title">暂无公告</div>
                     <div class="notice-text">当前没有系统公告信息。</div>
-                    <div class="notice-date">发布时间：</div>
                   </div>
                 </template>
-                <div class="notice-controls">
-                  <button class="notice-btn" :disabled="!announcements.length" @click="prevAnnouncement">‹</button>
-                  <button class="notice-btn" :disabled="!announcements.length" @click="nextAnnouncement">›</button>
+                <div class="notice-controls" v-if="announcements.length > 3">
+                  <button class="notice-btn" :disabled="currentPage === 1" @click="prevPage">‹</button>
+                  <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+                  <button class="notice-btn" :disabled="currentPage === totalPages" @click="nextPage">›</button>
                 </div>
               </div>
             </div>
@@ -111,25 +114,59 @@
         <GroupForm />
       </div>
     </main>
+
+    <!-- 公告详情弹窗 -->
+    <div v-if="showDetailModal" class="modal-overlay" @click.self="closeDetailModal">
+      <div class="detail-modal">
+        <div class="modal-header">
+          <h3>公告详情</h3>
+          <span class="close-btn" @click="closeDetailModal">×</span>
+        </div>
+        <div class="modal-content" v-if="selectedAnnouncement">
+          <div class="announcement-detail">
+            <h4>{{ selectedAnnouncement.title }}</h4>
+            <div class="announcement-meta">
+              <span>发布时间：{{ formatDate(selectedAnnouncement.created_at) }}</span>
+            </div>
+            <div class="announcement-full-content">
+              {{ selectedAnnouncement.content }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="confirm-btn" @click="closeDetailModal">关闭</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { BankOutlined, QrcodeOutlined, LogoutOutlined } from '@ant-design/icons-vue';
 import PersonalForm from '../User/Form.vue';
 import GroupForm from '../User/Groud.vue';
-import { fetchHomepageAnnouncements } from '../../api/notifications.js'
+import { fetchHomepageAnnouncements } from '../../api/webNotifications.js'
 
 const router = useRouter();
 const activeTab = ref('notice');
 
 // 公告数据与状态
 const announcements = ref([])
-const currentIndex = ref(0)
-const currentAnnouncement = ref(null)
+const currentPage = ref(1)
+const pageSize = 3
 const loading = ref(false)
+const showDetailModal = ref(false)
+const selectedAnnouncement = ref(null)
+
+// 计算属性
+const totalPages = computed(() => Math.ceil(announcements.value.length / pageSize))
+const currentPageAnnouncements = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  return announcements.value.slice(start, end)
+})
 
 const loadAnnouncements = async () => {
   try {
@@ -137,31 +174,49 @@ const loadAnnouncements = async () => {
     const res = await fetchHomepageAnnouncements()
     if (res && res.code === 0 && Array.isArray(res.data)) {
       announcements.value = res.data
-      currentIndex.value = 0
-      currentAnnouncement.value = announcements.value[0] || null
+      currentPage.value = 1
     } else {
       announcements.value = []
-      currentAnnouncement.value = null
     }
   } catch (e) {
     console.error('加载公告失败:', e)
     announcements.value = []
-    currentAnnouncement.value = null
   } finally {
     loading.value = false
   }
 }
 
-const prevAnnouncement = () => {
-  if (!announcements.value.length) return
-  currentIndex.value = (currentIndex.value - 1 + announcements.value.length) % announcements.value.length
-  currentAnnouncement.value = announcements.value[currentIndex.value]
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
 }
 
-const nextAnnouncement = () => {
-  if (!announcements.value.length) return
-  currentIndex.value = (currentIndex.value + 1) % announcements.value.length
-  currentAnnouncement.value = announcements.value[currentIndex.value]
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const truncateContent = (content, maxLength) => {
+  if (!content) return ''
+  if (content.length <= maxLength) return content
+  return content.substring(0, maxLength) + '...'
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  return dateString.toString().slice(0, 10)
+}
+
+const viewAnnouncementDetail = (announcement) => {
+  selectedAnnouncement.value = announcement
+  showDetailModal.value = true
+}
+
+const closeDetailModal = () => {
+  showDetailModal.value = false
+  selectedAnnouncement.value = null
 }
 
 // 返回首页
@@ -352,6 +407,69 @@ onMounted(() => {
   height: calc(100% - 55px);
 }
 
+.notice-loading {
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+  padding: 40px 0;
+}
+
+.announcements-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+  flex: 1;
+}
+
+.announcement-card {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+.announcement-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.announcement-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.announcement-content {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.announcement-date {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 10px;
+}
+
+.read-more-btn {
+  background: #1c4e80;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.read-more-btn:hover {
+  background: #164066;
+}
+
 .notice-title {
   font-size: 16px;
   font-weight: bold;
@@ -366,9 +484,9 @@ onMounted(() => {
   margin-bottom: 10px;
 }
 
-.notice-date {
-  font-size: 12px;
-  color: #999;
+.notice-empty {
+  text-align: center;
+  padding: 40px 0;
 }
 
 .notice-controls {
@@ -399,6 +517,116 @@ onMounted(() => {
 .notice-btn:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #666;
+  margin: 0 10px;
+}
+
+/* 公告详情弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.detail-modal {
+  background: white;
+  border-radius: 12px;
+  width: 600px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 1px solid #eee;
+  background: #f9f9f9;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.close-btn {
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.modal-content {
+  padding: 30px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.announcement-detail h4 {
+  color: #1c4e80;
+  margin-bottom: 15px;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.announcement-meta {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.announcement-meta span {
+  font-size: 14px;
+  color: #666;
+}
+
+.announcement-full-content {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+  white-space: pre-wrap;
+}
+
+.modal-footer {
+  padding: 20px 30px;
+  border-top: 1px solid #eee;
+  text-align: right;
+  background: #f9f9f9;
+}
+
+.confirm-btn {
+  background: #1c4e80;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-btn:hover {
+  background: #164066;
 }
 
 /* 二维码区域样式 */

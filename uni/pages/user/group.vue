@@ -49,7 +49,7 @@
 					<picker @change="onPurposeChange" :value="purposeIndex" :range="purposeOptions" range-key="name">
 						<view class="picker-input">
 							<text>{{ formData.purpose || '请选择来访事由' }}</text>
-							<uni-icons type="arrowdown" size="16" color="#999" class="picker-arrow"></uni-icons>
+							<text class="picker-arrow">▼</text>
 						</view>
 					</picker>
 				</view>
@@ -115,7 +115,7 @@
 						<picker mode="date" :value="formData.visitDate" :start="minDate" @change="onDateChange">
 							<view class="picker-input">
 								<text>{{ formData.visitDate || '请选择日期' }}</text>
-								<uni-icons type="arrowdown" size="16" color="#999" class="picker-arrow"></uni-icons>
+								<text class="picker-arrow">▼</text>
 							</view>
 						</picker>
 					</view>
@@ -168,7 +168,7 @@
 					<picker @change="onApproverChange" :value="approverIndex" :range="approvers" range-key="name">
 						<view class="picker-input">
 							<text>{{ selectedApprover || '请选择审批人' }}</text>
-							<uni-icons type="arrowdown" size="16" color="#999" class="picker-arrow"></uni-icons>
+							<text class="picker-arrow">▼</text>
 						</view>
 					</picker>
 				</view>
@@ -186,7 +186,7 @@
 				<view class="modal-header">
 					<text class="modal-title">关注公众号</text>
 					<view class="close-btn" @tap="closeQrcodeModal">
-						<uni-icons type="closeempty" size="24" color="#fff"></uni-icons>
+						<text style="color: #fff; font-size: 24px;">×</text>
 					</view>
 				</view>
 				<view class="qrcode-content">
@@ -206,9 +206,9 @@
 </template>
 
 <script>
-import { wechatLogin } from '../../api/auth.js'
-import { fetchApprovers } from '../../api/users.js'
-import { createGroupReservation } from '../../api/groupReservations.js'
+import { wechatLogin } from '../../api/uniWechatAuth.js'
+import { fetchApprovers } from '../../api/uniUsers.js'
+import { createGroupReservation } from '../../api/uniGroupReservations.js'
 import { fetchNotice } from '../../api/uniNotifications.js'
 
 export default {
@@ -398,8 +398,7 @@ export default {
 				})
 				.catch((err) => {
 					console.error('加载入校须知失败:', err)
-					// 使用默认内容
-					this.noticeContent = '1. 请提前至少3个工作日进行团队预约申请\n2. 团队负责人需提供所有成员名单及身份证信息\n3. 入校时所有成员需携带有效身份证件以备查验\n4. 请按照预约时间段集体入校，不得分散进入\n5. 团队车辆请停放在指定停车场，不得随意停放\n6. 入校后请遵守校园管理规定，保持集体行动\n7. 团队活动不得影响正常教学秩序\n8. 如行程有变，请及时取消或修改预约\n9. 严禁携带违禁物品入校\n10. 活动结束后请及时离校，保持环境整洁\n11. 团队负责人需对成员行为负责\n12. 如有任何问题，请及时与审批人或保卫处联系'
+					// 使用默认内容（与上面相同）
 				})
 		},
 

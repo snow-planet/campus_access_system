@@ -38,7 +38,7 @@
 			<!-- 公众号区域 -->
 			        <view class="gz-content">
 			          <view class="gz-section">
-			              <image src="/static/logo.png" class="qr-image"></image>
+			              <image src="/static/wechat-qrcode.png" class="qr-image"></image>
 			              <text class="gz-desc">扫码关注公众号查询/申请结果</text>
 			          </view>
 			        </view>

@@ -21,12 +21,6 @@
 
     <!-- 主体内容 -->
     <main class="main-content">
-      <!-- 标题区域 -->
-      <div class="title-section">
-        <h1 class="page-title">出入审批管理</h1>
-        <p class="page-desc">您可以查看、审批待处理的校园出入申请</p>
-      </div>
-
       <!-- 筛选区域 -->
       <div class="filter-section">
         <div class="filter-group">
@@ -45,6 +39,15 @@
             <option value="approved">已通过</option>
             <option value="rejected">已驳回</option>
           </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">申请日期：</span>
+          <input 
+            type="date" 
+            v-model="filter.date" 
+            class="filter-select"
+            :max="maxDate"
+          />
         </div>
         <button class="search-btn" @click="loadApplications">搜索</button>
       </div>
@@ -135,29 +138,40 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { BankOutlined, FileSearchOutlined,LogoutOutlined } from '@ant-design/icons-vue';
+import { BankOutlined, FileSearchOutlined, LogoutOutlined } from '@ant-design/icons-vue';
+import { getApprovalList, approvalAction, getApproverInfo } from '../../api/webApproval';
 
 const router = useRouter();
 
 // 用户信息
 const userInfo = ref({
-  name: '张老师',
+  name: '加载中...',
   role: '审批管理员'
 });
+
+// 当前用户ID
+const currentUserId = ref(null);
 
 // 筛选条件
 const filter = ref({
   type: 'all',
-  status: 'all'
+  status: 'pending',
+  date: new Date().toISOString().split('T')[0] // 今日日期
 });
+
+// 最大日期（今天）
+const maxDate = computed(() => new Date().toISOString().split('T')[0]);
 
 // 分页信息
 const currentPage = ref(1);
-const pageSize = 5;
-const totalItems = ref(15);
+const pageSize = 10;
+const totalItems = ref(0);
 
 // 申请数据
 const applications = ref([]);
+
+// 加载状态
+const loading = ref(false);
 
 // 驳回相关状态
 const showRejectModal = ref(false);
@@ -178,77 +192,56 @@ const getStatusText = (status) => {
 };
 
 // 加载申请数据
-const loadApplications = () => {
-  // 模拟数据
-  applications.value = [
-    {
-      id: 1,
-      applicantName: '张三',
-      type: 'personal',
-      status: 'pending',
-      applyTime: '2023-10-15 09:30',
-      accessTime: '2023-10-16 14:00-16:00',
-      reason: '参加学术讲座',
-      reviewer: '',
-      reviewTime: '',
-      rejectReason: ''
-    },
-    {
-      id: 2,
-      applicantName: '李四',
-      type: 'personal',
-      status: 'approved',
-      applyTime: '2023-10-14 15:20',
-      accessTime: '2023-10-17 09:00-12:00',
-      reason: '办理学生事务',
-      reviewer: '王老师',
-      reviewTime: '2023-10-14 16:45',
-      rejectReason: ''
-    },
-    {
-      id: 3,
-      applicantName: '计算机科学协会',
-      type: 'group',
-      status: 'pending',
-      applyTime: '2023-10-15 11:05',
-      accessTime: '2023-10-18 13:00-17:00',
-      reason: '举办技术沙龙活动',
-      groupSize: 25,
-      reviewer: '',
-      reviewTime: '',
-      rejectReason: ''
-    },
-    {
-      id: 4,
-      applicantName: '王五',
-      type: 'personal',
-      status: 'rejected',
-      applyTime: '2023-10-13 16:40',
-      accessTime: '2023-10-16 19:00-21:00',
-      reason: '自习',
-      reviewer: '李老师',
-      reviewTime: '2023-10-14 09:15',
-      rejectReason: '非开放时间段，请选择白天时段'
-    },
-    {
-      id: 5,
-      applicantName: '外语学院',
-      type: 'group',
-      status: 'pending',
-      applyTime: '2023-10-15 14:20',
-      accessTime: '2023-10-19 08:30-11:30',
-      reason: '举办外语角活动',
-      groupSize: 30,
-      reviewer: '',
-      reviewTime: '',
-      rejectReason: ''
+const loadApplications = async () => {
+  if (!currentUserId.value) {
+    console.error('用户ID未获取');
+    return;
+  }
+  
+  try {
+    loading.value = true;
+    
+    const params = {
+      approver_id: currentUserId.value,
+      type: filter.value.type,
+      status: filter.value.status,
+      page: currentPage.value,
+      pageSize: pageSize
+    };
+    
+    // 如果选择了具体日期，添加日期筛选
+    if (filter.value.date) {
+      params.date = filter.value.date;
     }
-  ].filter(app => {
-    // 根据筛选条件过滤
-    if (filter.value.type !== 'all' && app.type !== filter.value.type) return false;
-    if (filter.value.status !== 'all' && app.status !== filter.value.status) return false;
-    return true;
-  });
+    
+    const res = await getApprovalList(params);
+    
+    if (res && res._status === 'OK') {
+      applications.value = res.data.list || [];
+      totalItems.value = res.data.total || 0;
+      
+      // 格式化时间显示
+      applications.value.forEach(app => {
+        if (app.applyTime) {
+          app.applyTime = formatDateTime(app.applyTime);
+        }
+        if (app.reviewTime) {
+          app.reviewTime = formatDateTime(app.reviewTime);
+        }
+      });
+    } else {
+      console.error('获取审批列表失败:', res._error?.meta);
+      // 使用友好的错误提示
+      const errorMsg = res._error?.meta || '获取数据失败';
+      console.warn(errorMsg);
+    }
+  } catch (error) {
+    console.error('加载申请数据失败:', error);
+    // 网络错误时的处理
+    console.warn('网络错误，请重试');
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 显示驳回对话框
@@ -265,36 +258,62 @@ const closeRejectDialog = () => {
 };
 
 // 确认驳回
-const confirmReject = () => {
+const confirmReject = async () => {
   if (!rejectReason.value.trim()) {
     alert('请填写驳回原因');
     return;
   }
   
-  // 模拟驳回操作
-  const index = applications.value.findIndex(item => item.id === currentApplication.value.id);
-  if (index !== -1) {
-    applications.value[index].status = 'rejected';
-    applications.value[index].reviewer = userInfo.value.name;
-    applications.value[index].reviewTime = new Date().toLocaleString();
-    applications.value[index].rejectReason = rejectReason.value;
+  try {
+    const data = {
+      reservation_id: currentApplication.value.id,
+      reservation_type: currentApplication.value.type === 'personal' ? 'individual' : 'group',
+      action: 'reject',
+      approver_id: currentUserId.value,
+      comments: rejectReason.value
+    };
+    
+    const res = await approvalAction(data);
+    
+    if (res && res._status === 'OK') {
+      closeRejectDialog();
+      alert('已驳回该申请');
+      // 重新加载数据
+      loadApplications();
+    } else {
+      alert(res._error?.meta || '操作失败');
+    }
+  } catch (error) {
+    console.error('驳回操作失败:', error);
+    alert('网络错误，请重试');
   }
-  
-  closeRejectDialog();
-  alert('已驳回该申请');
 };
 
 // 通过申请
-const approveApplication = (app) => {
+const approveApplication = async (app) => {
   if (confirm('确定要通过该申请吗？')) {
-    // 模拟通过操作
-    const index = applications.value.findIndex(item => item.id === app.id);
-    if (index !== -1) {
-      applications.value[index].status = 'approved';
-      applications.value[index].reviewer = userInfo.value.name;
-      applications.value[index].reviewTime = new Date().toLocaleString();
+    try {
+      const data = {
+        reservation_id: app.id,
+        reservation_type: app.type === 'personal' ? 'individual' : 'group',
+        action: 'approve',
+        approver_id: currentUserId.value,
+        comments: '审批通过'
+      };
+      
+      const res = await approvalAction(data);
+      
+      if (res && res._status === 'OK') {
+        alert('已通过该申请');
+        // 重新加载数据
+        loadApplications();
+      } else {
+        alert(res._error?.meta || '操作失败');
+      }
+    } catch (error) {
+      console.error('通过操作失败:', error);
+      alert('网络错误，请重试');
     }
-    alert('已通过该申请');
   }
 };
 
@@ -313,9 +332,60 @@ const nextPage = () => {
   }
 };
 
+// 格式化日期时间
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return '';
+  const date = new Date(dateTime);
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+// 获取当前用户信息
+const getCurrentUserInfo = async () => {
+  try {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    if (currentUser && currentUser.user_id) {
+      currentUserId.value = currentUser.user_id;
+      
+      // 从后端获取最新的用户信息
+      const res = await getApproverInfo(currentUser.user_id);
+      if (res && res._status === 'OK') {
+        userInfo.value = {
+          name: res.data.name,
+          role: res.data.role
+        };
+      } else {
+        // 使用本地存储的信息作为备用
+        userInfo.value = {
+          name: currentUser.real_name || currentUser.username,
+          role: currentUser.role === 'admin' ? '超级管理员' : '审批管理员'
+        };
+      }
+    } else {
+      // 用户未登录，跳转到登录页
+      router.push('/admin/login');
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
+    // 使用默认信息
+    userInfo.value = {
+      name: '审批员',
+      role: '审批管理员'
+    };
+  }
+};
+
 // 初始化加载
-onMounted(() => {
-  loadApplications();
+onMounted(async () => {
+  await getCurrentUserInfo();
+  if (currentUserId.value) {
+    loadApplications();
+  }
 });
 
 // 退出登录
@@ -406,31 +476,9 @@ const logout = () => {
 .main-content {
   flex: 1;
   background: linear-gradient(#c7e9f4 0%, #446daa, #1c4e80);
-  padding: 120px 120px 30px 120px;
+  padding: 100px 120px 30px 120px;
   display: flex;
   flex-direction: column;
-}
-
-/* 标题区域 */
-.title-section {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.page-title {
-  font-size: 36px;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 15px;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.page-desc {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
 }
 
 /* 筛选区域 */

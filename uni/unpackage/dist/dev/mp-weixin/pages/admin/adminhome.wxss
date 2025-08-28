@@ -122,6 +122,21 @@
   display: block;
   font-size: 12px;
   color: #666;
+  margin-bottom: 3px;
+}
+.user-role.data-v-88518aad {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+}
+.loading-info.data-v-88518aad {
+  text-align: center;
+  padding: 10px;
+}
+.loading-text.data-v-88518aad {
+  font-size: 14px;
+  color: #999;
 }
 
 /* 菜单列表 */

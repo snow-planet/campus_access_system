@@ -77,7 +77,7 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue'
-import { fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement, fetchNotice, updateNotice } from '../../api/webNotifications.js'
+import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement, getNotice, updateNotice } from '../../api/webAdmin.js'
 
 export default {
   name: 'NotificationManagement',
@@ -113,7 +113,7 @@ export default {
     // 获取公告列表
     const fetchAnnouncementsList = async () => {
       try {
-        const res = await fetchAnnouncements({ page: 1, limit: 50 })
+        const res = await getAnnouncements({ page: 1, limit: 50 })
         if (res && res._status === 'OK' && res.data) {
           announcements.value = res.data.announcements || []
         } else {
@@ -129,7 +129,7 @@ export default {
     const fetchNotices = async () => {
       try {
         // 获取个人预约须知
-        const individualRes = await fetchNotice('individual_notice')
+        const individualRes = await getNotice('individual_notice')
         if (individualRes && individualRes._status === 'OK' && individualRes.data) {
           individualNotice.value = individualRes.data.content || ''
         } else {
@@ -137,7 +137,7 @@ export default {
         }
         
         // 获取团队预约须知
-        const groupRes = await fetchNotice('group_notice')
+        const groupRes = await getNotice('group_notice')
         if (groupRes && groupRes._status === 'OK' && groupRes.data) {
           groupNotice.value = groupRes.data.content || ''
         } else {

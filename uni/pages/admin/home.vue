@@ -6,7 +6,7 @@
         <text class="user-info">{{ userInfo.name }} ({{ userInfo.role }})</text>
         <text class="header-current">审批系统</text>
         <text class="logout-link" @click="logout">
-          <uni-icons type="close" size="16" color="#666" style="margin-right: 5px;" />
+          <text style="color: #666; font-size: 16px; margin-right: 5px;">×</text>
           退出登录
         </text>
       </view>
@@ -35,7 +35,7 @@
       <view class="application-list">
         <view v-if="applications.length === 0" class="empty-state">
           <view class="empty-icon">
-            <uni-icons type="search" size="48" color="#ccc" />
+            <text style="color: #ccc; font-size: 48px;">🔍</text>
           </view>
           <text class="empty-text">暂无审批申请</text>
         </view>
@@ -95,26 +95,46 @@
     </view>
 
     <!-- 驳回对话框 -->
-    <uni-popup ref="rejectPopup" type="dialog">
-      <uni-popup-dialog type="info" mode="input" title="驳回申请" placeholder="请输入驳回原因"
-        :value="rejectReason" @confirm="confirmReject" @close="closeRejectDialog"></uni-popup-dialog>
-    </uni-popup>
+    <view v-if="showRejectModal" class="modal-overlay" @tap="closeRejectDialog">
+      <view class="modal-content" @tap.stop>
+        <view class="modal-header">
+          <text class="modal-title">驳回申请</text>
+          <text class="modal-close" @tap="closeRejectDialog">×</text>
+        </view>
+        <view class="modal-body">
+          <textarea 
+            v-model="rejectReason" 
+            placeholder="请输入驳回原因" 
+            class="reject-input"
+            maxlength="200"
+          />
+        </view>
+        <view class="modal-footer">
+          <button class="modal-btn cancel" @tap="closeRejectDialog">取消</button>
+          <button class="modal-btn confirm" @tap="handleConfirmReject">确认</button>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue';
+import { getApprovalList, approvalAction, getApproverInfo } from '../../api/uniApproval.js';
 
 export default {
   setup() {
-    const rejectPopup = ref(null);
+    const showRejectModal = ref(false);
     const router = uni.$router;
 
     // 用户信息
     const userInfo = ref({
-      name: '张老师',
+      name: '加载中...',
       role: '审批管理员'
     });
+    
+    // 当前用户ID
+    const currentUserId = ref(null);
 
     // 筛选条件选项
     const typeOptions = ref([
@@ -133,16 +153,19 @@ export default {
     // 筛选条件
     const filter = ref({
       type: 'all',
-      status: 'all'
+      status: 'pending'
     });
 
     // 分页信息
     const currentPage = ref(1);
-    const pageSize = 5;
-    const totalItems = ref(15);
+    const pageSize = 10;
+    const totalItems = ref(0);
 
     // 申请数据
     const applications = ref([]);
+    
+    // 加载状态
+    const loading = ref(false);
 
     // 驳回相关状态
     const rejectReason = ref('');
@@ -172,94 +195,76 @@ export default {
     };
 
     // 加载申请数据
-    const loadApplications = () => {
-      // 模拟数据
-      applications.value = [
-        {
-          id: 1,
-          applicantName: '张三',
-          type: 'personal',
-          status: 'pending',
-          applyTime: '2023-10-15 09:30',
-          accessTime: '2023-10-16 14:00-16:00',
-          reason: '参加学术讲座',
-          reviewer: '',
-          reviewTime: '',
-          rejectReason: ''
-        },
-        {
-          id: 2,
-          applicantName: '李四',
-          type: 'personal',
-          status: 'approved',
-          applyTime: '2023-10-14 15:20',
-          accessTime: '2023-10-17 09:00-12:00',
-          reason: '办理学生事务',
-          reviewer: '王老师',
-          reviewTime: '2023-10-14 16:45',
-          rejectReason: ''
-        },
-        {
-          id: 3,
-          applicantName: '计算机科学协会',
-          type: 'group',
-          status: 'pending',
-          applyTime: '2023-10-15 11:05',
-          accessTime: '2023-10-18 13:00-17:00',
-          reason: '举办技术沙龙活动',
-          groupSize: 25,
-          reviewer: '',
-          reviewTime: '',
-          rejectReason: ''
-        },
-        {
-          id: 4,
-          applicantName: '王五',
-          type: 'personal',
-          status: 'rejected',
-          applyTime: '2023-10-13 16:40',
-          accessTime: '2023-10-16 19:00-21:00',
-          reason: '自习',
-          reviewer: '李老师',
-          reviewTime: '2023-10-14 09:15',
-          rejectReason: '非开放时间段，请选择白天时段'
-        },
-        {
-          id: 5,
-          applicantName: '外语学院',
-          type: 'group',
-          status: 'pending',
-          applyTime: '2023-10-15 14:20',
-          accessTime: '2023-10-19 08:30-11:30',
-          reason: '举办外语角活动',
-          groupSize: 30,
-          reviewer: '',
-          reviewTime: '',
-          rejectReason: ''
+    const loadApplications = async () => {
+      if (!currentUserId.value) {
+        console.error('用户ID未获取');
+        return;
+      }
+      
+      try {
+        loading.value = true;
+        
+        const params = {
+          approver_id: currentUserId.value,
+          type: filter.value.type,
+          status: filter.value.status,
+          page: currentPage.value,
+          pageSize: pageSize
+        };
+        
+        const res = await getApprovalList(params);
+        
+        if (res && res.code === 0) {
+          applications.value = res.data.list || [];
+          totalItems.value = res.data.total || 0;
+          
+          // 格式化时间显示
+          applications.value.forEach(app => {
+            if (app.applyTime) {
+              app.applyTime = formatDateTime(app.applyTime);
+            }
+            if (app.reviewTime) {
+              app.reviewTime = formatDateTime(app.reviewTime);
+            }
+          });
+        } else {
+          console.error('获取审批列表失败:', res.message);
+          uni.showToast({
+            title: res.message || '获取数据失败',
+            icon: 'none'
+          });
         }
-      ].filter(app => {
-        // 根据筛选条件过滤
-        if (filter.value.type !== 'all' && app.type !== filter.value.type) return false;
-        if (filter.value.status !== 'all' && app.status !== filter.value.status) return false;
-        return true;
-      });
+      } catch (error) {
+        console.error('加载申请数据失败:', error);
+        uni.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
+        });
+      } finally {
+        loading.value = false;
+      }
     };
 
     // 显示驳回对话框
     const showRejectDialog = (app) => {
       currentApplication.value = app;
       rejectReason.value = '';
-      rejectPopup.value.open();
+      showRejectModal.value = true;
     };
 
     // 关闭驳回对话框
     const closeRejectDialog = () => {
-      rejectPopup.value.close();
+      showRejectModal.value = false;
       currentApplication.value = null;
     };
 
+    // 处理确认驳回
+    const handleConfirmReject = () => {
+      confirmReject(rejectReason.value);
+    };
+
     // 确认驳回
-    const confirmReject = (reason) => {
+    const confirmReject = async (reason) => {
       if (!reason.trim()) {
         uni.showToast({
           title: '请填写驳回原因',
@@ -268,20 +273,38 @@ export default {
         return;
       }
       
-      // 模拟驳回操作
-      const index = applications.value.findIndex(item => item.id === currentApplication.value.id);
-      if (index !== -1) {
-        applications.value[index].status = 'rejected';
-        applications.value[index].reviewer = userInfo.value.name;
-        applications.value[index].reviewTime = new Date().toLocaleString();
-        applications.value[index].rejectReason = reason;
+      try {
+        const data = {
+          reservation_id: currentApplication.value.id,
+          reservation_type: currentApplication.value.type === 'personal' ? 'individual' : 'group',
+          action: 'reject',
+          approver_id: currentUserId.value,
+          comments: reason
+        };
+        
+        const res = await approvalAction(data);
+        
+        if (res && res.code === 0) {
+          closeRejectDialog();
+          uni.showToast({
+            title: '已驳回该申请',
+            icon: 'success'
+          });
+          // 重新加载数据
+          loadApplications();
+        } else {
+          uni.showToast({
+            title: res.message || '操作失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        console.error('驳回操作失败:', error);
+        uni.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
+        });
       }
-      
-      closeRejectDialog();
-      uni.showToast({
-        title: '已驳回该申请',
-        icon: 'success'
-      });
     };
 
     // 通过申请
@@ -289,19 +312,39 @@ export default {
       uni.showModal({
         title: '确认通过',
         content: '确定要通过该申请吗？',
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            // 模拟通过操作
-            const index = applications.value.findIndex(item => item.id === app.id);
-            if (index !== -1) {
-              applications.value[index].status = 'approved';
-              applications.value[index].reviewer = userInfo.value.name;
-              applications.value[index].reviewTime = new Date().toLocaleString();
+            try {
+              const data = {
+                reservation_id: app.id,
+                reservation_type: app.type === 'personal' ? 'individual' : 'group',
+                action: 'approve',
+                approver_id: currentUserId.value,
+                comments: '审批通过'
+              };
+              
+              const result = await approvalAction(data);
+              
+              if (result && result.code === 0) {
+                uni.showToast({
+                  title: '已通过该申请',
+                  icon: 'success'
+                });
+                // 重新加载数据
+                loadApplications();
+              } else {
+                uni.showToast({
+                  title: result.message || '操作失败',
+                  icon: 'none'
+                });
+              }
+            } catch (error) {
+              console.error('通过操作失败:', error);
+              uni.showToast({
+                title: '网络错误，请重试',
+                icon: 'none'
+              });
             }
-            uni.showToast({
-              title: '已通过该申请',
-              icon: 'success'
-            });
           }
         }
       });
@@ -321,10 +364,63 @@ export default {
         loadApplications();
       }
     };
+    
+    // 格式化日期时间
+    const formatDateTime = (dateTime) => {
+      if (!dateTime) return '';
+      const date = new Date(dateTime);
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    };
+    
+    // 获取当前用户信息
+    const getCurrentUserInfo = async () => {
+      try {
+        const currentUser = uni.getStorageSync('currentUser');
+        if (currentUser && currentUser.user_id) {
+          currentUserId.value = currentUser.user_id;
+          
+          // 从后端获取最新的用户信息
+          const res = await getApproverInfo(currentUser.user_id);
+          if (res && res.code === 0) {
+            userInfo.value = {
+              name: res.data.name,
+              role: res.data.role
+            };
+          } else {
+            // 使用本地存储的信息作为备用
+            userInfo.value = {
+              name: currentUser.real_name || currentUser.username,
+              role: currentUser.role === 'admin' ? '超级管理员' : '审批管理员'
+            };
+          }
+        } else {
+          // 用户未登录，跳转到登录页
+          uni.reLaunch({
+            url: '/pages/admin/login'
+          });
+        }
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        // 使用默认信息
+        userInfo.value = {
+          name: '审批员',
+          role: '审批管理员'
+        };
+      }
+    };
 
     // 初始化加载
-    onMounted(() => {
-      loadApplications();
+    onMounted(async () => {
+      await getCurrentUserInfo();
+      if (currentUserId.value) {
+        loadApplications();
+      }
     });
 
     // 退出登录
@@ -336,7 +432,7 @@ export default {
     };
 
     return {
-      rejectPopup,
+      showRejectModal,
       userInfo,
       filter,
       typeOptions,
@@ -345,6 +441,7 @@ export default {
       applications,
       rejectReason,
       totalPages,
+      loading,
       getStatusText,
       onTypeChange,
       onStatusChange,
@@ -352,6 +449,7 @@ export default {
       showRejectDialog,
       closeRejectDialog,
       confirmReject,
+      handleConfirmReject,
       approveApplication,
       prevPage,
       nextPage,
@@ -667,6 +765,99 @@ export default {
 .page-info {
   font-size: 13px;
   color: #666;
+}
+
+/* 模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 400px;
+  max-height: 80%;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.reject-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+}
+
+.modal-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-btn.cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.modal-btn.confirm {
+  background: #1976d2;
+  color: white;
+}
+
+.modal-btn.confirm:hover {
+  background: #164066;
 }
 
 /* 响应式设计 */

@@ -334,8 +334,8 @@
 .reservations-table.data-v-ec62db0b {
     font-size: 12px;
 }
-.reservations-table th.data-v-ec62db0b,
-  .reservations-table td.data-v-ec62db0b {
+.table-header.data-v-ec62db0b,
+  .table-cell.data-v-ec62db0b {
     padding: 12px 8px;
 }
 .action-buttons.data-v-ec62db0b {

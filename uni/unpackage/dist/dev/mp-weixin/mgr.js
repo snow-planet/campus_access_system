@@ -1,12 +1,14 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
+const api_uniAdmin = require("./api/uniAdmin.js");
 const _sfc_main = {
   data() {
     return {
+      currentUser: null,
       approverCount: 5,
       pendingApplicationCount: 3,
-      selectedCollege: "信息中心",
-      selectedCollegeIndex: 6,
+      selectedCollege: "信息技术学院",
+      selectedCollegeIndex: 0,
       applicationFilters: {
         position: "all"
       },
@@ -33,23 +35,17 @@ const _sfc_main = {
       roleOptions: ["全部类型", "后台账号", "审批人账号"],
       positionOptions: ["二级学院负责人", "保卫处"],
       collegeOptions: [
-        "计算机学院",
-        "外国语学院",
-        "经济管理学院",
-        "电子工程学院",
-        "机械工程学院",
-        "保卫处",
-        "信息中心"
+        "信息技术学院",
+        "治安学院",
+        "交通管理学院",
+        "保卫处"
       ],
       collegeFilterOptions: [
         "全部学院",
-        "计算机学院",
-        "外国语学院",
-        "经济管理学院",
-        "电子工程学院",
-        "机械工程学院",
-        "保卫处",
-        "信息中心"
+        "信息技术学院",
+        "治安学院",
+        "交通管理学院",
+        "保卫处"
       ]
     };
   },
@@ -106,91 +102,134 @@ const _sfc_main = {
     formatDate(dateString) {
       return new Date(dateString).toLocaleDateString("zh-CN");
     },
-    loadApplications() {
-      this.applications = [
-        {
-          application_id: 1001,
-          user_id: 101,
-          real_name: "张三",
-          phone: "13800138000",
-          college: this.selectedCollege,
-          position: "teacher",
-          status: "pending",
-          created_at: "2023-10-15 09:30:00"
-        },
-        {
-          application_id: 1002,
-          user_id: 102,
-          real_name: "李四",
-          phone: "13900139000",
-          college: this.selectedCollege,
-          position: "security",
-          status: "pending",
-          created_at: "2023-10-16 14:20:00"
+    async loadApplications() {
+      try {
+        const userCollege = this.currentUser && this.currentUser.college ? this.currentUser.college : null;
+        const result = await api_uniAdmin.getApplications({
+          position: this.applicationFilters.position === "all" ? null : this.applicationFilters.position,
+          college: userCollege
+        });
+        if (result && result.code === 0) {
+          this.applications = result.data || [];
+        } else {
+          common_vendor.index.showToast({
+            title: "获取申请数据失败",
+            icon: "none"
+          });
+          this.applications = [];
         }
-      ].filter((app) => {
-        if (this.applicationFilters.position !== "all" && app.position !== this.applicationFilters.position)
-          return false;
-        return true;
-      });
+      } catch (error) {
+        console.error("获取申请数据失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
+        this.applications = [];
+      }
     },
-    loadAccounts() {
-      this.accounts = [
-        {
-          user_id: 1,
-          username: "admin01",
-          real_name: "系统管理员",
-          phone: "13800138001",
-          college: "信息中心",
-          position: "other",
-          role: "admin",
-          status: "active",
-          created_at: "2023-09-01 08:00:00"
-        },
-        {
-          user_id: 2,
-          username: "approver01",
-          real_name: "李老师",
-          phone: "13900139001",
-          college: "计算机学院",
-          position: "teacher",
-          role: "approver",
-          status: "active",
-          created_at: "2023-09-05 10:30:00"
+    async loadAccounts() {
+      try {
+        const result = await api_uniAdmin.getAccounts({
+          role: this.accountFilters.role === "all" ? null : this.accountFilters.role,
+          college: this.accountFilters.college === "all" ? null : this.accountFilters.college
+        });
+        if (result && result.code === 0) {
+          this.accounts = result.data || [];
+        } else {
+          common_vendor.index.showToast({
+            title: "获取账号数据失败",
+            icon: "none"
+          });
+          this.accounts = [];
         }
-      ].filter((acc) => {
-        if (this.accountFilters.role !== "all" && acc.role !== this.accountFilters.role)
-          return false;
-        if (this.accountFilters.college !== "all" && acc.college !== this.accountFilters.college)
-          return false;
-        return true;
-      });
+      } catch (error) {
+        console.error("获取账号数据失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
+        this.accounts = [];
+      }
     },
     resetApplicationFilters() {
       this.applicationFilters = { position: "all" };
       this.loadApplications();
     },
     resetAccountFilters() {
+      const defaultCollege = this.currentUser && this.currentUser.college ? this.currentUser.college : "all";
+      const defaultCollegeIndex = defaultCollege === "all" ? 0 : this.collegeFilterOptions.findIndex((college) => college === defaultCollege);
       this.accountFilters = {
         role: "all",
-        college: "all",
+        college: defaultCollege,
         roleIndex: 0,
-        collegeIndex: 0
+        collegeIndex: defaultCollegeIndex !== -1 ? defaultCollegeIndex : 0
       };
       this.loadAccounts();
     },
-    approveApplication(application) {
-      if (confirm(`确定要通过 ${application.real_name} 的审批人申请吗？`)) {
-        common_vendor.index.showToast({ title: "已通过申请", icon: "success" });
-        this.loadApplications();
-        this.loadStats();
+    async approveApplication(application) {
+      try {
+        const res = await common_vendor.index.showModal({
+          title: "确认操作",
+          content: `确定要通过 ${application.real_name} 的审批人申请吗？`
+        });
+        if (res.confirm) {
+          const result = await api_uniAdmin.processApplication({
+            application_id: application.application_id,
+            action: "approve"
+          });
+          if (result && result.code === 0) {
+            common_vendor.index.showToast({
+              title: "已通过申请",
+              icon: "success"
+            });
+            this.loadApplications();
+            this.loadStats();
+          } else {
+            common_vendor.index.showToast({
+              title: "操作失败",
+              icon: "none"
+            });
+          }
+        }
+      } catch (error) {
+        console.error("审批申请失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
       }
     },
-    rejectApplication(application) {
-      if (confirm(`确定要拒绝 ${application.real_name} 的审批人申请吗？`)) {
-        common_vendor.index.showToast({ title: "已拒绝申请", icon: "success" });
-        this.loadApplications();
-        this.loadStats();
+    async rejectApplication(application) {
+      try {
+        const res = await common_vendor.index.showModal({
+          title: "确认操作",
+          content: `确定要拒绝 ${application.real_name} 的审批人申请吗？`
+        });
+        if (res.confirm) {
+          const result = await api_uniAdmin.processApplication({
+            application_id: application.application_id,
+            action: "reject"
+          });
+          if (result && result.code === 0) {
+            common_vendor.index.showToast({
+              title: "已拒绝申请",
+              icon: "success"
+            });
+            this.loadApplications();
+            this.loadStats();
+          } else {
+            common_vendor.index.showToast({
+              title: "操作失败",
+              icon: "none"
+            });
+          }
+        }
+      } catch (error) {
+        console.error("拒绝申请失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
       }
     },
     viewApplicationDetails(application) {
@@ -206,9 +245,36 @@ const _sfc_main = {
         content: `修改账号信息：${account.real_name}`
       });
     },
-    deleteAccount(account) {
-      if (confirm(`确定要删除 ${account.real_name} 的账号吗？`)) {
-        common_vendor.index.showToast({ title: "账号已删除", icon: "success" });
+    async deleteAccount(account) {
+      try {
+        const res = await common_vendor.index.showModal({
+          title: "确认删除",
+          content: `确定要删除 ${account.real_name} 的账号吗？此操作不可恢复！`
+        });
+        if (res.confirm) {
+          const result = await api_uniAdmin.deleteAccount({
+            user_id: account.user_id
+          });
+          if (result && result.code === 0) {
+            common_vendor.index.showToast({
+              title: "账号已删除",
+              icon: "success"
+            });
+            this.loadAccounts();
+            this.loadStats();
+          } else {
+            common_vendor.index.showToast({
+              title: "删除失败",
+              icon: "none"
+            });
+          }
+        }
+      } catch (error) {
+        console.error("删除账号失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
       }
     },
     showCreateModal() {
@@ -234,33 +300,95 @@ const _sfc_main = {
     closeApplicationsModal() {
       this.showApplicationsModal = false;
     },
-    createAccount() {
+    async createAccount() {
       if (!this.newAccount.username || !this.newAccount.password || !this.newAccount.real_name || !this.newAccount.phone || !this.newAccount.college) {
         common_vendor.index.showToast({ title: "请填写所有必填字段", icon: "none" });
         return;
       }
-      common_vendor.index.showToast({ title: "后台账号创建成功", icon: "success" });
-      this.closeCreateModal();
-    },
-    loadStats() {
-      if (this.selectedCollege === "信息中心") {
-        this.approverCount = 5;
-        this.pendingApplicationCount = 3;
-      } else {
-        this.approverCount = 0;
-        this.pendingApplicationCount = 0;
+      try {
+        const result = await api_uniAdmin.createAccount({
+          username: this.newAccount.username,
+          password: this.newAccount.password,
+          real_name: this.newAccount.real_name,
+          phone: this.newAccount.phone,
+          college: this.newAccount.college,
+          position: this.newAccount.position,
+          role: "admin"
+          // 默认创建后台账号
+        });
+        if (result && result.code === 0) {
+          common_vendor.index.showToast({
+            title: "后台账号创建成功",
+            icon: "success"
+          });
+          this.closeCreateModal();
+          this.loadAccounts();
+          this.loadStats();
+        } else {
+          common_vendor.index.showToast({
+            title: result.message || "创建失败",
+            icon: "none"
+          });
+        }
+      } catch (error) {
+        console.error("创建账号失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
       }
+    },
+    async loadStats() {
+      try {
+        const result = await api_uniAdmin.getManagerStats({
+          college: this.selectedCollege === "全部学院" ? null : this.selectedCollege
+        });
+        if (result && result.code === 0) {
+          this.approverCount = result.data.approverCount || 0;
+          this.pendingApplicationCount = result.data.pendingApplications || 0;
+        } else {
+          common_vendor.index.showToast({
+            title: "获取统计数据失败",
+            icon: "none"
+          });
+        }
+      } catch (error) {
+        console.error("获取统计数据失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
+        });
+      }
+    },
+    async getCurrentUserInfo() {
+      try {
+        const currentUser = common_vendor.index.getStorageSync("currentUser");
+        if (currentUser) {
+          this.currentUser = currentUser;
+          if (currentUser.college) {
+            const collegeIndex = this.collegeOptions.findIndex((college) => college === currentUser.college);
+            if (collegeIndex !== -1) {
+              this.selectedCollege = currentUser.college;
+              this.selectedCollegeIndex = collegeIndex;
+              this.accountFilters.college = currentUser.college;
+              const filterIndex = this.collegeFilterOptions.findIndex((college) => college === currentUser.college);
+              if (filterIndex !== -1) {
+                this.accountFilters.collegeIndex = filterIndex;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("获取当前用户信息失败:", error);
+      }
+    },
+    onLoad() {
+      this.getCurrentUserInfo();
+      this.loadAccounts();
+      this.loadStats();
     }
-  },
-  onLoad() {
-    this.loadAccounts();
-    this.loadStats();
   }
 };
-if (!Array) {
-  const _component_uni_icons = common_vendor.resolveComponent("uni-icons");
-  _component_uni_icons();
-}
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.t($data.selectedCollege),
@@ -272,111 +400,61 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $options.hasPendingApplications ? {
     g: common_vendor.t($data.pendingApplicationCount)
   } : {}, {
-    h: common_vendor.p({
-      type: "plus",
-      size: "16",
-      color: "#fff"
-    }),
-    i: common_vendor.o((...args) => $options.showCreateModal && $options.showCreateModal(...args)),
-    j: common_vendor.o((...args) => $options.showPendingApplications && $options.showPendingApplications(...args)),
-    k: common_vendor.t($options.getRoleText($data.accountFilters.role)),
-    l: $data.roleOptions,
-    m: $data.accountFilters.roleIndex,
-    n: common_vendor.o((...args) => $options.onRoleChange && $options.onRoleChange(...args)),
-    o: common_vendor.t($data.accountFilters.college === "all" ? "全部学院" : $data.accountFilters.college),
-    p: $data.collegeFilterOptions,
-    q: $data.accountFilters.collegeIndex,
-    r: common_vendor.o((...args) => $options.onCollegeFilterChange && $options.onCollegeFilterChange(...args)),
-    s: common_vendor.p({
-      type: "search",
-      size: "16",
-      color: "#fff"
-    }),
-    t: common_vendor.o((...args) => $options.loadAccounts && $options.loadAccounts(...args)),
-    v: common_vendor.p({
-      type: "refresh",
-      size: "16",
-      color: "#666"
-    }),
-    w: common_vendor.o((...args) => $options.resetAccountFilters && $options.resetAccountFilters(...args)),
-    x: $data.accounts.length === 0
-  }, $data.accounts.length === 0 ? {
-    y: common_vendor.p({
-      type: "search",
-      size: "24",
-      color: "#999"
-    })
-  } : {
-    z: common_vendor.f($data.accounts, (account, k0, i0) => {
+    h: common_vendor.o((...args) => $options.showCreateModal && $options.showCreateModal(...args)),
+    i: common_vendor.o((...args) => $options.showPendingApplications && $options.showPendingApplications(...args)),
+    j: common_vendor.t($options.getRoleText($data.accountFilters.role)),
+    k: $data.roleOptions,
+    l: $data.accountFilters.roleIndex,
+    m: common_vendor.o((...args) => $options.onRoleChange && $options.onRoleChange(...args)),
+    n: common_vendor.t($data.accountFilters.college === "all" ? "全部学院" : $data.accountFilters.college),
+    o: $data.collegeFilterOptions,
+    p: $data.accountFilters.collegeIndex,
+    q: common_vendor.o((...args) => $options.onCollegeFilterChange && $options.onCollegeFilterChange(...args)),
+    r: common_vendor.o((...args) => $options.loadAccounts && $options.loadAccounts(...args)),
+    s: common_vendor.o((...args) => $options.resetAccountFilters && $options.resetAccountFilters(...args)),
+    t: $data.accounts.length === 0
+  }, $data.accounts.length === 0 ? {} : {
+    v: common_vendor.f($data.accounts, (account, k0, i0) => {
       return {
         a: common_vendor.t(account.user_id),
-        b: common_vendor.t(account.username),
-        c: common_vendor.t(account.real_name),
-        d: common_vendor.t(account.phone),
-        e: common_vendor.t(account.college || "-"),
-        f: common_vendor.t($options.getPositionText(account.position)),
-        g: common_vendor.t($options.getRoleText(account.role)),
-        h: common_vendor.n(account.role),
-        i: "d2d38065-4-" + i0,
-        j: common_vendor.o(($event) => $options.editAccount(account), account.user_id),
-        k: "d2d38065-5-" + i0,
-        l: common_vendor.o(($event) => $options.deleteAccount(account), account.user_id),
-        m: account.user_id
+        b: common_vendor.t(account.real_name),
+        c: common_vendor.t(account.phone),
+        d: common_vendor.t(account.college || "-"),
+        e: common_vendor.t($options.getPositionText(account.position)),
+        f: common_vendor.t($options.getRoleText(account.role)),
+        g: common_vendor.n(account.role),
+        h: common_vendor.o(($event) => $options.editAccount(account), account.user_id),
+        i: common_vendor.o(($event) => $options.deleteAccount(account), account.user_id),
+        j: account.user_id
       };
-    }),
-    A: common_vendor.p({
-      type: "compose",
-      size: "14",
-      color: "#1890ff"
-    }),
-    B: common_vendor.p({
-      type: "trash",
-      size: "14",
-      color: "#ff4d4f"
     })
   }, {
-    C: $data.showCreateAccountModal
+    w: $data.showCreateAccountModal
   }, $data.showCreateAccountModal ? {
-    D: common_vendor.p({
-      type: "close",
-      size: "16",
-      color: "#999"
-    }),
-    E: common_vendor.o((...args) => $options.closeCreateModal && $options.closeCreateModal(...args)),
-    F: $data.newAccount.username,
-    G: common_vendor.o(($event) => $data.newAccount.username = $event.detail.value),
-    H: $data.newAccount.password,
-    I: common_vendor.o(($event) => $data.newAccount.password = $event.detail.value),
-    J: $data.newAccount.phone,
-    K: common_vendor.o(($event) => $data.newAccount.phone = $event.detail.value),
-    L: common_vendor.t($data.newAccount.college || "请选择学院/部门"),
-    M: $data.collegeOptions,
-    N: $data.newAccount.collegeIndex,
-    O: common_vendor.o((...args) => $options.onNewAccountCollegeChange && $options.onNewAccountCollegeChange(...args)),
-    P: common_vendor.t($options.getPositionText($data.newAccount.position)),
-    Q: $data.positionOptions,
-    R: $data.newAccount.positionIndex,
-    S: common_vendor.o((...args) => $options.onNewAccountPositionChange && $options.onNewAccountPositionChange(...args)),
-    T: common_vendor.o((...args) => $options.closeCreateModal && $options.closeCreateModal(...args)),
-    U: common_vendor.o((...args) => $options.createAccount && $options.createAccount(...args))
+    x: common_vendor.o((...args) => $options.closeCreateModal && $options.closeCreateModal(...args)),
+    y: $data.newAccount.username,
+    z: common_vendor.o(($event) => $data.newAccount.username = $event.detail.value),
+    A: $data.newAccount.password,
+    B: common_vendor.o(($event) => $data.newAccount.password = $event.detail.value),
+    C: $data.newAccount.phone,
+    D: common_vendor.o(($event) => $data.newAccount.phone = $event.detail.value),
+    E: common_vendor.t($data.newAccount.college || "请选择学院/部门"),
+    F: $data.collegeOptions,
+    G: $data.newAccount.collegeIndex,
+    H: common_vendor.o((...args) => $options.onNewAccountCollegeChange && $options.onNewAccountCollegeChange(...args)),
+    I: common_vendor.t($options.getPositionText($data.newAccount.position)),
+    J: $data.positionOptions,
+    K: $data.newAccount.positionIndex,
+    L: common_vendor.o((...args) => $options.onNewAccountPositionChange && $options.onNewAccountPositionChange(...args)),
+    M: common_vendor.o((...args) => $options.closeCreateModal && $options.closeCreateModal(...args)),
+    N: common_vendor.o((...args) => $options.createAccount && $options.createAccount(...args))
   } : {}, {
-    V: $data.showApplicationsModal
+    O: $data.showApplicationsModal
   }, $data.showApplicationsModal ? common_vendor.e({
-    W: common_vendor.p({
-      type: "close",
-      size: "16",
-      color: "#999"
-    }),
-    X: common_vendor.o((...args) => $options.closeApplicationsModal && $options.closeApplicationsModal(...args)),
-    Y: $data.applications.length === 0
-  }, $data.applications.length === 0 ? {
-    Z: common_vendor.p({
-      type: "search",
-      size: "24",
-      color: "#999"
-    })
-  } : {
-    aa: common_vendor.f($data.applications, (application, k0, i0) => {
+    P: common_vendor.o((...args) => $options.closeApplicationsModal && $options.closeApplicationsModal(...args)),
+    Q: $data.applications.length === 0
+  }, $data.applications.length === 0 ? {} : {
+    R: common_vendor.f($data.applications, (application, k0, i0) => {
       return common_vendor.e({
         a: common_vendor.t(application.real_name),
         b: common_vendor.t(application.phone),
@@ -385,39 +463,21 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         e: common_vendor.t($options.formatDate(application.created_at)),
         f: application.status === "pending"
       }, application.status === "pending" ? {
-        g: "d2d38065-9-" + i0,
-        h: common_vendor.p({
-          type: "checkmark",
-          size: "14",
-          color: "#52c41a"
-        }),
-        i: common_vendor.o(($event) => $options.approveApplication(application), application.application_id)
+        g: common_vendor.o(($event) => $options.approveApplication(application), application.application_id)
       } : {}, {
-        j: application.status === "pending"
+        h: application.status === "pending"
       }, application.status === "pending" ? {
-        k: "d2d38065-10-" + i0,
-        l: common_vendor.p({
-          type: "close",
-          size: "14",
-          color: "#ff4d4f"
-        }),
-        m: common_vendor.o(($event) => $options.rejectApplication(application), application.application_id)
+        i: common_vendor.o(($event) => $options.rejectApplication(application), application.application_id)
       } : {}, {
-        n: application.status !== "pending"
+        j: application.status !== "pending"
       }, application.status !== "pending" ? {
-        o: "d2d38065-11-" + i0,
-        p: common_vendor.p({
-          type: "eye",
-          size: "14",
-          color: "#666"
-        }),
-        q: common_vendor.o(($event) => $options.viewApplicationDetails(application), application.application_id)
+        k: common_vendor.o(($event) => $options.viewApplicationDetails(application), application.application_id)
       } : {}, {
-        r: application.application_id
+        l: application.application_id
       });
     })
   }, {
-    ab: common_vendor.o((...args) => $options.closeApplicationsModal && $options.closeApplicationsModal(...args))
+    S: common_vendor.o((...args) => $options.closeApplicationsModal && $options.closeApplicationsModal(...args))
   }) : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-d2d38065"]]);

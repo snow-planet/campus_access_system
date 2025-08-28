@@ -49,7 +49,7 @@
         <!-- 右侧二维码区域 -->
         <div class="right-content">
           <div class="qr-code-section">
-              <img src="../assets/vue.svg" alt="预约二维码">
+              <img src="../assets/wechat-qrcode.png" alt="预约二维码">
               <p class="qr-code-desc">手机扫码进入小程序预约</p>
           </div>
         </div>

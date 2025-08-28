@@ -45,8 +45,8 @@
           <!-- 根节点 -->
           <div class="tree-root">
             <div class="stat-card main-panel root-card">
-              <h4>今日预约次数</h4>
-              <div class="stat-number">128</div>
+              <h4>今日预约人次</h4>
+              <div class="stat-number">{{ dashboardStats.todayPeople }}</div>
             </div>
           </div>
           
@@ -63,17 +63,12 @@
           <div class="tree-children">
             <div class="stat-card child-card">
               <h4>今日待入校</h4>
-              <div class="stat-number">42</div>
+              <div class="stat-number">{{ dashboardStats.todayPending }}</div>
             </div>
             
             <div class="stat-card child-card">
-              <h4>今日已入校</h4>
-              <div class="stat-number">76</div>
-            </div>
-            
-            <div class="stat-card child-card">
-              <h4>今日已离校</h4>
-              <div class="stat-number">58</div>
+              <h4>今日已完成</h4>
+              <div class="stat-number">{{ dashboardStats.todayCompleted }}</div>
             </div>
           </div>
         </div>
@@ -96,45 +91,16 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>张三</td>
-                  <td>个人</td>
-                  <td>参加学术讲座</td>
-                  <td>2025/8/21</td>
-                  <td>14:00 - 16:00</td>
-                  <td>京A12345</td>
+                <tr v-for="reservation in todayReservations" :key="reservation.created_at">
+                  <td>{{ reservation.applicant }}</td>
+                  <td>{{ reservation.type === 'individual' ? '个人' : '团体' }}</td>
+                  <td>{{ reservation.purpose }}</td>
+                  <td>{{ reservation.visit_date }}</td>
+                  <td>{{ reservation.time_slot }}</td>
+                  <td>{{ reservation.license_plate || '-' }}</td>
                 </tr>
-                <tr>
-                  <td>李四</td>
-                  <td>访客</td>
-                  <td>拜访教授</td>
-                  <td>2025/8/21</td>
-                  <td>09:30 - 11:00</td>
-                  <td>京B56789</td>
-                </tr>
-                <tr>
-                  <td>王五</td>
-                  <td>公务</td>
-                  <td>部门会议</td>
-                  <td>2025/8/21</td>
-                  <td>13:00 - 17:00</td>
-                  <td>京C24680</td>
-                </tr>
-                <tr>
-                  <td>赵六</td>
-                  <td>个人</td>
-                  <td>图书馆借阅</td>
-                  <td>2025/8/21</td>
-                  <td>10:00 - 12:00</td>
-                  <td>京D13579</td>
-                </tr>
-                <tr>
-                  <td>钱七</td>
-                  <td>供应商</td>
-                  <td>设备维修</td>
-                  <td>2025/8/21</td>
-                  <td>14:30 - 16:30</td>
-                  <td>京E11223</td>
+                <tr v-if="!todayReservations.length">
+                  <td colspan="6" style="text-align: center; color: rgba(255, 255, 255, 0.6);">暂无今日预约记录</td>
                 </tr>
               </tbody>
             </table>
@@ -146,27 +112,20 @@
       <aside class="right-panel">
         <!-- 提醒通知面板 -->
         <div class="notification-panel">
-          <h3>提醒通知</h3>
+          <h3>审批申请待处理</h3>
           <div class="notification-content">
-            <div class="notification-item">
-              <span class="priority-badge high">紧急</span>
+            <div v-for="stat in applicationsStats" :key="`${stat.college}-${stat.position}`" class="notification-item">
+              <span class="priority-badge" :class="{ 'high': stat.pending_count > 5 }">{{ stat.pending_count }}</span>
               <div class="notification-details">
-                <div class="notification-text">今日14:00-16:00东门将有大型活动，请注意疏导交通</div>
-                <div class="notification-info">系统管理员 · 10分钟前</div>
+                <div class="notification-text">{{ stat.college }}</div>
+                <div class="notification-info">{{ stat.position === 'teacher' ? '教师' : '保卫处' }} · 待处理申请</div>
               </div>
             </div>
-            <div class="notification-item">
-              <span class="priority-badge">一般</span>
+            <div v-if="!applicationsStats.length" class="notification-item">
+              <span class="priority-badge">0</span>
               <div class="notification-details">
-                <div class="notification-text">北门入口闸机维护完成，已恢复正常使用</div>
-                <div class="notification-info">后勤部 · 今天 09:30</div>
-              </div>
-            </div>
-            <div class="notification-item">
-              <span class="priority-badge">一般</span>
-              <div class="notification-details">
-                <div class="notification-text">预约系统将于今晚23:00-24:00进行例行维护</div>
-                <div class="notification-info">IT支持 · 今天 08:45</div>
+                <div class="notification-text">暂无待处理申请</div>
+                <div class="notification-info">所有申请已处理完毕</div>
               </div>
             </div>
           </div>
@@ -177,21 +136,21 @@
           <h3>公告栏</h3>
           <div class="announcement-content">
             <div class="announcement-scroll">
-              <div class="announcement-item">
+              <div v-for="announcement in announcements" :key="announcement.notification_id" class="announcement-item">
                 <div class="announcement-header">
-                  <div class="announcement-title high-priority">重要通知</div>
-                  <div class="announcement-date">2025/8/20</div>
+                  <div class="announcement-title" :class="getAnnouncementPriority(announcement.title)">{{ announcement.title }}</div>
+                  <div class="announcement-date">{{ formatAnnouncementDate(announcement.created_at) }}</div>
                 </div>
-                <div class="announcement-content-text">根据学校安排，9月1日起将启用新的入校预约审批流程，请相关人员提前熟悉新流程。</div>
-                <div class="announcement-author">发布人：校办</div>
+                <div class="announcement-content-text">{{ truncateContent(announcement.content, 80) }}</div>
+                <div class="announcement-author">发布人：{{ announcement.publisher }}</div>
               </div>
-              <div class="announcement-item">
+              <div v-if="!announcements.length" class="announcement-item">
                 <div class="announcement-header">
-                  <div class="announcement-title normal-priority">温馨提示</div>
-                  <div class="announcement-date">2025/8/19</div>
+                  <div class="announcement-title normal-priority">暂无公告</div>
+                  <div class="announcement-date">-</div>
                 </div>
-                <div class="announcement-content-text">近期多有降雨，请预约入校的师生注意交通安全，减速慢行。</div>
-                <div class="announcement-author">发布人：保卫处</div>
+                <div class="announcement-content-text">当前没有公告信息</div>
+                <div class="announcement-author">发布人：-</div>
               </div>
             </div>
           </div>
@@ -204,6 +163,15 @@
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
+import { 
+  getDashboardStats, 
+  getHourlyTraffic, 
+  getWeeklyTraffic, 
+  getMonthlyTraffic,
+  getTodayReservations,
+  getApplicationsStats,
+  getDashboardAnnouncements
+} from '../../api/dashboard'
 
 export default {
   name: 'DashboardScreen',
@@ -214,16 +182,25 @@ export default {
     let todayChart = null
     let weekChart = null
     let monthChart = null
+    
+    // 数据状态
+    const dashboardStats = ref({
+      todayReservations: 0,
+      todayPeople: 0,
+      todayPending: 0,
+      todayCompleted: 0,
+      todayVehicles: 0
+    })
+    const todayReservations = ref([])
+    const applicationsStats = ref([])
+    const announcements = ref([])
+    const hourlyTrafficData = ref([])
+    const weeklyTrafficData = ref([])
+    const monthlyTrafficData = ref([])
 
     // 返回功能
     const goBack = () => {
-      const returnPage = localStorage.getItem('dashboard_return_page')
-      if (returnPage === 'guard') {
-        window.location.href = '/admin/home'
-      } else {
-        // 默认返回首页
-        window.location.href = '/admin/home'
-      }
+      window.location.href = '/admin/adminhome'
     }
 
     // 实时时间更新
@@ -240,6 +217,77 @@ export default {
         second: '2-digit'
       })
     }
+    
+    // 加载数据大屏统计数据
+    const loadDashboardStats = async () => {
+      try {
+        const res = await getDashboardStats()
+        if (res && res._status === 'OK') {
+          dashboardStats.value = res.data
+        }
+      } catch (error) {
+        console.error('加载统计数据失败:', error)
+      }
+    }
+    
+    // 加载今日预约记录
+    const loadTodayReservations = async () => {
+      try {
+        const res = await getTodayReservations()
+        if (res && res._status === 'OK') {
+          todayReservations.value = res.data
+        }
+      } catch (error) {
+        console.error('加载今日预约记录失败:', error)
+      }
+    }
+    
+    // 加载审批申请统计
+    const loadApplicationsStats = async () => {
+      try {
+        const res = await getApplicationsStats()
+        if (res && res._status === 'OK') {
+          applicationsStats.value = res.data
+        }
+      } catch (error) {
+        console.error('加载审批申请统计失败:', error)
+      }
+    }
+    
+    // 加载公告数据
+    const loadAnnouncements = async () => {
+      try {
+        const res = await getDashboardAnnouncements()
+        if (res && res._status === 'OK') {
+          announcements.value = res.data
+        }
+      } catch (error) {
+        console.error('加载公告数据失败:', error)
+      }
+    }
+    
+    // 加载人流量数据
+    const loadTrafficData = async () => {
+      try {
+        const [hourlyRes, weeklyRes, monthlyRes] = await Promise.all([
+          getHourlyTraffic(),
+          getWeeklyTraffic(),
+          getMonthlyTraffic()
+        ])
+        
+        if (hourlyRes && hourlyRes._status === 'OK') {
+          hourlyTrafficData.value = hourlyRes.data
+        }
+        if (weeklyRes && weeklyRes._status === 'OK') {
+          weeklyTrafficData.value = weeklyRes.data
+        }
+        if (monthlyRes && monthlyRes._status === 'OK') {
+          monthlyTrafficData.value = monthlyRes.data
+        }
+      } catch (error) {
+        console.error('加载人流量数据失败:', error)
+      }
+    }
 
     // 初始化今日人流量统计图表
     const initTodayChart = () => {
@@ -247,6 +295,34 @@ export default {
       if (!chartDom) return
       
       todayChart = echarts.init(chartDom)
+      updateTodayChart()
+    }
+    
+    // 更新今日图表数据
+    const updateTodayChart = () => {
+      if (!todayChart || !hourlyTrafficData.value.length) return
+      
+      // 生成24小时标签
+      const hours = Array.from({ length: 12 }, (_, i) => {
+        const hour = i * 2
+        return `${hour.toString().padStart(2, '0')}:00`
+      })
+      
+      // 按2小时间隔聚合数据
+      const reservationsData = []
+      const peopleData = []
+      
+      for (let i = 0; i < 24; i += 2) {
+        const periodData = hourlyTrafficData.value.filter(item => 
+          item.hour >= i && item.hour < i + 2
+        )
+        const totalReservations = periodData.reduce((sum, item) => sum + item.reservations, 0)
+        const totalPeople = periodData.reduce((sum, item) => sum + item.people, 0)
+        
+        reservationsData.push(totalReservations)
+        peopleData.push(totalPeople)
+      }
+      
       const option = {
         backgroundColor: 'transparent',
         grid: {
@@ -257,7 +333,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'],
+          data: hours,
           axisLine: {
             lineStyle: {
               color: 'rgba(0, 212, 255, 0.5)'
@@ -308,7 +384,7 @@ export default {
             name: '预约数',
             type: 'line',
             yAxisIndex: 0,
-            data: [12, 8, 15, 25, 45, 68, 82, 95, 78, 65, 42, 28],
+            data: reservationsData,
             areaStyle: {
               color: {
                 type: 'linear',
@@ -334,7 +410,7 @@ export default {
             name: '预约人次',
             type: 'line',
             yAxisIndex: 1,
-            data: [18, 12, 22, 38, 68, 102, 125, 142, 118, 98, 65, 42],
+            data: peopleData,
             lineStyle: {
               color: '#00ff88',
               width: 3,
@@ -377,6 +453,23 @@ export default {
       if (!chartDom) return
       
       weekChart = echarts.init(chartDom)
+      updateWeekChart()
+    }
+    
+    // 更新本周图表数据
+    const updateWeekChart = () => {
+      if (!weekChart || !weeklyTrafficData.value.length) return
+      
+      const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+      const reservationsData = weekDays.map((_, index) => {
+        const dayData = weeklyTrafficData.value.find(item => item.day === index)
+        return dayData ? dayData.reservations : 0
+      })
+      const peopleData = weekDays.map((_, index) => {
+        const dayData = weeklyTrafficData.value.find(item => item.day === index)
+        return dayData ? dayData.people : 0
+      })
+      
       const option = {
         backgroundColor: 'transparent',
         grid: {
@@ -387,7 +480,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+          data: weekDays,
           axisLine: {
             lineStyle: {
               color: 'rgba(0, 212, 255, 0.5)'
@@ -438,7 +531,7 @@ export default {
             name: '预约数',
             type: 'line',
             yAxisIndex: 0,
-            data: [320, 280, 350, 420, 480, 380, 290],
+            data: reservationsData,
             areaStyle: {
               color: {
                 type: 'linear',
@@ -464,7 +557,7 @@ export default {
             name: '预约人次',
             type: 'line',
             yAxisIndex: 1,
-            data: [485, 425, 528, 635, 725, 575, 438],
+            data: peopleData,
             lineStyle: {
               color: '#00ff88',
               width: 3,
@@ -507,6 +600,17 @@ export default {
       if (!chartDom) return
       
       monthChart = echarts.init(chartDom)
+      updateMonthChart()
+    }
+    
+    // 更新本月图表数据
+    const updateMonthChart = () => {
+      if (!monthChart || !monthlyTrafficData.value.length) return
+      
+      const periods = monthlyTrafficData.value.map(item => item.period)
+      const reservationsData = monthlyTrafficData.value.map(item => item.reservations)
+      const peopleData = monthlyTrafficData.value.map(item => item.people)
+      
       const option = {
         backgroundColor: 'transparent',
         grid: {
@@ -517,7 +621,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: ['1日', '5日', '10日', '15日', '20日', '25日', '30日'],
+          data: periods,
           axisLine: {
             lineStyle: {
               color: 'rgba(0, 212, 255, 0.5)'
@@ -568,7 +672,7 @@ export default {
             name: '预约数',
             type: 'line',
             yAxisIndex: 0,
-            data: [1250, 1380, 1520, 1680, 1850, 1920, 2100],
+            data: reservationsData,
             areaStyle: {
               color: {
                 type: 'linear',
@@ -594,7 +698,7 @@ export default {
             name: '预约人次',
             type: 'line',
             yAxisIndex: 1,
-            data: [1890, 2085, 2295, 2535, 2795, 2900, 3175],
+            data: peopleData,
             lineStyle: {
               color: '#00ff88',
               width: 3,
@@ -631,12 +735,21 @@ export default {
       monthChart.setOption(option)
     }
 
-    onMounted(() => {
+    onMounted(async () => {
       // 初始化时间显示
       updateDateTime()
       dateTimeInterval = setInterval(updateDateTime, 1000)
       
-      // 延迟初始化图表，确保DOM已渲染
+      // 加载数据
+      await Promise.all([
+        loadDashboardStats(),
+        loadTodayReservations(),
+        loadApplicationsStats(),
+        loadAnnouncements(),
+        loadTrafficData()
+      ])
+      
+      // 延迟初始化图表，确保DOM已渲染和数据已加载
       setTimeout(() => {
         initTodayChart()
         initWeekChart()
@@ -661,9 +774,40 @@ export default {
       }
     })
 
+    // 辅助函数
+    const getAnnouncementPriority = (title) => {
+      if (title.includes('重要') || title.includes('紧急') || title.includes('通知')) {
+        return 'high-priority'
+      }
+      return 'normal-priority'
+    }
+    
+    const formatAnnouncementDate = (dateString) => {
+      if (!dateString) return '-'
+      const date = new Date(dateString)
+      return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).replace(/\//g, '/')
+    }
+    
+    const truncateContent = (content, maxLength) => {
+      if (!content) return ''
+      if (content.length <= maxLength) return content
+      return content.substring(0, maxLength) + '...'
+    }
+
     return {
       currentDate,
       currentTime,
+      dashboardStats,
+      todayReservations,
+      applicationsStats,
+      announcements,
+      getAnnouncementPriority,
+      formatAnnouncementDate,
+      truncateContent,
       goBack
     }
   }
@@ -894,37 +1038,36 @@ body {
 }
 
 .horizontal-line {
-    position: absolute;
-    top: 38px;
-    left: 20%;
-    width: 60%;
-    height: 2px;
-    background: linear-gradient(90deg, rgba(0, 212, 255, 0.6) 0%, #00d4ff 50%, rgba(0, 212, 255, 0.6) 100%);
-    box-shadow: 0 0 5px rgba(0, 212, 255, 0.8);
+  position: absolute;
+  top: 38px;
+  left: 30%;
+  width: 40%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0, 212, 255, 0.6) 0%, #00d4ff 50%, rgba(0, 212, 255, 0.6) 100%);
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.8);
 }
 
 .branch-line {
-    position: absolute;
-    top: 40px;
-    width: 2px;
-    height: 30px;
-    background: linear-gradient(180deg, #00d4ff 0%, rgba(0, 212, 255, 0.6) 100%);
-    box-shadow: 0 0 5px rgba(0, 212, 255, 0.8);
+  position: absolute;
+  top: 40px;
+  width: 2px;
+  height: 30px;
+  background: linear-gradient(180deg, #00d4ff 0%, rgba(0, 212, 255, 0.6) 100%);
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.8);
 }
 
 .branch-left {
-    left: 20%;
-    transform: translateX(-50%);
+  left: 30%;
+  transform: translateX(-50%);
 }
 
 .branch-center {
-    left: 50%;
-    transform: translateX(-50%);
+  display: none;
 }
 
 .branch-right {
-    left: 80%;
-    transform: translateX(-50%);
+  left: 70%;
+  transform: translateX(-50%);
 }
 
 .tree-children {

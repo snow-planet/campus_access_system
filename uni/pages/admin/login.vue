@@ -57,9 +57,15 @@
 					</view>
 
 					<view class="wechat-tip">
-						<button class="wechat-title">微信验证</button>
-						<text class="wechat-desc">请完成微信授权并关注公众号便于接收通知</text>
-					</view>
+				<view v-if="!isWechatLoggedIn" class="wechat-auth">
+					<button class="wechat-auth-btn" @tap="handleWechatAuth">微信授权登录</button>
+					<text class="wechat-desc">请完成微信授权并关注公众号便于接收通知</text>
+				</view>
+				<view v-else class="wechat-success">
+					<text class="wechat-title">✓ 已完成微信授权</text>
+					<text class="wechat-desc">可以提交申请了</text>
+				</view>
+			</view>
 					
 					<view class="input-group">
 						<text class="input-label">学院/部门</text>
@@ -73,7 +79,7 @@
 								<text :class="['select-text', applicationForm.college ? '' : 'placeholder']">
 									{{ applicationForm.college || '请选择学院/部门' }}
 								</text>
-								<uni-icons type="arrowdown" size="16" color="#999"></uni-icons>
+								<text style="color: #999; font-size: 16px;">▼</text>
 							</view>
 						</picker>
 					</view>
@@ -82,15 +88,15 @@
 						<text class="input-label">职位</text>
 						<picker 
 							mode="selector" 
-							:range="positionOptions" 
+							:range="positionLabels" 
 							@change="onPositionChange"
 							class="form-select"
 						>
 							<view class="picker-content">
 								<text :class="['select-text', applicationForm.position ? '' : 'placeholder']">
-									{{ applicationForm.position || '请选择您的职位' }}
+									{{ getPositionLabel(applicationForm.position) || '请选择您的职位' }}
 								</text>
-								<uni-icons type="arrowdown" size="16" color="#999"></uni-icons>
+								<text style="color: #999; font-size: 16px;">▼</text>
 							</view>
 						</picker>
 					</view>
@@ -106,6 +112,9 @@
 </template>
 
 <script>
+import { adminLogin, submitApproverApplication } from '../../api/uniAuth.js'
+import { wechatLogin } from '../../api/uniWechatAuth.js'
+
 export default {
 	data() {
 		return {
@@ -114,26 +123,27 @@ export default {
 			showApplicationModal: false,
 			positionIndex: 0,
 			collegeIndex: 0,
-			positionOptions: ['教师', '安保人员'],
+			positionOptions: ['teacher', 'security'],
+			positionLabels: ['教师', '安保人员'],
 			collegeOptions: [
-				'计算机学院', 
-				'电子工程学院', 
-				'机械工程学院', 
-				'理学院', 
-				'文学院', 
-				'保卫处',
+				'信息技术学院',
+				'治安学院',
+				'交通管理学院',
+				'保卫处'
 			],
 			applicationForm: {
 				real_name: '',
 				phone: '',
 				college: '',
 				position: ''
-			}
+			},
+			isWechatLoggedIn: false,
+			currentUserId: null
 		}
 	},
 	methods: {
 		// 处理登录
-		handleLogin() {
+		async handleLogin() {
 			if (!this.username || !this.password) {
 				uni.showToast({
 					title: '请输入用户名和密码',
@@ -142,49 +152,66 @@ export default {
 				return
 			}
 			
-			// 登录验证和页面跳转
-			if (this.username === 'approver' && this.password === '123456') {
-				// 审批员登录，跳转到审批页面
-				uni.setStorageSync('currentUser', {
-					username: 'approver',
-					role: '审批员',
-					name: '审批员'
+			try {
+				const res = await adminLogin({
+					username: this.username,
+					password: this.password
 				})
-				uni.showToast({
-					title: '审批员登录成功',
-					icon: 'success'
-				})
-				setTimeout(() => {
-					uni.navigateTo({
-						url: '/pages/admin/home'
+				
+				if (res && res.code === 0) {
+					// 登录成功，保存用户信息
+					const userData = res.data
+					uni.setStorageSync('currentUser', {
+						user_id: userData.user_id,
+						username: userData.username,
+						real_name: userData.real_name,
+						role: userData.role,
+						college: userData.college,
+						position: userData.position,
+						token: userData.token
 					})
-				}, 1000)
-			} else if (this.username === 'admin' && this.password === '123456') {
-				// 超级管理员登录，跳转到管理员主页
-				uni.setStorageSync('currentUser', {
-					username: 'admin',
-					role: '超级管理员',
-					name: '管理员'
-				})
-				uni.showToast({
-					title: '管理员登录成功',
-					icon: 'success'
-				})
-				setTimeout(() => {
-					uni.navigateTo({
-						url: '/pages/admin/adminhome'
+					
+					uni.showToast({
+						title: '登录成功',
+						icon: 'success'
 					})
-				}, 1000)
-			} else {
+					
+					// 根据角色跳转到不同页面
+					setTimeout(() => {
+						if (userData.role === 'approver') {
+							uni.navigateTo({
+								url: '/pages/admin/home'
+							})
+						} else if (userData.role === 'admin') {
+							uni.navigateTo({
+								url: '/pages/admin/adminhome'
+							})
+						} else {
+							uni.showToast({
+								title: '权限不足',
+								icon: 'none'
+							})
+						}
+					}, 1000)
+				} else {
+					uni.showToast({
+						title: res.message || '登录失败',
+						icon: 'none'
+					})
+				}
+			} catch (error) {
+				console.error('登录失败:', error)
 				uni.showToast({
-					title: '用户名或密码错误',
+					title: '登录失败，请重试',
 					icon: 'none'
 				})
 			}
 		},
 		// 返回首页
 		goBack() {
-			uni.navigateBack()
+			uni.reLaunch({
+				url: '/pages/index/index'
+			})
 		},
 		// 显示申请表单
 		showSignIn() {
@@ -206,8 +233,71 @@ export default {
 			this.positionIndex = index;
 			this.applicationForm.position = this.positionOptions[index];
 		},
+		
+		// 获取职位中文标签
+		getPositionLabel(position) {
+			const index = this.positionOptions.indexOf(position);
+			return index >= 0 ? this.positionLabels[index] : '';
+			},
+			
+			// 微信授权登录
+			handleWechatAuth() {
+				// #ifdef MP-WEIXIN
+				uni.login({
+					provider: 'weixin',
+					success: async (loginRes) => {
+						try {
+							const code = loginRes?.code
+							if (!code) throw new Error('未获取到微信code')
+							
+							const payload = {
+								code,
+								username: '申请用户',
+								phone: this.applicationForm.phone || '未填写',
+								real_name: this.applicationForm.real_name || '申请用户'
+							}
+							
+							const res = await wechatLogin(payload)
+							const body = res?.data || res
+							const user = body?.data || body
+							const userId = user?.user_id
+							
+							if (!userId) throw new Error('登录返回数据异常')
+							
+							this.isWechatLoggedIn = true
+							this.currentUserId = userId
+							
+							uni.showToast({ title: '微信授权成功', icon: 'success' })
+						} catch (err) {
+							console.error('微信授权失败:', err)
+							uni.showToast({ title: '授权失败，请重试', icon: 'none' })
+						}
+					},
+					fail: () => {
+						uni.showToast({ title: '授权失败', icon: 'none' })
+					}
+				})
+				// #endif
+				
+				// #ifndef MP-WEIXIN
+				uni.showToast({ title: '请在微信小程序中使用授权', icon: 'none' })
+				// #endif
+			},
+			
+			// 检查登录状态
+			checkLoginStatus() {
+				try {
+					const uid = uni.getStorageSync('user_id')
+					if (uid) {
+						this.isWechatLoggedIn = true
+						this.currentUserId = uid
+					}
+				} catch(e) {
+					console.error('检查登录状态失败:', e)
+				}
+			},
 		// 提交申请
-		submitApplication() {
+		async submitApplication() {
 			if (!this.applicationForm.real_name || !this.applicationForm.phone || 
 				!this.applicationForm.college || !this.applicationForm.position) {
 				uni.showToast({
@@ -227,31 +317,60 @@ export default {
 				return;
 			}
 			
-			uni.showLoading({
-				title: '提交中...'
-			});
-			
-			// 模拟提交
-			setTimeout(() => {
-				uni.hideLoading();
+			// 检查是否已微信登录
+			if (!this.isWechatLoggedIn || !this.currentUserId) {
 				uni.showToast({
-					title: '申请提交成功',
-					icon: 'success'
+					title: '请先完成微信授权',
+					icon: 'none'
+				});
+				return;
+			}
+			
+			try {
+				const res = await submitApproverApplication({
+					user_id: this.currentUserId,
+					real_name: this.applicationForm.real_name,
+					phone: this.applicationForm.phone,
+					college: this.applicationForm.college,
+					position: this.applicationForm.position
 				});
 				
-				// 关闭表单
-				this.closeModal();
-				
-				// 重置表单
-				this.applicationForm = {
-					real_name: '',
-					phone: '',
-					college: '',
-					position: ''
-				};
-				this.positionIndex = 0;
-				this.collegeIndex = 0;
-			}, 1500);
+				if (res && res.code === 0) {
+					uni.showToast({
+						title: '申请提交成功',
+						icon: 'success'
+					});
+					
+					// 关闭表单
+					this.closeModal();
+					
+					// 重置表单
+					this.applicationForm = {
+						real_name: '',
+						phone: '',
+						college: '',
+						position: ''
+					};
+					this.positionIndex = 0;
+					this.collegeIndex = 0;
+				} else {
+					uni.showToast({
+						title: res.message || '申请提交失败',
+						icon: 'none'
+					});
+				}
+			} catch (error) {
+				console.error('提交申请失败:', error);
+				uni.showToast({
+					title: '申请提交失败，请重试',
+					icon: 'none'
+				});
+			}
+		},
+		
+		// 页面生命周期
+		onLoad() {
+			this.checkLoginStatus();
 		}
 	}
 }
@@ -479,17 +598,47 @@ export default {
 	border-left: 4rpx solid #1c4e80;
 }
 
+.wechat-auth {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10rpx;
+}
+
+.wechat-auth-btn {
+	background: #07c160;
+	color: white;
+	border: none;
+	padding: 15rpx 30rpx;
+	border-radius: 12rpx;
+	font-size: 28rpx;
+	font-weight: 500;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.wechat-auth-btn:active {
+	background: #06ae56;
+}
+
+.wechat-success {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8rpx;
+}
+
 .wechat-title {
 	font-size: 28rpx;
 	font-weight: bold;
-	color: #1c4e80;
+	color: #07c160;
 	display: block;
-	margin-bottom: 8rpx;
 }
 
 .wechat-desc {
 	font-size: 24rpx;
 	color: #666;
 	display: block;
+	text-align: center;
 }
 </style>

@@ -1,13 +1,15 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const api_uniApproval = require("../../api/uniApproval.js");
 const _sfc_main = {
   setup() {
-    const rejectPopup = common_vendor.ref(null);
+    const showRejectModal = common_vendor.ref(false);
     common_vendor.index.$router;
     const userInfo = common_vendor.ref({
-      name: "张老师",
+      name: "加载中...",
       role: "审批管理员"
     });
+    const currentUserId = common_vendor.ref(null);
     const typeOptions = common_vendor.ref([
       { value: "all", label: "全部类型" },
       { value: "personal", label: "个人申请" },
@@ -21,12 +23,13 @@ const _sfc_main = {
     ]);
     const filter = common_vendor.ref({
       type: "all",
-      status: "all"
+      status: "pending"
     });
     const currentPage = common_vendor.ref(1);
-    const pageSize = 5;
-    const totalItems = common_vendor.ref(15);
+    const pageSize = 10;
+    const totalItems = common_vendor.ref(0);
     const applications = common_vendor.ref([]);
+    const loading = common_vendor.ref(false);
     const rejectReason = common_vendor.ref("");
     const currentApplication = common_vendor.ref(null);
     const totalPages = common_vendor.computed(() => Math.ceil(totalItems.value / pageSize));
@@ -44,88 +47,62 @@ const _sfc_main = {
     const onStatusChange = (e) => {
       filter.value.status = statusOptions.value[e.detail.value].value;
     };
-    const loadApplications = () => {
-      applications.value = [
-        {
-          id: 1,
-          applicantName: "张三",
-          type: "personal",
-          status: "pending",
-          applyTime: "2023-10-15 09:30",
-          accessTime: "2023-10-16 14:00-16:00",
-          reason: "参加学术讲座",
-          reviewer: "",
-          reviewTime: "",
-          rejectReason: ""
-        },
-        {
-          id: 2,
-          applicantName: "李四",
-          type: "personal",
-          status: "approved",
-          applyTime: "2023-10-14 15:20",
-          accessTime: "2023-10-17 09:00-12:00",
-          reason: "办理学生事务",
-          reviewer: "王老师",
-          reviewTime: "2023-10-14 16:45",
-          rejectReason: ""
-        },
-        {
-          id: 3,
-          applicantName: "计算机科学协会",
-          type: "group",
-          status: "pending",
-          applyTime: "2023-10-15 11:05",
-          accessTime: "2023-10-18 13:00-17:00",
-          reason: "举办技术沙龙活动",
-          groupSize: 25,
-          reviewer: "",
-          reviewTime: "",
-          rejectReason: ""
-        },
-        {
-          id: 4,
-          applicantName: "王五",
-          type: "personal",
-          status: "rejected",
-          applyTime: "2023-10-13 16:40",
-          accessTime: "2023-10-16 19:00-21:00",
-          reason: "自习",
-          reviewer: "李老师",
-          reviewTime: "2023-10-14 09:15",
-          rejectReason: "非开放时间段，请选择白天时段"
-        },
-        {
-          id: 5,
-          applicantName: "外语学院",
-          type: "group",
-          status: "pending",
-          applyTime: "2023-10-15 14:20",
-          accessTime: "2023-10-19 08:30-11:30",
-          reason: "举办外语角活动",
-          groupSize: 30,
-          reviewer: "",
-          reviewTime: "",
-          rejectReason: ""
+    const loadApplications = async () => {
+      if (!currentUserId.value) {
+        console.error("用户ID未获取");
+        return;
+      }
+      try {
+        loading.value = true;
+        const params = {
+          approver_id: currentUserId.value,
+          type: filter.value.type,
+          status: filter.value.status,
+          page: currentPage.value,
+          pageSize
+        };
+        const res = await api_uniApproval.getApprovalList(params);
+        if (res && res.code === 0) {
+          applications.value = res.data.list || [];
+          totalItems.value = res.data.total || 0;
+          applications.value.forEach((app) => {
+            if (app.applyTime) {
+              app.applyTime = formatDateTime(app.applyTime);
+            }
+            if (app.reviewTime) {
+              app.reviewTime = formatDateTime(app.reviewTime);
+            }
+          });
+        } else {
+          console.error("获取审批列表失败:", res.message);
+          common_vendor.index.showToast({
+            title: res.message || "获取数据失败",
+            icon: "none"
+          });
         }
-      ].filter((app) => {
-        if (filter.value.type !== "all" && app.type !== filter.value.type)
-          return false;
-        if (filter.value.status !== "all" && app.status !== filter.value.status)
-          return false;
-        return true;
-      });
+      } catch (error) {
+        console.error("加载申请数据失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误，请重试",
+          icon: "none"
+        });
+      } finally {
+        loading.value = false;
+      }
     };
     const showRejectDialog = (app) => {
       currentApplication.value = app;
       rejectReason.value = "";
-      rejectPopup.value.open();
+      showRejectModal.value = true;
     };
     const closeRejectDialog = () => {
-      rejectPopup.value.close();
+      showRejectModal.value = false;
       currentApplication.value = null;
     };
-    const confirmReject = (reason) => {
+    const handleConfirmReject = () => {
+      confirmReject(rejectReason.value);
+    };
+    const confirmReject = async (reason) => {
       if (!reason.trim()) {
         common_vendor.index.showToast({
           title: "请填写驳回原因",
@@ -133,35 +110,70 @@ const _sfc_main = {
         });
         return;
       }
-      const index = applications.value.findIndex((item) => item.id === currentApplication.value.id);
-      if (index !== -1) {
-        applications.value[index].status = "rejected";
-        applications.value[index].reviewer = userInfo.value.name;
-        applications.value[index].reviewTime = (/* @__PURE__ */ new Date()).toLocaleString();
-        applications.value[index].rejectReason = reason;
+      try {
+        const data = {
+          reservation_id: currentApplication.value.id,
+          reservation_type: currentApplication.value.type === "personal" ? "individual" : "group",
+          action: "reject",
+          approver_id: currentUserId.value,
+          comments: reason
+        };
+        const res = await api_uniApproval.approvalAction(data);
+        if (res && res.code === 0) {
+          closeRejectDialog();
+          common_vendor.index.showToast({
+            title: "已驳回该申请",
+            icon: "success"
+          });
+          loadApplications();
+        } else {
+          common_vendor.index.showToast({
+            title: res.message || "操作失败",
+            icon: "none"
+          });
+        }
+      } catch (error) {
+        console.error("驳回操作失败:", error);
+        common_vendor.index.showToast({
+          title: "网络错误，请重试",
+          icon: "none"
+        });
       }
-      closeRejectDialog();
-      common_vendor.index.showToast({
-        title: "已驳回该申请",
-        icon: "success"
-      });
     };
     const approveApplication = (app) => {
       common_vendor.index.showModal({
         title: "确认通过",
         content: "确定要通过该申请吗？",
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            const index = applications.value.findIndex((item) => item.id === app.id);
-            if (index !== -1) {
-              applications.value[index].status = "approved";
-              applications.value[index].reviewer = userInfo.value.name;
-              applications.value[index].reviewTime = (/* @__PURE__ */ new Date()).toLocaleString();
+            try {
+              const data = {
+                reservation_id: app.id,
+                reservation_type: app.type === "personal" ? "individual" : "group",
+                action: "approve",
+                approver_id: currentUserId.value,
+                comments: "审批通过"
+              };
+              const result = await api_uniApproval.approvalAction(data);
+              if (result && result.code === 0) {
+                common_vendor.index.showToast({
+                  title: "已通过该申请",
+                  icon: "success"
+                });
+                loadApplications();
+              } else {
+                common_vendor.index.showToast({
+                  title: result.message || "操作失败",
+                  icon: "none"
+                });
+              }
+            } catch (error) {
+              console.error("通过操作失败:", error);
+              common_vendor.index.showToast({
+                title: "网络错误，请重试",
+                icon: "none"
+              });
             }
-            common_vendor.index.showToast({
-              title: "已通过该申请",
-              icon: "success"
-            });
           }
         }
       });
@@ -178,8 +190,53 @@ const _sfc_main = {
         loadApplications();
       }
     };
-    common_vendor.onMounted(() => {
-      loadApplications();
+    const formatDateTime = (dateTime) => {
+      if (!dateTime)
+        return "";
+      const date = new Date(dateTime);
+      return date.toLocaleString("zh-CN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    };
+    const getCurrentUserInfo = async () => {
+      try {
+        const currentUser = common_vendor.index.getStorageSync("currentUser");
+        if (currentUser && currentUser.user_id) {
+          currentUserId.value = currentUser.user_id;
+          const res = await api_uniApproval.getApproverInfo(currentUser.user_id);
+          if (res && res.code === 0) {
+            userInfo.value = {
+              name: res.data.name,
+              role: res.data.role
+            };
+          } else {
+            userInfo.value = {
+              name: currentUser.real_name || currentUser.username,
+              role: currentUser.role === "admin" ? "超级管理员" : "审批管理员"
+            };
+          }
+        } else {
+          common_vendor.index.reLaunch({
+            url: "/pages/admin/login"
+          });
+        }
+      } catch (error) {
+        console.error("获取用户信息失败:", error);
+        userInfo.value = {
+          name: "审批员",
+          role: "审批管理员"
+        };
+      }
+    };
+    common_vendor.onMounted(async () => {
+      await getCurrentUserInfo();
+      if (currentUserId.value) {
+        loadApplications();
+      }
     });
     const logout = () => {
       common_vendor.index.removeStorageSync("currentUser");
@@ -188,7 +245,7 @@ const _sfc_main = {
       });
     };
     return {
-      rejectPopup,
+      showRejectModal,
       userInfo,
       filter,
       typeOptions,
@@ -197,6 +254,7 @@ const _sfc_main = {
       applications,
       rejectReason,
       totalPages,
+      loading,
       getStatusText,
       onTypeChange,
       onStatusChange,
@@ -204,6 +262,7 @@ const _sfc_main = {
       showRejectDialog,
       closeRejectDialog,
       confirmReject,
+      handleConfirmReject,
       approveApplication,
       prevPage,
       nextPage,
@@ -211,41 +270,24 @@ const _sfc_main = {
     };
   }
 };
-if (!Array) {
-  const _component_uni_icons = common_vendor.resolveComponent("uni-icons");
-  const _component_uni_popup_dialog = common_vendor.resolveComponent("uni-popup-dialog");
-  const _component_uni_popup = common_vendor.resolveComponent("uni-popup");
-  (_component_uni_icons + _component_uni_popup_dialog + _component_uni_popup)();
-}
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   var _a, _b;
   return common_vendor.e({
     a: common_vendor.t($setup.userInfo.name),
     b: common_vendor.t($setup.userInfo.role),
-    c: common_vendor.p({
-      type: "close",
-      size: "16",
-      color: "#666"
-    }),
-    d: common_vendor.o((...args) => $setup.logout && $setup.logout(...args)),
-    e: common_vendor.t(((_a = $setup.typeOptions.find((opt) => opt.value === $setup.filter.type)) == null ? void 0 : _a.label) || "全部类型"),
-    f: common_vendor.o((...args) => $setup.onTypeChange && $setup.onTypeChange(...args)),
-    g: $setup.filter.type,
-    h: $setup.typeOptions,
-    i: common_vendor.t(((_b = $setup.statusOptions.find((opt) => opt.value === $setup.filter.status)) == null ? void 0 : _b.label) || "全部状态"),
-    j: common_vendor.o((...args) => $setup.onStatusChange && $setup.onStatusChange(...args)),
-    k: $setup.filter.status,
-    l: $setup.statusOptions,
-    m: common_vendor.o((...args) => $setup.loadApplications && $setup.loadApplications(...args)),
-    n: $setup.applications.length === 0
-  }, $setup.applications.length === 0 ? {
-    o: common_vendor.p({
-      type: "search",
-      size: "48",
-      color: "#ccc"
-    })
-  } : {
-    p: common_vendor.f($setup.applications, (app, k0, i0) => {
+    c: common_vendor.o((...args) => $setup.logout && $setup.logout(...args)),
+    d: common_vendor.t(((_a = $setup.typeOptions.find((opt) => opt.value === $setup.filter.type)) == null ? void 0 : _a.label) || "全部类型"),
+    e: common_vendor.o((...args) => $setup.onTypeChange && $setup.onTypeChange(...args)),
+    f: $setup.filter.type,
+    g: $setup.typeOptions,
+    h: common_vendor.t(((_b = $setup.statusOptions.find((opt) => opt.value === $setup.filter.status)) == null ? void 0 : _b.label) || "全部状态"),
+    i: common_vendor.o((...args) => $setup.onStatusChange && $setup.onStatusChange(...args)),
+    j: $setup.filter.status,
+    k: $setup.statusOptions,
+    l: common_vendor.o((...args) => $setup.loadApplications && $setup.loadApplications(...args)),
+    m: $setup.applications.length === 0
+  }, $setup.applications.length === 0 ? {} : {
+    n: common_vendor.f($setup.applications, (app, k0, i0) => {
       return common_vendor.e({
         a: common_vendor.t(app.applicantName),
         b: common_vendor.t($setup.getStatusText(app.status)),
@@ -275,29 +317,26 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       });
     })
   }, {
-    q: $setup.applications.length > 0
+    o: $setup.applications.length > 0
   }, $setup.applications.length > 0 ? {
-    r: $setup.currentPage === 1,
-    s: common_vendor.o((...args) => $setup.prevPage && $setup.prevPage(...args)),
-    t: common_vendor.t($setup.currentPage),
-    v: common_vendor.t($setup.totalPages),
-    w: $setup.currentPage === $setup.totalPages,
-    x: common_vendor.o((...args) => $setup.nextPage && $setup.nextPage(...args))
+    p: $setup.currentPage === 1,
+    q: common_vendor.o((...args) => $setup.prevPage && $setup.prevPage(...args)),
+    r: common_vendor.t($setup.currentPage),
+    s: common_vendor.t($setup.totalPages),
+    t: $setup.currentPage === $setup.totalPages,
+    v: common_vendor.o((...args) => $setup.nextPage && $setup.nextPage(...args))
   } : {}, {
-    y: common_vendor.o($setup.confirmReject),
-    z: common_vendor.o($setup.closeRejectDialog),
-    A: common_vendor.p({
-      type: "info",
-      mode: "input",
-      title: "驳回申请",
-      placeholder: "请输入驳回原因",
-      value: $setup.rejectReason
+    w: $setup.showRejectModal
+  }, $setup.showRejectModal ? {
+    x: common_vendor.o((...args) => $setup.closeRejectDialog && $setup.closeRejectDialog(...args)),
+    y: $setup.rejectReason,
+    z: common_vendor.o(($event) => $setup.rejectReason = $event.detail.value),
+    A: common_vendor.o((...args) => $setup.closeRejectDialog && $setup.closeRejectDialog(...args)),
+    B: common_vendor.o((...args) => $setup.handleConfirmReject && $setup.handleConfirmReject(...args)),
+    C: common_vendor.o(() => {
     }),
-    B: common_vendor.sr("rejectPopup", "b5384573-2"),
-    C: common_vendor.p({
-      type: "dialog"
-    })
-  });
+    D: common_vendor.o((...args) => $setup.closeRejectDialog && $setup.closeRejectDialog(...args))
+  } : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-b5384573"]]);
 wx.createPage(MiniProgramPage);
