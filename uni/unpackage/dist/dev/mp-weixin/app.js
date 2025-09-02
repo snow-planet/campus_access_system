@@ -13,6 +13,7 @@ if (!Math) {
   "./pages/admin/mgr.js";
   "./pages/admin/not.js";
   "./pages/admin/screen.js";
+  "./pages/test/wechat-auth.js";
 }
 const _sfc_main = {
   onLaunch: function() {

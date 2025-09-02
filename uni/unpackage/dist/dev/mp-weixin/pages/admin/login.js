@@ -2,6 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const api_uniAuth = require("../../api/uniAuth.js");
 const api_uniWechatAuth = require("../../api/uniWechatAuth.js");
+const utils_wechatAuthFallback = require("../../utils/wechatAuthFallback.js");
 const _sfc_main = {
   data() {
     return {
@@ -120,38 +121,87 @@ const _sfc_main = {
       return index >= 0 ? this.positionLabels[index] : "";
     },
     // 微信授权登录
-    handleWechatAuth() {
-      common_vendor.index.login({
-        provider: "weixin",
-        success: async (loginRes) => {
-          try {
-            const code = loginRes == null ? void 0 : loginRes.code;
-            if (!code)
-              throw new Error("未获取到微信code");
-            const payload = {
-              code,
-              username: "申请用户",
-              phone: this.applicationForm.phone || "未填写",
-              real_name: this.applicationForm.real_name || "申请用户"
-            };
-            const res = await api_uniWechatAuth.wechatLogin(payload);
-            const body = (res == null ? void 0 : res.data) || res;
-            const user = (body == null ? void 0 : body.data) || body;
-            const userId = user == null ? void 0 : user.user_id;
-            if (!userId)
-              throw new Error("登录返回数据异常");
-            this.isWechatLoggedIn = true;
-            this.currentUserId = userId;
-            common_vendor.index.showToast({ title: "微信授权成功", icon: "success" });
-          } catch (err) {
-            console.error("微信授权失败:", err);
-            common_vendor.index.showToast({ title: "授权失败，请重试", icon: "none" });
-          }
-        },
-        fail: () => {
-          common_vendor.index.showToast({ title: "授权失败", icon: "none" });
+    async handleWechatAuth() {
+      common_vendor.index.showLoading({ title: "正在授权..." });
+      try {
+        const loginRes = await new Promise((resolve, reject) => {
+          common_vendor.index.login({
+            provider: "weixin",
+            success: resolve,
+            fail: reject
+          });
+        });
+        const code = loginRes == null ? void 0 : loginRes.code;
+        if (!code) {
+          throw new Error("未获取到微信授权码");
         }
-      });
+        let userInfo = null;
+        try {
+          userInfo = await utils_wechatAuthFallback.wechatAuthFallback.getUserInfo();
+        } catch (e) {
+          console.log("获取用户信息失败，使用默认信息:", e);
+        }
+        const payload = {
+          code,
+          username: (userInfo == null ? void 0 : userInfo.nickName) || this.applicationForm.real_name || "申请用户",
+          phone: this.applicationForm.phone || "未填写",
+          real_name: this.applicationForm.real_name || (userInfo == null ? void 0 : userInfo.nickName) || "申请用户",
+          avatar_url: (userInfo == null ? void 0 : userInfo.avatarUrl) || ""
+        };
+        const res = await api_uniWechatAuth.wechatLogin(payload);
+        const body = (res == null ? void 0 : res.data) || res;
+        if ((body == null ? void 0 : body.code) !== 0) {
+          throw new Error((body == null ? void 0 : body.message) || "登录失败");
+        }
+        const user = (body == null ? void 0 : body.data) || body;
+        const userId = user == null ? void 0 : user.user_id;
+        const openid = user == null ? void 0 : user.openid;
+        if (!userId) {
+          throw new Error("登录返回数据异常");
+        }
+        try {
+          common_vendor.index.setStorageSync("user_id", userId);
+          common_vendor.index.setStorageSync("openid", openid || "");
+          if (userInfo) {
+            common_vendor.index.setStorageSync("user_info", userInfo);
+          }
+        } catch (e) {
+          console.error("保存用户信息失败:", e);
+        }
+        this.isWechatLoggedIn = true;
+        this.currentUserId = userId;
+        common_vendor.index.showToast({
+          title: "微信授权成功",
+          icon: "success",
+          duration: 2e3
+        });
+      } catch (err) {
+        console.error("微信授权失败:", err);
+        const handled = await utils_wechatAuthFallback.wechatAuthFallback.handleAuthFailure(
+          err,
+          () => this.handleWechatAuth(),
+          this
+        );
+        if (!handled) {
+          let errorMsg = "授权失败，请重试";
+          if (err.message) {
+            if (err.message.includes("网络")) {
+              errorMsg = "网络连接异常，请检查网络";
+            } else if (err.message.includes("超时")) {
+              errorMsg = "授权超时，请重试";
+            } else {
+              errorMsg = err.message;
+            }
+          }
+          common_vendor.index.showToast({
+            title: errorMsg,
+            icon: "none",
+            duration: 3e3
+          });
+        }
+      } finally {
+        common_vendor.index.hideLoading();
+      }
     },
     // 检查登录状态
     checkLoginStatus() {

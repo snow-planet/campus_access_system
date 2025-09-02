@@ -154,10 +154,9 @@ router.get('/accounts', async (req, res) => {
       _status: 'OK',
       data: {
         accounts,
-        total: count,
         page: parseInt(page),
-        pageSize: limit,
-        totalPages: Math.ceil(count / limit)
+        page_size: limit,
+        total: count
       }
     })
   } catch (error) {
@@ -177,10 +176,9 @@ router.get('/applications', async (req, res) => {
         _status: 'OK',
         data: {
           applications: [],
-          total: 0,
           page: 1,
-          pageSize: 10,
-          totalPages: 0
+          page_size: 10,
+          total: 0
         }
       })
     }
@@ -223,10 +221,9 @@ router.get('/applications', async (req, res) => {
       _status: 'OK',
       data: {
         applications,
-        total: count,
         page: parseInt(page),
-        pageSize: limit,
-        totalPages: Math.ceil(count / limit)
+        page_size: limit,
+        total: count
       }
     })
   } catch (error) {

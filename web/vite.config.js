@@ -12,5 +12,21 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
-  }
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router'],
+          antd: ['@ant-design/icons-vue'],
+          charts: ['echarts']
+        }
+      }
+    }
+  },
+  base: '/'
 })

@@ -178,10 +178,9 @@ router.get('/list', async (req, res) => {
       _status: 'OK',
       data: {
         list: paginatedApplications,
-        total,
         page: parseInt(page),
-        pageSize: limit,
-        totalPages: Math.ceil(total / limit)
+        page_size: limit,
+        total
       }
     })
   } catch (error) {

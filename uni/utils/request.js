@@ -4,7 +4,7 @@
 // - 错误使用uni.showToast提示
 // - 基础地址可通过 setBaseURL 在运行时配置，默认指向本地开发后端
 
-let BASE_URL = uni.getStorageSync('API_BASE_URL') || 'http://127.0.0.1:3001'
+let BASE_URL = uni.getStorageSync('API_BASE_URL') || 'https://campus.gxwxit.top'
 
 export const setBaseURL = (url) => {
   if (url && typeof url === 'string') {

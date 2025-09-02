@@ -181,7 +181,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { createLoginQRCode, pollLoginStatus } from '../../api/webAuth'
-import { createWebGroupReservation } from '../../api/webGroupReservation'
+import { createWebGroupReservation } from '../../api/webGroupReservations'
 import { fetchNotice } from '../../api/webNotifications'
 import { request } from '../../utils/request'
 
@@ -350,7 +350,25 @@ const goQuery = () => {
 }
 
 const resetForm = () => {
-  router.push('/user')
+  // 重置表单数据
+  formData.value = {
+    purpose: '',
+    visitorCount: '',
+    contactName: '',
+    contactPhone: '',
+    visitDate: '',
+    entryTime: '',
+    exitTime: '',
+    gate: '北门',
+    carNumber: '',
+    approverId: '',
+    remark: ''
+  }
+  // 重置微信登录状态
+  isWechatLoggedIn.value = false
+  wechatOpenId.value = ''
+  qrUrl.value = ''
+  clearInterval(pollingTimer.value)
 }
 
 // 提交表单

@@ -113,13 +113,6 @@
               <td>
                 <div class="action-buttons">
                   <button 
-                    class="edit-btn" 
-                    @click="editAccount(account)"
-                    title="修改信息"
-                  >
-                    <EditOutlined /> 修改
-                  </button>
-                  <button 
                     class="delete-btn" 
                     @click="deleteAccountItem(account)"
                     title="删除账号"
@@ -530,13 +523,6 @@ const rejectApplication = async (application) => {
 const viewApplicationDetails = (application) => {
   console.log('查看申请详情:', application);
   alert(`查看申请详情：${application.application_id}`);
-};
-
-// 修改账号信息
-const editAccount = (account) => {
-  console.log('修改账号信息:', account);
-  alert(`修改账号信息：${account.real_name}`);
-  // TODO: 实现账号编辑功能
 };
 
 // 删除账号

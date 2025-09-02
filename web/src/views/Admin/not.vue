@@ -173,8 +173,9 @@ export default {
     // 保存公告
     const saveAnnouncement = async () => {
       try {
-        // 获取当前用户ID（这里需要从存储中获取）
-        const publisherId = localStorage.getItem('user_id') || 1
+        // 获取当前用户ID
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+        const publisherId = currentUser.user_id || 1
         
         const payload = {
           title: currentAnnouncement.value.title,
@@ -219,7 +220,8 @@ export default {
     const saveNotice = async () => {
       try {
         // 获取当前用户ID
-        const publisherId = localStorage.getItem('user_id') || 1
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+        const publisherId = currentUser.user_id || 1
         
         const noticeType = activeNoticeTab.value === 'individual' ? 'individual_notice' : 'group_notice'
         const title = activeNoticeTab.value === 'individual' ? '个人预约入校须知' : '团队预约入校须知'

@@ -172,8 +172,8 @@ const loadAnnouncements = async () => {
   try {
     loading.value = true
     const res = await fetchHomepageAnnouncements()
-    if (res && res.code === 0 && Array.isArray(res.data)) {
-      announcements.value = res.data
+    if (res && res._status === 'OK' && res.data && Array.isArray(res.data.announcements)) {
+      announcements.value = res.data.announcements
       currentPage.value = 1
     } else {
       announcements.value = []

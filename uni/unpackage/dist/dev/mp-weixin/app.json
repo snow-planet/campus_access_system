@@ -10,13 +10,20 @@
     "pages/admin/aud",
     "pages/admin/mgr",
     "pages/admin/not",
-    "pages/admin/screen"
+    "pages/admin/screen",
+    "pages/test/wechat-auth"
   ],
   "window": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "校园出入预约系统",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
+  },
+  "requiredPrivateInfos": [],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于获取位置信息"
+    }
   },
   "usingComponents": {}
 }

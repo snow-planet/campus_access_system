@@ -18,6 +18,7 @@ import webAuditRouter from './routes/web/webAudit.js'
 import webManagerRouter from './routes/web/webManager.js'
 import webNotificationsRouter from './routes/web/webNotifications.js'
 import webDashboardRouter from './routes/web/webDashboard.js'
+import webReservationsRouter from './routes/web/webReservations.js'
 
 dotenv.config()
 
@@ -46,6 +47,9 @@ app.use('/api/web/auth', webAuthRouter)
 app.use('/api/web/manager', webManagerRouter)
 app.use('/api/web/notifications', webNotificationsRouter)
 app.use('/api/web/dashboard', webDashboardRouter)
+app.use('/api/web/individual-reservations', webReservationsRouter)
+app.use('/api/web/group-reservations', webReservationsRouter)
+app.use('/api/users', webReservationsRouter)
 
 const PORT = process.env.PORT || 3001
 

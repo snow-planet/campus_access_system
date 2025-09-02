@@ -210,6 +210,7 @@ import { wechatLogin } from '../../api/uniWechatAuth.js'
 import { fetchApprovers } from '../../api/uniUsers.js'
 import { createGroupReservation } from '../../api/uniGroupReservations.js'
 import { fetchNotice } from '../../api/uniNotifications.js'
+import { wechatAuthFallback } from '../../utils/wechatAuthFallback.js'
 
 export default {
 	data() {
@@ -342,17 +343,56 @@ export default {
 						this.isWechatLoggedIn = true
 						uni.showToast({ title: '授权成功', icon: 'success' })
 					} catch (err) {
-						uni.showToast({ title: '授权失败，请重试', icon: 'none' })
+						console.error('微信授权失败:', err);
+						
+						// 使用降级处理方案
+						const handled = await wechatAuthFallback.handleAuthFailure(
+							err, 
+							() => this.handleWechatAuth(), 
+							this
+						);
+						
+						// 如果降级处理没有处理，显示默认错误信息
+						if (!handled) {
+							uni.showToast({ title: '授权失败，请重试', icon: 'none' });
+						}
 					} finally {
 						this.authLoading = false
 						uni.hideLoading()
 					}
 				},
-				fail: () => {
-					this.authLoading = false
-					uni.hideLoading()
-					uni.showToast({ title: '授权失败', icon: 'none' })
+				fail: async (loginErr) => {
+				console.error('微信登录失败:', loginErr);
+				this.authLoading = false
+				uni.hideLoading()
+				
+				// 使用降级处理方案
+				const handled = await wechatAuthFallback.handleAuthFailure(
+					loginErr, 
+					() => this.handleWechatAuth(), 
+					this
+				);
+				
+				// 如果降级处理没有处理，显示默认错误信息
+				if (!handled) {
+					let errorMsg = '微信登录失败';
+					if (loginErr.errMsg) {
+						if (loginErr.errMsg.includes('cancel')) {
+							errorMsg = '用户取消授权';
+						} else if (loginErr.errMsg.includes('timeout')) {
+							errorMsg = '授权超时，请重试';
+						} else {
+							errorMsg = '授权失败：' + loginErr.errMsg;
+						}
+					}
+					
+					uni.showToast({ 
+						title: errorMsg, 
+						icon: 'none',
+						duration: 3000
+					});
 				}
+			}
 			})
 			// #endif
 

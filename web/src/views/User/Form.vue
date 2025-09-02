@@ -326,7 +326,26 @@ onMounted(() => {
 const goBack = () => router.push('/user')
 const goHome = () => router.push('/')
 const goQuery = () => router.push('/user/query')
-const resetForm = () => router.push('/user')
+const resetForm = () => {
+  // 重置表单数据
+  formData.value = {
+    purpose: '',
+    name: '',
+    phone: '',
+    visitDate: '',
+    entryTime: '',
+    exitTime: '',
+    gate: '北门',
+    carNumber: '',
+    approverId: '',
+    remark: ''
+  }
+  // 重置微信登录状态
+  isWechatLoggedIn.value = false
+  wechatOpenId.value = ''
+  qrUrl.value = ''
+  clearInterval(pollingTimer.value)
+}
 
 // 提交表单
 const submitForm = async () => {

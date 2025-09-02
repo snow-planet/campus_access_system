@@ -148,10 +148,9 @@ router.get('/reservations', async (req, res) => {
       _status: 'OK',
       data: {
         reservations: paginatedReservations,
-        total,
         page: parseInt(page),
-        pageSize: limit,
-        totalPages: Math.ceil(total / limit)
+        page_size: limit,
+        total
       }
     })
   } catch (error) {
